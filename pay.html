@@ -50,9 +50,12 @@
     <div class="footer">
       <div class="left_wrap">
         <div class="cash">实付：<span>￥{{typeIndex == 1 ? 199 : 99}}</span></div>
-        <div class="bottom">
+        <div class="bottom" @click="checkArgement">
           <div class="icon">
-            <van-icon name="checked" color="#FF4948" size="1rem" />
+            <div v-if="checked">
+              <van-icon name="checked" color="#FF4948" size="1rem"  />
+            </div>
+            <img class="cicle" src="./img/circle.png" alt="" v-else>
           </div>
           <p>请阅读并同意<span>《用户服务协议》</span></p>
         </div>
@@ -71,6 +74,7 @@
     data() {
       return {
         typeIndex: 1,
+        checked: true,
         showList: [{
             left: '无法展示完全自己的联系方式，访客无法联系到您。',
             right: '展示自己的联系方式，访客能<span>第一时间</span>联系到您。'
@@ -112,6 +116,9 @@
       //切换会员类型
       toggleType(type) {
         this.typeIndex = type
+      },
+      checkArgement() {
+        this.checked = !this.checked
       }
     }
   })

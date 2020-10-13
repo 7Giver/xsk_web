@@ -2,7 +2,24 @@ body {
   background-color: #f5f7f8;
 }
 
+@media screen and (max-width: 320px) {
+  body,
+  html {
+    font-size: 12px;
+  }
+}
+
+@media screen and (min-width: 321px) and (max-width: 400px) {
+  body,
+  html {
+    font-size: 16px;
+  }
+}
+
 #app {
+  min-width: 375px;
+  max-width: 750px;
+  margin: 0 auto;
   overflow-x: hidden;
 }
 
@@ -76,8 +93,8 @@ body {
 }
 
 #app .inner_wrap .on {
-  border-color: #E7C687;
-  background-color: #FDF4E9;
+  border-color: #e7c687;
+  background-color: #fdf4e9;
 }
 
 #app .member_title {
@@ -139,9 +156,9 @@ body {
 
 #app .content_wrap .item .left {
   position: absolute;
-  top: 2.6rem;
+  top: 30%;
   left: 1.6rem;
-  width: 7.9rem;
+  width: 33%;
   color: #4d4d4c;
   font-size: 0.81rem;
 }
@@ -153,9 +170,9 @@ body {
 
 #app .content_wrap .item .right {
   position: absolute;
-  top: 4.3rem;
-  right: 1.2rem;
-  width: 7.8rem;
+  top: 48%;
+  right: 6.5%;
+  width: 30%;
   color: #4d4d4c;
   font-size: 0.81rem;
   overflow: hidden;
@@ -170,6 +187,9 @@ body {
 }
 
 #app .footer {
+  min-width: 375px;
+  max-width: 750px;
+  overflow-x: hidden;
   position: fixed;
   bottom: 0;
   width: 100%;
@@ -203,9 +223,18 @@ body {
   font-size: 0.8rem;
 }
 
+#app .footer .left_wrap .bottom .icon {
+  margin-right: 0.4rem;
+}
+
 #app .footer .left_wrap .bottom .icon i {
   display: block;
-  margin-right: 0.4rem;
+}
+
+#app .footer .left_wrap .bottom .icon .cicle {
+  width: 1rem;
+  height: 1rem;
+  display: block;
 }
 
 #app .footer .left_wrap .bottom > p {
