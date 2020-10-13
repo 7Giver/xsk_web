@@ -12,8 +12,22 @@
 
 <body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <div class="notic_wrap">
+      <van-swipe class="my-swipe" :autoplay="4000" :show-indicators="false" :touchable="false" vertical>
+        <van-swipe-item v-for="(item, index) in noticList" :key="index">
+          <p>恭喜<span>{{item}}</span>完成会员激活</p>
+        </van-swipe-item>
+      </van-swipe>
+    </div>
     <div class="banner">
-      <img src="./img/pay_banner.png" alt="">
+      <img src="./img/pay_banner1.png" alt="">
+      <div class="content">
+        <div class="item" v-for="(item, index) in msgList" :key="index">
+          <p class="title">0{{index+1}}</p>
+          <p class="text" v-html="item"></p>
+          <img class="tips" src="./img/tips.png" alt="">
+        </div>
+      </div>
     </div>
     <div class="inner_wrap">
       <div :class="[typeIndex == 1 ? 'item on': 'item']" @click="toggleType(1)">
@@ -23,7 +37,10 @@
           <p>199</p>
         </div>
         <div class="orgin">原价￥498</div>
-        <div class="less_member" v-if="typeIndex == 1">当前名额仅剩<span>10</span>名</div>
+        <div class="less_member">
+          <p class="check" v-if="typeIndex == 1">当前名额仅剩<span>10</span>名</p>
+          <p v-else>99名额，售完即止</p>
+        </div>
       </div>
       <div :class="[typeIndex == 2 ? 'item on': 'item']" @click="toggleType(2)">
         <div class="title">3 个月会员特权</div>
@@ -32,35 +49,32 @@
           <p>99</p>
         </div>
         <div class="orgin">原价￥120</div>
-        <div class="less_member" v-if="typeIndex == 2">当前名额仅剩<span>10</span>名</div>
-      </div>
-    </div>
-    <div class="member_title">开通会员VIP尊享更多权益</div>
-    <div class="content_wrap">
-      <div class="item" v-for="(item, index) in showList" :key="index">
-        <img class="title" :src="'./img/pay_title'+(index+1)+'.png'" alt="">
-        <img class="pay_bg" src="./img/pay_bg.png" alt="">
-        <div class="left">
-          <p>普通用户</p>
-          <p>{{item.left}}</p>
+        <div class="less_member">
+          <p class="check" v-if="typeIndex == 2">当前名额仅剩<span>10</span>名</p>
+          <p v-else>99名额，售完即止</p>
         </div>
-        <div class="right" v-html="item.right"></div>
       </div>
     </div>
     <div class="footer">
-      <div class="left_wrap">
-        <div class="cash">实付：<span>￥{{typeIndex == 1 ? 199 : 99}}</span></div>
-        <div class="bottom" @click="checkArgement">
-          <div class="icon">
-            <div v-if="checked">
-              <van-icon name="checked" color="#FF4948" size="1rem"  />
-            </div>
-            <img class="cicle" src="./img/circle.png" alt="" v-else>
-          </div>
-          <p>请阅读并同意<span>《用户服务协议》</span></p>
-        </div>
+      <div class="timer_wrap" v-if="count">
+        <img src="./img/clock.png" alt="">
+        <p>激活优惠认证倒计时{{count}}</p>
       </div>
-      <div class="submit">立即支付</div>
+      <div class="submit_wrap">
+        <div class="left_wrap">
+          <div class="cash">实付：<span>￥{{typeIndex == 1 ? 199 : 99}}</span></div>
+          <div class="bottom" @click="checkArgement">
+            <div class="icon">
+              <div v-if="checked">
+                <van-icon name="checked" color="#FF4948" size="0.9rem" />
+              </div>
+              <img class="cicle" src="./img/circle.png" alt="" v-else>
+            </div>
+            <p>请阅读并同意<span>《用户服务协议》</span></p>
+          </div>
+        </div>
+        <div class="submit">立即支付</div>
+      </div>
     </div>
   </div>
 </body>
@@ -74,35 +88,17 @@
     data() {
       return {
         typeIndex: 1,
+        count: '', // 倒计时
+        timer: null, //定时器
         checked: true,
-        showList: [{
-            left: '无法展示完全自己的联系方式，访客无法联系到您。',
-            right: '展示自己的联系方式，访客能<span>第一时间</span>联系到您。'
-          },
-          {
-            left: '不可自主设置名片功能，无法关闭广告页面。',
-            right: '设置名片底部是否显示平台广告,关闭广告<span>页面更整洁</span>。'
-          },
-          {
-            left: '无法查看访客信息，错过潜在客户。',
-            right: '可以管理您的访客信息<span>查看</span>有哪些访问以及停留时间。'
-          },
-          {
-            left: '个人推广码和自己的群码无法显示。',
-            right: '<span>个人推广码和群码植入微信推广</span>，市面独家。'
-          },
-          {
-            left: '添加人脉有限，无法获取更多人脉资源。',
-            right: '人脉市集全年最高+3650条人脉名额，<span>鹰眼功能</span>周围500公里高端行业人脉，<span>急速查看</span>。'
-          },
-          {
-            left: '无法展现在人脉市集，错过客户找上门。',
-            right: '人脉市集全年最高<span>+3650次展现</span>。'
-          },
-          {
-            left: '没有专属客服，无法获取最新素材。',
-            right: '<span>专属一对一服务</span>，天天帮你更新名片素材。'
-          },
+        noticList: ['王**', '钱*', '李*', '田**', '张*', '陈**', '陆**', '刘*', '林**'],
+        msgList: [
+          '谁看了我，智能<span>人脉追踪</span>，实时掌控',
+          '推广码展现，<span>转化私域流量</span>',
+          '文章发布，便捷<span>植入自有广告</span>',
+          '<span>人脉探索</span>,定位周围500公里精准人脉',
+          '<span>人脉市集</span>推荐，客户主动找上门',
+          '群聊加入,学习、分享、交流<span>快人一步</span>'
         ]
       }
     },
@@ -111,7 +107,12 @@
         return window.innerHeight + 'px'
       }
     },
-    mounted() {},
+    mounted() {
+      let endtime = parseInt(new Date('2020/10/13,23:59:59').getTime() / 1000)
+      this.timer = setInterval(() => {
+        this.countDown(endtime)
+      }, 1000)
+    },
     methods: {
       //切换会员类型
       toggleType(type) {
@@ -119,7 +120,29 @@
       },
       checkArgement() {
         this.checked = !this.checked
-      }
+      },
+      // 计算倒计时
+      countDown(endtime) {
+        let nowtime = parseInt(new Date().getTime() / 1000);
+        let lefttime = parseInt(endtime - nowtime);
+        let d = parseInt(lefttime / (24 * 60 * 60))
+        let h = parseInt(lefttime / (60 * 60) % 24);
+        let m = parseInt(lefttime / 60 % 60);
+        let s = parseInt(lefttime % 60);
+        d = addZero(d)
+        h = addZero(h);
+        m = addZero(m);
+        s = addZero(s);
+        this.count = `${h}:${m}:${s}`;
+        if (lefttime <= 0) {
+          this.count = null
+          clearInterval(this.timer)
+        }
+        //小于10补0
+        function addZero(i) {
+          return i < 10 ? "0" + i : i + "";
+        }
+      },
     }
   })
 </script>
