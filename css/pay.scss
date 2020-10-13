@@ -28,7 +28,7 @@ body {
   overflow-x: hidden;
   .notic_wrap {
     position: absolute;
-    top: 1rem;
+    top: 0.8rem;
     left: 50%;
     width: 100%;
     height: 1.7rem;
@@ -57,7 +57,7 @@ body {
     position: relative;
     img {
       width: 100%;
-      height: 27rem;
+      height: 25rem;
       display: block;
     }
     .content {
@@ -109,7 +109,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 5% 7% 0;
+    padding: 11% 7% 0;
     .item {
       position: relative;
       width: 46.5%;

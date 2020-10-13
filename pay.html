@@ -38,8 +38,8 @@
         </div>
         <div class="orgin">原价￥498</div>
         <div class="less_member">
-          <p class="check" v-if="typeIndex == 1">当前名额仅剩<span>10</span>名</p>
-          <p v-else>99名额，售完即止</p>
+          <p class="check" v-if="typeIndex == 1">优惠价，即将恢复原价</p>
+          <p v-else>优惠价，即将恢复原价</p>
         </div>
       </div>
       <div :class="[typeIndex == 2 ? 'item on': 'item']" @click="toggleType(2)">
@@ -50,13 +50,13 @@
         </div>
         <div class="orgin">原价￥120</div>
         <div class="less_member">
-          <p class="check" v-if="typeIndex == 2">当前名额仅剩<span>10</span>名</p>
+          <p class="check" v-if="typeIndex == 2">99名额，售完即止</p>
           <p v-else>99名额，售完即止</p>
         </div>
       </div>
     </div>
     <div class="footer">
-      <div class="timer_wrap" v-if="count">
+      <div class="timer_wrap">
         <img src="./img/clock.png" alt="">
         <p>激活优惠认证倒计时{{count}}</p>
       </div>
@@ -88,7 +88,7 @@
     data() {
       return {
         typeIndex: 1,
-        count: '', // 倒计时
+        count: '00:00:00', // 倒计时
         timer: null, //定时器
         checked: true,
         noticList: ['王**', '钱*', '李*', '田**', '张*', '陈**', '陆**', '刘*', '林**'],
