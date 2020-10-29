@@ -5,9 +5,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>支付</title>
-  <link rel="stylesheet" href="./css/main.css">
-  <link rel="stylesheet" href="./css/vant.css">
-  <link rel="stylesheet" href="./css/pay.css">
+  <link rel="stylesheet" href="./css/common/main.css">
+  <link rel="stylesheet" href="./css/common/vant.css">
+  <link rel="stylesheet" href="./css/pay/pay.css">
 </head>
 
 <body>
@@ -20,12 +20,12 @@
       </van-swipe>
     </div>
     <div class="banner">
-      <img src="./img/pay_banner1.png" alt="">
+      <img src="./img/pay/pay_banner1.png" alt="">
       <div class="content">
         <div class="item" v-for="(item, index) in msgList" :key="index">
           <p class="title">0{{index+1}}</p>
           <p class="text" v-html="item"></p>
-          <img class="tips" src="./img/tips.png" alt="">
+          <img class="tips" src="./img/pay/tips.png" alt="">
         </div>
       </div>
     </div>
@@ -57,7 +57,7 @@
     </div>
     <div class="footer">
       <div class="timer_wrap">
-        <img src="./img/clock.png" alt="">
+        <img src="./img/pay/clock.png" alt="">
         <p>激活优惠认证倒计时{{count}}</p>
       </div>
       <div class="submit_wrap">
@@ -68,7 +68,7 @@
               <div v-if="checked">
                 <van-icon name="checked" color="#FF4948" size="0.9rem" />
               </div>
-              <img class="cicle" src="./img/circle.png" alt="" v-else>
+              <img class="cicle" src="./img/pay/circle.png" alt="" v-else>
             </div>
             <p>请阅读并同意<span>《用户服务协议》</span></p>
           </div>

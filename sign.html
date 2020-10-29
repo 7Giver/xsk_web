@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>打卡签到</title>
+	<link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
+	<link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+	<link rel="stylesheet" href="{:REGISTER_PUBLIC}css/sign/sign.css">
+</head>
+
+<body>
+	<div id="app" :style="{'min-height': innerPage}" v-cloak>
+		<div class="banner">
+			<img src="{:REGISTER_PUBLIC}img/sign/banner.png" alt="">
+		</div>
+		<div class="inner_wrap">
+			<div class="top_wrap">
+				<div class="member">
+					<img class="avatar" :src="userInfo.avatar" alt="">
+					<p>{{userInfo.name}}</p>
+				</div>
+				<div class="tips">连续签到<span>{{userInfo.days}}</span>天啦~ 累计签到<span>{{userInfo.cum}}</span>天</div>
+			</div>
+			<div class="calendar_wrap">
+				<van-calendar :show-title="false" :poppable="false" :show-confirm="true" />
+			</div>
+		</div>
+		<div class="sign_wrap">
+			<div class="tab_wrap">
+				<div class="item" @click="tabSwitch(1)">连续签到</div>
+				<div class="item" @click="tabSwitch(2)">累计签到</div>
+			</div>
+			<div class="sign_list">
+				<div class="item" v-for="(item, index) in signRank" :key="index">
+					<img :src="item.avatar" alt="">
+					<p v-if="tabIndex == 1">连续签到<span>{{item.days}}</span>天</p>
+					<p v-if="tabIndex == 2">累计签到<span>{{item.days}}</span>天</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js"></script>
+<script>
+	var app = new Vue({
+		el: '#app',
+		data() {
+			return {
+				userInfo: {
+					name: '王冰冰',
+					avatar: '{:REGISTER_PUBLIC}img/sign/kf3.png',
+					days: 53,
+					cum: 96,
+				},
+				tabIndex: 1,
+				signRank: [{
+						avatar: '{:REGISTER_PUBLIC}img/sign/kf3.png',
+						name: '王冰冰',
+						days: 36,
+						cum: 76
+					},
+					{
+						avatar: '{:REGISTER_PUBLIC}img/sign/kf3.png',
+						name: '王冰冰',
+						days: 36,
+						cum: 76
+					},
+					{
+						avatar: '{:REGISTER_PUBLIC}img/sign/kf3.png',
+						name: '王冰冰',
+						days: 36,
+						cum: 76
+					},
+					{
+						avatar: '{:REGISTER_PUBLIC}img/sign/kf3.png',
+						name: '王冰冰',
+						days: 36,
+						cum: 76
+					},
+				]
+			}
+		},
+		computed: {
+			innerPage() {
+				return window.innerHeight + 'px'
+			}
+		},
+		mounted() {
+
+		},
+		methods: {
+			// 切换tab事件
+			tabSwitch(index) {
+				this.tabIndex = index
+			}
+		}
+	})
+</script>
+
+</html>

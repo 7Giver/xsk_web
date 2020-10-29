@@ -1,0 +1,63 @@
+#app {
+  background: #D22119;
+  .banner {
+    img {
+      display: block;
+      width: 100%;
+    }
+  }
+  .inner_wrap {
+    width: 90%;
+    padding: 0.9rem 1rem;
+    margin: 0 auto 1rem;
+    border-radius: 0.6rem;
+    overflow: hidden;
+    background-color: #FFF6EB;
+    .top_wrap {
+      margin-bottom: 1rem;
+      .member {
+        display: flex;
+        align-items: center;
+        img {
+          width: 2.1rem;
+          height: 2.1rem;
+          border-radius: 50%;
+          margin-right: 0.5rem;
+        }
+        p {
+          color: #333537;
+          font-size: 1rem;
+        }
+      }
+      .tips {
+        font-size: 0.9rem;
+        padding-left: 2.6rem;
+        color: #695665;
+        span {
+          color: #E5443D;
+        }
+      }
+    }
+    .calendar_wrap {
+      height: 20rem;
+    }
+  }
+  .sign_wrap {
+    width: 90%;
+    margin: 0 auto;
+    border-radius: 1rem;
+    overflow: hidden;
+    background: #fff;
+    .tab_wrap {
+      display: flex;
+      align-items: center;
+      .item {
+        flex: 1;
+        font-size: 1rem;
+        line-height: 3rem;
+        text-align: center;
+      }
+    }
+  }
+}
+

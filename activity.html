@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>签到领取圆梦人荣誉勋章</title>
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/activity/activity.css?v=<?php echo time(); php?>">
+</head>
+
+<body>
+  <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <!-- 无口令 -->
+    <div class="enter_wrap" v-show="showWrap == 0">
+      <div class="word_title">
+        <img src="{:REGISTER_PUBLIC}img/activity/word_title.png" alt="">
+      </div>
+      <div class="input_wrap">
+        <input type="text" v-model="word" placeholder="请输入您的口令">
+      </div>
+      <div class="submit_btn" @click="goEnter">
+        <p>立即进入</p>
+      </div>
+    </div>
+    <!-- 有口令 -->
+    <div class="sign_wrap" v-show="showWrap == 1">
+      <div class="medal_wrap">
+        <div class="item silver" @click="goConvert(1)">
+          <div v-if="is_silver == 1">
+            <div class="title">已获得</div>
+            <img src="{:REGISTER_PUBLIC}img/activity/silver_on.png" alt="">
+          </div>
+          <div v-else>
+            <div class="title">
+              <span v-if="integral>=120">可领取</span>
+              <span v-else>未获得</span>
+            </div>
+            <img src="{:REGISTER_PUBLIC}img/activity/silver.png" alt="">
+          </div>
+          <p>圆梦人白银荣耀勋章</p>
+          <span>120积分领取</span>
+        </div>
+        <div class="item gold" @click="goConvert(2)">
+          <div v-if="is_gold == 1">
+            <div class="title">已获得</div>
+            <img src="{:REGISTER_PUBLIC}img/activity/gold_on.png" alt="">
+          </div>
+          <div v-else>
+            <div class="title">
+              <span v-if="integral>=240">可领取</span>
+              <span v-else>未获得</span>
+            </div>
+            <img src="{:REGISTER_PUBLIC}img/activity/gold.png" alt="">
+          </div>
+          <p>圆梦人黄金荣耀勋章</p>
+          <span>240积分领取</span>
+        </div>
+      </div>
+      <div class="submit_btn" @click="goSign" v-if="!is_sign">
+        <div class="time">{{now_time}}</div>
+        <p>签到</p>
+      </div>
+      <div class="submit_btn disabled" v-else>
+        <div class="time">{{sign_time}}</div>
+        <p>已签到</p>
+      </div>
+      <!-- 步骤条 -->
+      <div class="steps_wrap" v-show="integral">
+        <div class="myProgress">
+          <div ref="myBar" class="myBar"></div>
+          <div class="item left">
+            <P></P>
+            <div class="point"></div>
+            <p>{{integral < 20 ? integral : 0}}</p>
+          </div>
+          <div class="item middle">
+            <p>白银荣誉勋章</p>
+            <div class="point"></div>
+            <p>120</p>
+          </div>
+          <div class="item last">
+            <p>黄金荣誉勋章</p>
+            <div class="point"></div>
+            <p>240</p>
+          </div>
+          <!-- 当前进度 -->
+          <div class="item now" v-if="integral>=20&&integral!=120&&integral!=240" :style="{left: widthLeft}">
+            <p></p>
+            <div class="point"></div>
+            <p>{{integral}}</p>
+          </div>
+        </div>
+      </div>
+      <div class="notice_wrap">
+        <div class="title">签到记录</div>
+        <van-swipe :autoplay="4000" :show-indicators="false" :touchable="false" :vertical="true"
+          v-if="noticeList.length">
+          <van-swipe-item v-for="(item, index) in noticeList" :key="index">
+            {{item.name}}于{{item.add_time}} 签到成功<span>+30</span>
+          </van-swipe-item>
+        </van-swipe>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/jweixin-1.1.0.js"></script>
+<script src="{:REGISTER_PUBLIC}js/wx.share.js"></script>
+
+<script>
+  const URL = "{:H5_DOMAIN}";
+  //{:REGISTER_PUBLIC}
+
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        token: '',
+        userInfo: {},
+        codeKey: '', //对应口令
+        word: '', //输入的口令
+        now_time: '00:00:00', //当前时间
+        sign_time: '', //签到时间
+        widthLeft: '', // 当前进度距离
+        integral: 0, //当前积分
+        showWrap: 0, //口令状态
+        active: 0, //步骤条状态
+        timer: null, //定时器
+        is_sign: false, //是否签到
+        is_silver: false, // 白银勋章
+        is_gold: false, // 黄金勋章
+        canSign: false, //能否签到
+        noticeList: [{
+            name: '王冰冰',
+            time: '10-26 10:35:32'
+          },
+          {
+            name: '王冰冰',
+            time: '10-26 10:35:32'
+          },
+          {
+            name: '王冰冰',
+            time: '10-26 10:35:32'
+          },
+          {
+            name: '王冰冰',
+            time: '10-26 10:35:32'
+          },
+        ]
+      }
+    },
+    computed: {
+      innerPage() {
+        return window.innerHeight + 'px'
+      }
+    },
+    mounted() {
+      //获取当前时间
+      this.timer = setInterval(() => {
+        this.nowTime()
+      }, 1000);
+      this.getUserInfo()
+      this.initWxShare()
+      // this.initProgress()
+    },
+    methods: {
+      // 获取个人信息
+      getUserInfo() {
+        this.$http.get(URL + "/H5/Visitor/getLoginInfo").then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.userInfo = data.userInfo;
+              this.token = data.token;
+              this.getCode()
+              this.getMessage()
+            }
+          },
+          err => {
+            this.$notify({
+              type: 'danger',
+              message: '登录失败',
+              duration: 1500,
+            });
+            console.log("getLoginInfo 请求失败");
+          }
+        );
+      },
+      // 获取口令
+      getCode() {
+        this.$http.get(URL + "/register/activity/command", {
+          params: {
+            token: this.token,
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.codeKey = data.command
+            }
+          },
+          err => {
+            console.log("getCode 请求失败");
+          }
+        );
+      },
+      // 获取签到页信息
+      getMessage() {
+        this.$http.get(URL + "/register/activity/index", {
+          params: {
+            token: this.token,
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.integral = data.total_integral
+              this.is_silver = data.is_silver
+              this.is_gold = data.is_gold
+              this.is_sign = data.is_sign
+              this.sign_time = data.sign_time
+              this.noticeList = data.logs
+              this.sign_time && this.clearTimer()
+              if (this.noticeList.length) {
+                let arr = this.noticeList
+                arr.forEach(item => {
+                  if (item.name.length > 4) {
+                    item.name = this.resultName(item.name, 4)
+                  }
+                  item.add_time = item.add_time.slice(5)
+                })
+              }
+              this.initProgress()
+            }
+          },
+          err => {
+            console.log("getMessage 请求失败");
+          }
+        );
+      },
+      // 签到请求
+      signIn() {
+        this.$http.get(URL + "/register/activity/sign", {
+          params: {
+            token: this.token,
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.$toast({
+                type: 'success',
+                message: '签到成功 +30积分！',
+                duration: 1200
+              })
+              this.getMessage()
+            }
+          },
+          err => {
+            console.log("getMessage 请求失败");
+          }
+        );
+      },
+      // 兑换勋章
+      getConvert(type) {
+        this.$http.get(URL + "/register/user/convert", {
+          params: {
+            token: this.token,
+            type: type
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              // this.$toast('领取成功！')
+              type == 1 ? this.is_silver = true : this.is_gold = true
+              this.$toast({
+                type: 'success',
+                message: '领取成功！',
+                duration: 1200
+              })
+            } else {
+              this.$toast({
+                type: 'fail',
+                message: msg,
+                duration: 1500
+              })
+            }
+          },
+          err => {
+            console.log("getMessage 请求失败");
+          }
+        );
+      },
+      // 当前时间
+      nowTime() {
+        let date = new Date();
+        let year = date.getFullYear();
+        let month = date.getMonth() + 1;
+        let day = date.getDate();
+        let hour = date.getHours();
+        let minutes = date.getMinutes();
+        let second = date.getSeconds();
+        let timestr = year + "年" + month + "月" + day + "日  " + check(hour) +
+          ":" + check(minutes) + ":" + check(second);
+        this.now_time = `${check(hour)}:${check(minutes)}:${check(second)}`
+        // 5点到24点可以签到
+        this.canSign = this.time_range('5:00', '24:00')
+        //小于10补0
+        function check(i) {
+          return i < 10 ? "0" + i : i + "";
+        }
+      },
+      // 判断时间是否在时段
+      time_range(beginTime, endTime) {
+        let strb = beginTime.split(":");
+        if (strb.length != 2) {
+          return false;
+        }
+        let stre = endTime.split(":");
+        if (stre.length != 2) {
+          return false;
+        }
+        let b = new Date();
+        let e = new Date();
+        let n = new Date();
+        b.setHours(strb[0]);
+        b.setMinutes(strb[1]);
+        e.setHours(stre[0]);
+        e.setMinutes(stre[1]);
+        if (n.getTime() - b.getTime() > 0 && n.getTime() - e.getTime() < 0) {
+          return true;
+        } else {
+          return false;
+        }
+      },
+      // 处理过长姓名
+      resultName(name, num) {
+        let arr = name.split('')
+        let newArr = arr.slice(0, num)
+        newArr.push('...')
+        let str = newArr.join('')
+        return str
+      },
+      // 验证口令
+      goEnter() {
+        if (!this.word) {
+          this.$notify({
+            type: 'danger',
+            message: '请输入口令',
+            duration: 1500,
+          });
+          return false
+        }
+        this.$toast.loading({
+          message: '认证中...',
+          forbidClick: true,
+          duration: 1000,
+          onClose: () => {
+            this.showWrap = 1
+            next()
+          }
+        });
+        next = () => {
+          if (this.codeKey == this.word) {
+            this.$toast({
+              type: 'success',
+              message: '验证成功！',
+              duration: 1000,
+            })
+          } else {
+            this.$toast({
+              type: 'fail',
+              message: '口令不正确',
+              duration: 1000
+            })
+          }
+        }
+      },
+      // 点击签到
+      goSign() {
+        if (!this.token) {
+          this.$notify({
+            type: 'danger',
+            message: '缺少token',
+            duration: 1500,
+          });
+          return false
+        }
+        this.$toast.loading({
+          message: '签到中...',
+          forbidClick: true, // 禁止背景点击
+          // loadingType: 'spinner',
+          duration: 800, // 0为持续展示toast
+          onClose: () => {
+            this.signIn()
+          }
+        });
+      },
+      // 兑换勋章
+      goConvert(type) {
+        if (!this.token) {
+          this.$notify({
+            type: 'danger',
+            message: '缺少token',
+            duration: 1500,
+          });
+          return false
+        }
+        switch (type) {
+          case 1:
+            if (this.is_silver) {
+              this.$toast({
+                type: 'fail',
+                message: '您已拥有白银勋章',
+                forbidClick: true,
+                duration: 1200,
+              });
+              return false
+            }
+            if (this.integral < 120) {
+              this.$toast({
+                type: 'fail',
+                message: '需要120积分才能兑换哦~',
+                forbidClick: true,
+                duration: 1200,
+              });
+              return false
+            }
+            break;
+          case 2:
+          if (this.is_gold) {
+              this.$toast({
+                type: 'fail',
+                message: '您已拥有黄金勋章',
+                forbidClick: true,
+                duration: 1200,
+              });
+              return false
+            }
+            if (this.integral < 240) {
+              this.$toast({
+                type: 'fail',
+                message: '需要240积分才能兑换哦~',
+                forbidClick: true,
+                duration: 1200,
+              });
+              return false
+            }
+            break;
+
+          default:
+            break;
+        }
+        this.$toast.loading({
+          message: '领取中...',
+          forbidClick: true,
+          duration: 800,
+          onClose: () => {
+            this.getConvert(type)
+          }
+        });
+      },
+      // 清除定时器
+      clearTimer() {
+        clearInterval(this.timer)
+        this.timer = null
+      },
+      // 渲染进度条
+      initProgress() {
+        let elem = this.$refs.myBar
+        let endWidth = Number(this.integral) || 0
+        let id = setInterval(frame, 10);
+        let count = 0
+        let _this = this
+
+        function frame() {
+          if (count >= endWidth) {
+            clearInterval(id);
+          } else {
+            count++;
+            let num = (count / 240) * 100;
+            elem.style.width = num + '%';
+            _this.widthLeft = num + '%';
+          }
+        }
+      },
+      // 载入微信分享
+      initWxShare() {
+        let title = '获取荣誉勋章';
+        let desc = "签到领取圆梦人，荣誉勋章";
+        let imgUrl = `${URL}/{:REGISTER_PUBLIC}img/activity/share_icon.png`;
+        let url = location.href;
+        Wxshare.call(this, title, desc, imgUrl, url);
+      },
+    }
+  })
+</script>
+
+</html>

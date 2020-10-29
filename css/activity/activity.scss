@@ -1,0 +1,269 @@
+#app {
+  background-image: url(../../img/activity/bg01.png),
+    url(../../img/activity/bg02.png);
+  background-repeat: no-repeat, no-repeat;
+  background-position: top, bottom;
+  background-size: 100%, 100%;
+  background-color: #291c40;
+  padding: 55% 0 0;
+  overflow: hidden;
+  // 无口令
+  .enter_wrap {
+    padding: 1rem 11% 0;
+    .word_title {
+      padding: 2.2rem 0;
+      img {
+        display: block;
+        width: 100%;
+      }
+    }
+    .input_wrap {
+      padding: 0 1rem;
+      background-color: #2e1f41;
+      border: 2px solid rgba(233, 201, 144, 0.8);
+      border-radius: 0.5rem;
+      box-shadow: 0px 0px 10px 3px #5b3f51 inset;
+      input {
+        width: 100%;
+        color: #ffffff;
+        text-align: center;
+        font-size: 1.1rem;
+        line-height: 4rem;
+        letter-spacing: 1px;
+        &::placeholder {
+          color: #563c50;
+        }
+        &::-webkit-input-placeholder {
+          color: #563c50;
+        }
+        &::-moz-placeholder {
+          color: #563c50;
+        }
+        &:-moz-placeholder {
+          color: #563c50;
+        }
+        &:-ms-input-placeholder {
+          color: #563c50;
+        }
+      }
+    }
+    .submit_btn {
+      color: #d47703;
+      text-align: center;
+      border-radius: 5rem;
+      margin-top: 2.4rem;
+      background: linear-gradient(180deg, #feea81 20%, #e8a638);
+      p {
+        font-size: 1.4rem;
+        line-height: 4rem;
+        font-weight: bold;
+        letter-spacing: 1px;
+        text-shadow: 1px 2px 0px rgba(255, 239, 166, 0.58);
+      }
+    }
+  }
+  // 有口令
+  .sign_wrap {
+    padding: 1rem 0 0;
+    .medal_wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 84%;
+      margin: 0 auto;
+      .item {
+        width: 45%;
+        text-align: center;
+        white-space: nowrap;
+        padding: 0.4rem 0.6rem;
+        border-radius: 0.4rem;
+        .title {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.9rem;
+          &::before,
+          &::after {
+            content: "";
+            width: 1rem;
+            height: 1.5px;
+          }
+          &::before {
+            margin-right: 0.3rem;
+          }
+          &::after {
+            margin-left: 0.3rem;
+          }
+        }
+        img {
+          width: 4.2rem;
+          margin: 0.4rem auto;
+        }
+        p {
+          font-size: 0.7rem;
+          margin-bottom: 0.15rem;
+        }
+        >span {
+          font-size: 0.7rem;
+          color: #796a98;
+        }
+      }
+      .silver {
+        color: #d4e2fb;
+        .title {
+          &::before,
+          &::after {
+            background-color: rgba(194, 194, 194, 0.2);
+          }
+        }
+        box-shadow: 0px 0px 10px 3px #59506b inset;
+        border: 2px solid rgba(189, 189, 189, 0.66);
+      }
+      .gold {
+        color: #f2d09a;
+        .title {
+          &::before,
+          &::after {
+            background-color: #a78e75;
+          }
+        }
+        box-shadow: 0px 0px 10px 3px #563c50 inset;
+        border: 2px solid rgba(233, 201, 144, 0.66);
+      }
+    }
+    .submit_btn {
+      width: 85%;
+      margin: 3rem auto 1.6rem;
+      color: #d47703;
+      text-align: center;
+      padding: 0.7rem 0;
+      border-radius: 5rem;
+      margin-top: 2.4rem;
+      background: linear-gradient(180deg, #feea81 20%, #e8a638);
+      .time {
+        font-size: 1.2rem;
+        margin-bottom: 0.2rem;
+      }
+      p {
+        font-size: 1.4rem;
+        line-height: 1.4rem;
+        font-weight: bold;
+        letter-spacing: 1px;
+        text-shadow: 1px 2px 0px rgba(255, 239, 166, 0.58);
+      }
+    }
+    .disabled {
+      color: #8a9099;
+      background: linear-gradient(150deg, #c3c8d0, #a6adba);
+      p {
+        text-shadow: none;
+      }
+    }
+    // 步骤条
+    .steps_wrap {
+      width: 90%;
+      margin: 0 auto 1rem;
+      padding: 2rem 0.5rem;
+      border-radius: 0.6rem;
+      background-color: #271b3f;
+      .myProgress {
+        position: relative;
+        width: 80%;
+        margin: 0 auto;
+        background-color: rgba(114, 122, 137, 0.36);
+        .myBar {
+          position: relative;
+          width: 0;
+          height: 2px;
+          background: linear-gradient(90deg, #ffa97d, #ff7027);
+          text-align: center;
+          line-height: 30px;
+          color: white;
+        }
+        .item {
+          position: absolute;
+          top: 50%;
+          transform: translate(-50%, -50%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-direction: column;
+          color: #e1ebfa;
+          text-align: center;
+          font-size: 0.4rem;
+          .point {
+            width: 12px;
+            height: 12px;
+            margin: 0.2rem auto;
+            border-radius: 50%;
+            border: 3px solid #271b3f;
+            background: #727a89;
+          }
+          > p {
+            height: 1rem;
+            font-size: 0.6rem;
+            &:empty {
+              height: 1rem;
+            }
+          }
+        }
+        .left {
+          .point {
+            background: #f5bfa3;
+          }
+        }
+        .middle {
+          left: 50%;
+        }
+        .last {
+          right: 0;
+          transform: translate(50%, -50%);
+        }
+        .now {
+          p {
+            color: #CB7448;
+          }
+        }
+      }
+    }
+    .notice_wrap {
+      width: 90%;
+      margin: 0 auto;
+      padding: 0.6rem 0;
+      color: #fff;
+      text-align: center;
+      background: #201734;
+      .title {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        &::before,
+        &::after {
+          content: "";
+          width: 20%;
+          height: 1px;
+          background: #fff;
+          opacity: 0.4;
+        }
+        &::before {
+          margin-right: 0.3rem;
+        }
+        &::after {
+          margin-left: 0.3rem;
+        }
+      }
+      .van-swipe {
+        height: 1.2rem;
+        .van-swipe-item {
+          font-size: 0.9rem;
+          span {
+            color: #eb5c1c;
+            margin-left: 0.3rem;
+          }
+        }
+      }
+    }
+  }
+}
