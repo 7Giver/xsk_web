@@ -1,7 +1,9 @@
 #app {
-  background: #D22119;
+  padding-bottom: 2rem;
+  background: #d22119;
+  position: relative;
   .banner {
-    img {
+    > img {
       display: block;
       width: 100%;
     }
@@ -12,8 +14,9 @@
     margin: 0 auto 1rem;
     border-radius: 0.6rem;
     overflow: hidden;
-    background-color: #FFF6EB;
+    background-color: #fff6eb;
     .top_wrap {
+      position: relative;
       margin-bottom: 1rem;
       .member {
         display: flex;
@@ -28,18 +31,71 @@
           color: #333537;
           font-size: 1rem;
         }
+        > a {
+          position: absolute;
+          top: 0rem;
+          right: 0rem;
+          width: 4.2rem;
+          font-size: 0.7rem;
+          border-radius: 3rem;
+          text-align: center;
+          padding: 0.12rem 0;
+          border: 1px solid #fa3546;
+          color: #fa3546;
+          opacity: 0.8;
+        }
       }
       .tips {
         font-size: 0.9rem;
         padding-left: 2.6rem;
         color: #695665;
         span {
-          color: #E5443D;
+          color: #e5443d;
         }
       }
     }
     .calendar_wrap {
-      height: 20rem;
+      background: #fff;
+      .calendar_wrap {
+        height: 16rem;
+        overflow: hidden;
+        .van-calendar {
+          .van-calendar__day {
+            font-size: 15px;
+            .van-calendar__selected-day {
+              color: inherit;
+              background-color: inherit;
+              border: 1px solid #95e2a6;
+              border-radius: 50%;
+            }
+          }
+          .is_sign {
+            color: #6e7ffd;
+            background: url(../../img/sign/is_sign.png);
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 80%;
+          }
+        }
+      }
+      .sign_btn {
+        text-align: center;
+        padding: 0.6rem 0 0.7rem;
+        > p {
+          color: #fff;
+          width: 60%;
+          margin: 0 auto;
+          font-size: 1.06rem;
+          line-height: 2.6rem;
+          letter-spacing: 0.5px;
+          border-radius: 1rem;
+          background: #4fcf6b;
+        }
+        .disabled {
+          color: #b2bace;
+          background: linear-gradient(155deg, #dce5ed, #dbe3f5);
+        }
+      }
     }
   }
   .sign_wrap {
@@ -52,12 +108,61 @@
       display: flex;
       align-items: center;
       .item {
+        position: relative;
         flex: 1;
+        color: #aaaaaa;
         font-size: 1rem;
         line-height: 3rem;
+        font-weight: bold;
         text-align: center;
+      }
+      .on {
+        color: #fa3546;
+        &::after {
+          content: "";
+          position: absolute;
+          bottom: 0;
+          left: 50%;
+          transform: translate(-50%);
+          width: 4rem;
+          height: 2px;
+          background-color: #fa3546;
+        }
+      }
+    }
+    .sign_list {
+      min-height: 15rem;
+      padding: 0.5rem 1.4rem 0;
+      .item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        line-height: 3.8rem;
+        .left {
+          display: flex;
+          align-items: center;
+          .avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            margin-right: 0.65rem;
+          }
+          .name {
+            color: #333537;
+            font-size: 0.92rem;
+          }
+        }
+        .right {
+          color: #333537;
+          font-size: 0.92rem;
+          > span {
+            display: inline-block;
+            width: 2.1rem;
+            color: #fc5656;
+            text-align: center;
+          }
+        }
       }
     }
   }
 }
-

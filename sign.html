@@ -3,11 +3,12 @@
 
 <head>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
 	<title>打卡签到</title>
 	<link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
 	<link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
-	<link rel="stylesheet" href="{:REGISTER_PUBLIC}css/sign/sign.css">
+	<link rel="stylesheet" href="{:REGISTER_PUBLIC}css/sign/sign.css?v=<?php echo time(); php?>">
+	<!-- <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/sign/sign.css"> -->
 </head>
 
 <body>
@@ -20,68 +21,70 @@
 				<div class="member">
 					<img class="avatar" :src="userInfo.avatar" alt="">
 					<p>{{userInfo.name}}</p>
+					<a href="/register/page/integral">我的积分</a>
 				</div>
-				<div class="tips">连续签到<span>{{userInfo.days}}</span>天啦~ 累计签到<span>{{userInfo.cum}}</span>天</div>
+				<div class="tips">连续签到<span>{{userInfo.serial}}</span>天啦~ 累计签到<span>{{userInfo.cnt}}</span>天</div>
 			</div>
 			<div class="calendar_wrap">
-				<van-calendar :show-title="false" :poppable="false" :show-confirm="true" />
+				<div class="calendar_wrap" v-if="showDate">
+					<van-calendar :row-height="36" :min-date="minDate" :max-date="maxDate" :show-mark="false" :show-title="false"
+						:show-subtitle="false" :poppable="false" :show-confirm="false" :readonly="true" :formatter="formatter" />
+				</div>
+				<div class="sign_btn">
+					<p class="disabled" v-if="userInfo.today_is_sign"><span>{{userInfo.sign_time}}</span> 已签到</p>
+					<p v-else-if="canSign" @click="goSign"><span>{{now_time}}</span> 签到</p>
+					<p v-else class="disabled" @click="goSign"><span>{{now_time}}</span> 签到</p>
+				</div>
 			</div>
 		</div>
 		<div class="sign_wrap">
 			<div class="tab_wrap">
-				<div class="item" @click="tabSwitch(1)">连续签到</div>
-				<div class="item" @click="tabSwitch(2)">累计签到</div>
+				<div :class="[tabIndex == 1 ? 'item on' : 'item']" @click="tabSwitch(1)">连续签到</div>
+				<div :class="[tabIndex == 2 ? 'item on' : 'item']" @click="tabSwitch(2)">累计签到</div>
 			</div>
-			<div class="sign_list">
-				<div class="item" v-for="(item, index) in signRank" :key="index">
-					<img :src="item.avatar" alt="">
-					<p v-if="tabIndex == 1">连续签到<span>{{item.days}}</span>天</p>
-					<p v-if="tabIndex == 2">累计签到<span>{{item.days}}</span>天</p>
+			<van-list class="sign_list" v-model="loading" :finished="finished" :immediate-check="false" finished-text="没有更多了"
+				@load="onLoadList">
+				<div class="item" v-for="(item, index) in signRank" :key="index" v-if="signRank.length">
+					<div class="left">
+						<img class="avatar" :src="item.avatar" alt="">
+						<p class="name">{{item.name}}</p>
+					</div>
+					<div class="right" v-if="tabIndex == 1">连续签到<span>{{item.days}}</span>天</div>
+					<div class="right" v-if="tabIndex == 2">累计签到<span>{{item.days}}</span>天</div>
 				</div>
-			</div>
+			</van-list>
 		</div>
 	</div>
 </body>
 
 <script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
-<script src="{:REGISTER_PUBLIC}js/vant.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js?v=1.2"></script>
+<script src="{:REGISTER_PUBLIC}js/jweixin-1.1.0.js"></script>
+<script src="{:REGISTER_PUBLIC}js/wx.share.js"></script>
+
 <script>
-	var app = new Vue({
+	const URL = "{:H5_DOMAIN}";
+
+	new Vue({
 		el: '#app',
 		data() {
 			return {
-				userInfo: {
-					name: '王冰冰',
-					avatar: '{:REGISTER_PUBLIC}img/sign/kf3.png',
-					days: 53,
-					cum: 96,
-				},
+				token: '',
+				date: '',
+				now_time: '', //当前时间
 				tabIndex: 1,
-				signRank: [{
-						avatar: '{:REGISTER_PUBLIC}img/sign/kf3.png',
-						name: '王冰冰',
-						days: 36,
-						cum: 76
-					},
-					{
-						avatar: '{:REGISTER_PUBLIC}img/sign/kf3.png',
-						name: '王冰冰',
-						days: 36,
-						cum: 76
-					},
-					{
-						avatar: '{:REGISTER_PUBLIC}img/sign/kf3.png',
-						name: '王冰冰',
-						days: 36,
-						cum: 76
-					},
-					{
-						avatar: '{:REGISTER_PUBLIC}img/sign/kf3.png',
-						name: '王冰冰',
-						days: 36,
-						cum: 76
-					},
-				]
+				page: 1, // 页码
+				pageSize: 20, // 每页条数
+				minDate: new Date(),
+				maxDate: new Date(),
+				timer: null, //定时器
+				canSign: false, // 能否签到
+				loading: false, // 分页加载
+				finished: false, // 结束分页加载
+				showDate: false, // 展示日历
+				userInfo: {}, //签到信息
+				signRank: [] // 排行数组
 			}
 		},
 		computed: {
@@ -90,13 +93,240 @@
 			}
 		},
 		mounted() {
-
+			//获取当前时间
+			this.timer = setInterval(() => {
+				this.nowTime()
+			}, 1000);
+			this.getUserInfo()
+			// this.initSignMonth('2020-10')
 		},
 		methods: {
+			// 获取个人信息
+			getUserInfo() {
+				this.$http.get(URL + "/H5/Visitor/getLoginInfo").then(
+					res => {
+						const {
+							errCode,
+							data,
+							msg
+						} = res.body;
+						if (errCode === 0) {
+							this.token = data.token;
+							this.getSignDetail()
+							this.getSignRank()
+						}
+					},
+					err => {
+						this.$toast({
+							type: 'fail',
+							message: '登录失败',
+							duration: 1500,
+						});
+						console.log("getLoginInfo 请求失败");
+					}
+				);
+			},
+			// 获取签到详情
+			getSignDetail() {
+				this.$http.get(URL + "/register/sign/index", {
+					params: {
+						token: this.token,
+					}
+				}).then(
+					res => {
+						const {
+							errCode,
+							data,
+							msg
+						} = res.body;
+						if (errCode === 0) {
+							this.userInfo = data;
+							if (data.today_is_sign == 0) this.canSign = true;
+							data.today_is_sign && this.clearTimer()
+							data.month && this.initSignMonth(data.month)
+						}
+					},
+					err => {
+						console.log("getSignDetail 请求失败");
+					}
+				);
+			},
+			// 签到排名
+			getSignRank(type = 1) {
+				this.$http.get(URL + "/register/sign/rank", {
+						params: {
+							token: this.token,
+							type: type,
+							page: this.page
+						}
+					}).then(
+						res => {
+							const {
+								errCode,
+								data,
+								msg
+							} = res.body;
+							if (errCode === 0) {
+								let result = data.list
+								if (data == null || result.length == 0) {
+									// 加载结束
+									this.finished = true;
+									return;
+								}
+								if (result.length < this.pageSize) {
+									// 一页不足的情况
+									this.finished = true;
+								} else {
+									this.finished = false;
+								}
+								// 处理数据
+								if (this.page === 1) {
+									this.signRank = result;
+								} else {
+									this.signRank = this.signRank.concat(result);
+								}
+							}
+						},
+						err => {
+							console.log("getSignRank 请求失败");
+						}
+					)
+					.catch((err) => {
+						console.log("获取资源列表异常");
+					})
+					.finally(() => {
+						this.loading = false;
+					});
+			},
+			// 签到请求
+			signIn() {
+				this.$http.get(URL + "/register/sign/sign", {
+					params: {
+						token: this.token
+					}
+				}).then(
+					res => {
+						const {
+							errCode,
+							data,
+							msg
+						} = res.body;
+						if (errCode === 0) {
+							this.getSignDetail()
+							this.$toast({
+								type: 'success',
+								message: `签到成功 +${data.integral}积分！`,
+								duration: 1200,
+								onClose: () => {
+
+								}
+							})
+						}
+					},
+					err => {
+						console.log("signIn 请求失败");
+					}
+				);
+			},
+			// 上拉加载请求方法
+			onLoadList() {
+				if (this.signRank.length >= this.pageSize) {
+					this.page++;
+					setTimeout(() => {
+						this.getSignRank(this.tabIndex);
+					}, 600)
+				}
+			},
+			// 当前时间
+			nowTime() {
+				let date = new Date();
+				let year = date.getFullYear();
+				let month = date.getMonth() + 1;
+				let day = date.getDate();
+				let hour = date.getHours();
+				let minutes = date.getMinutes();
+				let second = date.getSeconds();
+				let timestr = year + "年" + month + "月" + day + "日  " + check(hour) +
+					":" + check(minutes) + ":" + check(second);
+				this.now_time = `${check(hour)}:${check(minutes)}:${check(second)}`
+				//小于10补0
+				function check(i) {
+					return i < 10 ? "0" + i : i + "";
+				}
+			},
+			// 设置签到日历范围
+			initSignMonth(str) {
+				let arr = str.split('-')
+				this.minDate = new Date(arr[0] * 1, arr[1] * 1 - 7)
+				this.maxDate = new Date(arr[0] * 1, arr[1] * 1, 0)
+				this.showDate = true
+			},
 			// 切换tab事件
 			tabSwitch(index) {
+				if (this.tabIndex !== index) {
+					this.signRank = []
+					this.page = 1
+					this.loading = false
+					this.finished = false
+					setTimeout(() => {
+						this.getSignRank(index)
+					}, 600)
+				}
 				this.tabIndex = index
-			}
+			},
+			// 清除定时器
+			clearTimer() {
+				clearInterval(this.timer)
+				this.timer = null
+			},
+			// 点击签到
+			goSign() {
+				if (!this.token) {
+					this.$toast({
+						type: 'fail',
+						message: '尚未登录',
+						duration: 1500,
+					});
+					return false
+				}
+				this.$toast.loading({
+					message: '签到中...',
+					forbidClick: true, // 禁止背景点击
+					duration: 800, // 0为持续展示toast
+					onClose: () => {
+						this.signIn()
+					}
+				});
+			},
+			// 格式化日期
+			formatter(day) {
+				const now = new Date()
+				const month = day.date.getMonth() + 1;
+				const date = day.date.getDate();
+
+				let newArr = []
+				let dayArr = this.userInfo.sign_list
+				if (dayArr.length) {
+					dayArr.forEach(item => {
+						let arr = item.add_date.split('-')
+						newArr.push({
+							month: arr[1],
+							day: arr[2]
+						})
+					})
+					newArr.forEach((item) => {
+						if (item.month == month) {
+							if (item.day == date) {
+								day.className = 'is_sign';
+							}
+						}
+					})
+				}
+				if (now.getDate() === date) {
+					// day.text = '今天';
+				}
+				return day;
+			},
 		}
 	})
 </script>
