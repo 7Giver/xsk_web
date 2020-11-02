@@ -24,6 +24,7 @@
 }
 
 #app .inner_wrap .top_wrap .member {
+  position: relative;
   display: flex;
   align-items: center;
 }
@@ -42,8 +43,9 @@
 
 #app .inner_wrap .top_wrap .member > a {
   position: absolute;
-  top: 0rem;
-  right: 0rem;
+  top: 50%;
+  right: 0;
+  transform: translate(0, -50%);
   width: 4.2rem;
   font-size: 0.7rem;
   border-radius: 3rem;
@@ -69,27 +71,101 @@
 }
 
 #app .inner_wrap .calendar_wrap .calendar_wrap {
-  height: 16rem;
   overflow: hidden;
 }
 
-#app .inner_wrap .calendar_wrap .calendar_wrap .van-calendar .van-calendar__day {
-  font-size: 15px;
+#app .inner_wrap .calendar_wrap .calendar_wrap #calendar .month {
+  width: 100%;
+  background: #d22119;
 }
 
-#app .inner_wrap .calendar_wrap .calendar_wrap .van-calendar .van-calendar__day .van-calendar__selected-day {
-  color: inherit;
-  background-color: inherit;
-  border: 1px solid #95e2a6;
+#app .inner_wrap .calendar_wrap .calendar_wrap #calendar .month ul {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+#app .inner_wrap .calendar_wrap .calendar_wrap #calendar .month ul li {
+  color: white;
+  font-size: 1rem;
+}
+
+#app .inner_wrap .calendar_wrap .calendar_wrap #calendar .year-month {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+#app .inner_wrap .calendar_wrap .calendar_wrap #calendar .arrow {
+  padding: 0.5rem 1rem;
+}
+
+#app .inner_wrap .calendar_wrap .calendar_wrap #calendar .weekdays {
+  margin: 0;
+  padding: 0.2rem 0 0.6rem;
+  background-color: #d22119;
+  display: flex;
+  flex-wrap: wrap;
+  color: #ffffff;
+  font-size: 0.9rem;
+  justify-content: space-around;
+}
+
+#app .inner_wrap .calendar_wrap .calendar_wrap #calendar .weekdays li {
+  display: inline-block;
+  width: 13.6%;
+  text-align: center;
+}
+
+#app .inner_wrap .calendar_wrap .calendar_wrap #calendar .days {
+  padding: 0;
+  background: #ffffff;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+#app .inner_wrap .calendar_wrap .calendar_wrap #calendar .days li {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  width: 14.2%;
+  font-size: 0.92rem;
+  list-style-type: none;
+}
+
+#app .inner_wrap .calendar_wrap .calendar_wrap #calendar .days li:hover {
+  background: #e1e1e1;
+}
+
+#app .inner_wrap .calendar_wrap .calendar_wrap #calendar .days li span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+#app .inner_wrap .calendar_wrap .calendar_wrap #calendar .days li .active {
+  color: #d22119;
   border-radius: 50%;
+  border: 1px solid #d22119;
 }
 
-#app .inner_wrap .calendar_wrap .calendar_wrap .van-calendar .is_sign {
-  color: #6e7ffd;
+#app .inner_wrap .calendar_wrap .calendar_wrap #calendar .days li .other-month {
+  padding: 5px;
+  color: gainsboro;
+}
+
+#app .inner_wrap .calendar_wrap .calendar_wrap #calendar .days .is_sign {
+  color: #7283fb;
   background: url(../../img/sign/is_sign.png);
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 80%;
+  background-size: 83%;
 }
 
 #app .inner_wrap .calendar_wrap .sign_btn {

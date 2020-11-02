@@ -116,6 +116,7 @@
 
 #app .content_wrap .content .item .icon_wrap .icon > img {
   width: 5rem;
+  height: 5rem;
 }
 
 #app .content_wrap .content .item .icon_wrap .icon .fixed {
@@ -134,6 +135,16 @@
   font-size: 0.7rem;
 }
 
+#app .content_wrap .content .item .icon_wrap .text > p {
+  margin-bottom: 0.1rem;
+}
+
+#app .content_wrap .content .item .icon_wrap .text > span {
+  font-size: 0.7rem;
+  line-height: 1rem;
+  color: #ff8e16;
+}
+
 #app .content_wrap .content .item .btn_wrap {
   width: 5rem;
   color: #fff;
@@ -142,10 +153,6 @@
   border-radius: 3rem;
   margin: 1rem auto 0;
   background: linear-gradient(30deg, #ff8e16, #ff720c);
-}
-
-#app .content_wrap .content .disabled .icon_wrap {
-  background: #dee1e5;
 }
 
 #app .content_wrap .content .disabled .btn_wrap {

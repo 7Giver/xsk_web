@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>日历</title>
+  <link rel="stylesheet" href="./css/common/main.css">
+  <link rel="stylesheet" href="./css/calendar/calendar.css">
+</head>
+
+<body>
+  <h1>CSS 日历</h1>
+  <div id="calendar">
+    <div class="month">
+      <ul>
+        <li class="arrow" @click="pickPre(currentYear,currentMonth)">
+          <span v-if="showPre">❮</span>
+        </li>
+        <div class="year-month" @click="pickYear(currentYear,currentMonth)">
+          <span class="choose-year">{{ currentYear }}年</span>
+          <span class="choose-month">{{ currentMonth }}月</span>
+        </div>
+        <li class="arrow" @click="pickNext(currentYear,currentMonth)">
+          <span v-if="showNext">❯</span>
+        </li>
+      </ul>
+    </div>
+    <ul class="weekdays">
+      <li>一</li>
+      <li>二</li>
+      <li>三</li>
+      <li>四</li>
+      <li>五</li>
+      <li>六</li>
+      <li>日</li>
+    </ul>
+    <ul class="days">
+      <li :class="{is_sign: day.sign}" v-for="day in days" @click="pick(day)">
+        <!--今天-->
+        <span v-if="day.date.getMonth()+1 != currentMonth" class="other-month">{{ day.date.getDate() }}</span>
+        <template v-else>
+          <!--今天-->
+          <span
+            v-if="day.date.getFullYear() == new Date().getFullYear() && day.date.getMonth() == new Date().getMonth() && day.date.getDate() == new Date().getDate()"
+            class="active">{{ day.date.getDate() }}</span>
+          <span v-else>{{ day.date.getDate() }}</span>
+        </template>
+      </li>
+    </ul>
+  </div>
+
+  <script src="./js/vue.min.js"></script>
+
+  <script type="text/javascript">
+    new Vue({
+      el: '#calendar',
+      data: {
+        showPre: true,
+        showNext: true,
+        limits: [1,1],
+        currentDay: 1,
+        currentMonth: 1,
+        currentYear: 1970,
+        currentWeek: 1,
+        days: [],
+        signList: [{
+            "add_date": "2020-10-28",
+            "id": "3"
+          },
+          {
+            "add_date": "2020-10-29",
+            "id": "3"
+          },
+          {
+            "add_date": "2020-10-30",
+            "id": "7"
+          },
+        ]
+      },
+      created: function () {
+        this.initData(null);
+      },
+      methods: {
+        initData: function (cur) {
+          var date;
+          if (cur) {
+            date = new Date(cur);
+          } else {
+            date = new Date();
+          }
+          this.currentDay = date.getDate();
+          this.currentYear = date.getFullYear();
+          this.currentMonth = date.getMonth() + 1;
+          this.currentWeek = date.getDay(); // 1...6,0
+          if (this.currentWeek == 0) {
+            this.currentWeek = 7;
+          }
+          var str = this.formatDate(this.currentYear, this.currentMonth, 1);
+          console.log("initDay:" + str + "," + this.currentWeek);
+          this.days.length = 0;
+          // 今天是周日，放在第一行第7个位置，前面6个
+          for (var i = this.currentWeek - 1; i >= 0; i--) {
+            var d = new Date(str);
+            d.setDate(d.getDate() - i);
+            // console.log("y:" + d.getDate());
+            this.days.push({
+              date: d,
+              sign: 0
+            });
+          }
+          for (var i = 1; i <= 35 - this.currentWeek; i++) {
+            var d = new Date(str);
+            d.setDate(d.getDate() + i);
+            this.days.push({
+              date: d,
+              sign: 0
+            });
+          }
+          this.initSignDate()
+        },
+        pick: function (date) {
+          // alert(this.formatDate(date.getFullYear(), date.getMonth() + 1, date.getDate()));
+        },
+        pickPre: function (year, month) {
+          // setDate(0); 上月最后一天
+          // setDate(-1); 上月倒数第二天
+          // setDate(dx) 参数dx为 上月最后一天的前后dx天
+          
+          var d = new Date(this.formatDate(year, month, 1));
+          d.setDate(0);
+          console.log(this.formatDate(d.getFullYear(), d.getMonth() + 1));
+          this.initData(this.formatDate(d.getFullYear(), d.getMonth() + 1, 1));
+        },
+        pickNext: function (year, month) {
+          var d = new Date(this.formatDate(year, month, 1));
+          d.setDate(35);
+          console.log(this.formatDate(d.getFullYear(), d.getMonth() + 1));
+          this.initData(this.formatDate(d.getFullYear(), d.getMonth() + 1, 1));
+        },
+        pickYear: function (year, month) {
+          alert(year + "," + month);
+        },
+        // 返回 类似 2016-01-02 格式的字符串
+        formatDate: function (year, month, day) {
+          let y = year;
+          let m = month;
+          let d = day;
+          let result = ''
+          if (m < 10) m = "0" + m;
+          if (day) {
+            if (d < 10) d = "0" + d;
+            result = y + "-" + m + "-" + d
+          } else {
+            result = y + "-" + m
+          }
+          return result
+        },
+        // 渲染已签到日期
+        initSignDate() {
+          let days = this.days;
+          let signList = this.signList;
+
+          days.forEach(item => {
+            signList.forEach(v => {
+              if (item.date.getTime() === new Date(v.add_date).getTime()) {
+                item.sign = 1;
+              }
+            })
+          });
+        }
+      },
+    });
+  </script>
+</body>
+
+</html>

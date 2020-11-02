@@ -382,12 +382,12 @@
           forbidClick: true,
           duration: 1000,
           onClose: () => {
-            this.showWrap = 1
             next()
           }
         });
         next = () => {
           if (this.codeKey == this.word) {
+            this.showWrap = 1
             this.$toast({
               type: 'success',
               message: '验证成功！',
@@ -399,6 +399,7 @@
               message: '口令不正确',
               duration: 1000
             })
+            return false
           }
         }
       },

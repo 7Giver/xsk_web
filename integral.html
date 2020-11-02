@@ -38,32 +38,46 @@
       <div class="content">
         <div :class="[signObj.is_silver ? 'item disabled' : 'item']">
           <div class="icon_wrap">
-            <div class="icon">
+            <!-- <div class="icon">
               <img src="{:REGISTER_PUBLIC}img/integral/silver.png" alt="" v-if="signObj.is_silver">
               <img src="{:REGISTER_PUBLIC}img/integral/silver_on.png" alt="" v-else>
               <p class="fixed" v-if="signObj.is_silver">已领</p>
+            </div> -->
+            <div class="icon">
+              <img src="{:REGISTER_PUBLIC}img/integral/silver_on.png" alt="">
             </div>
-            <p class="text">圆梦人白银荣誉勋章</p>
+            <div class="text">
+              <p>圆梦人白银荣誉勋章</p>
+              <span v-if="signObj.silver_code">{{signObj.silver_code}}</span>
+              <span v-else>120积分领取</span>
+            </div>
           </div>
           <div class="btn_wrap" @click="goConvert(1)">
-            <p v-if="signObj.is_silver">已兑换</p>
-            <p v-else-if="signObj.total_integral>=120">可兑换</p>
-            <p v-else>兑换</p>
+            <p v-if="signObj.is_silver">已领取</p>
+            <p v-else-if="signObj.total_integral>=120">可领取</p>
+            <p v-else>领取</p>
           </div>
         </div>
         <div :class="[signObj.is_gold ? 'item disabled' : 'item']">
           <div class="icon_wrap">
-            <div class="icon">
+            <!-- <div class="icon">
               <img src="{:REGISTER_PUBLIC}img/integral/gold.png" alt="" v-if="signObj.is_gold">
               <img src="{:REGISTER_PUBLIC}img/integral/gold_on.png" alt="" v-else>
               <p class="fixed" v-if="signObj.is_gold">已领</p>
+            </div> -->
+            <div class="icon">
+              <img src="{:REGISTER_PUBLIC}img/integral/gold_on.png" alt="">
             </div>
-            <p class="text">圆梦人黄金荣誉勋章</p>
+            <div class="text">
+              <p>圆梦人黄金荣誉勋章</p>
+              <span v-if="signObj.gold_code">{{signObj.gold_code}}</span>
+              <span v-else>240积分领取</span>
+            </div>
           </div>
           <div class="btn_wrap" @click="goConvert(2)">
-            <p v-if="signObj.is_gold">已兑换</p>
-            <p v-else-if="signObj.total_integral>=240">可兑换</p>
-            <p v-else>兑换</p>
+            <p v-if="signObj.is_gold">已领取</p>
+            <p v-else-if="signObj.total_integral>=240">可领取</p>
+            <p v-else>领取</p>
           </div>
         </div>
       </div>
@@ -145,7 +159,7 @@
           }
         );
       },
-      // 兑换勋章请求
+      // 领取勋章请求
       getConvert(type) {
         this.$http.get(URL + "/register/user/convert", {
           params: {
@@ -179,7 +193,7 @@
           }
         );
       },
-      // 兑换勋章
+      // 领取勋章
       goConvert(type) {
         if (!this.token) {
           this.$toast({
@@ -203,7 +217,7 @@
             if (this.signObj.total_integral < 120) {
               this.$toast({
                 type: 'fail',
-                message: '需要120积分才能兑换哦~',
+                message: '需要120积分才能领取哦~',
                 forbidClick: true,
                 duration: 1200,
               });
@@ -223,7 +237,7 @@
             if (this.signObj.total_integral < 240) {
               this.$toast({
                 type: 'fail',
-                message: '需要240积分才能兑换哦~',
+                message: '需要240积分才能领取哦~',
                 forbidClick: true,
                 duration: 1200,
               });

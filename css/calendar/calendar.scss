@@ -1,0 +1,108 @@
+#calendar {
+  width: 85%;
+  margin: 0 auto;
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.1),
+    0 1px 5px 0 rgba(0, 0, 0, 0.12);
+  .month {
+    width: 100%;
+    background: #00b8ec;
+    ul {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: space-between;
+      li {
+        width: 1rem;
+        color: white;
+        font-size: 20px;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+      }
+    }
+  }
+  .year-month {
+    display: flex;
+    // flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    color: #fff;
+    font-size: 1.1rem;
+    letter-spacing: 3px;
+    &:hover {
+      background: rgba(150, 2, 12, 0.1);
+    }
+  }
+  // .choose-year {
+  //   padding-left: 20px;
+  //   padding-right: 20px;
+  // }
+  // .choose-month {
+  //   text-align: center;
+  //   font-size: 1.5rem;
+  // }
+  .arrow {
+    padding: 30px;
+    &:hover {
+      background: rgba(100, 2, 12, 0.1);
+    }
+  }
+  .weekdays {
+    margin: 0;
+    padding: 10px 0;
+    background-color: #00b8ec;
+    display: flex;
+    flex-wrap: wrap;
+    color: #ffffff;
+    justify-content: space-around;
+    li {
+      display: inline-block;
+      width: 13.6%;
+      text-align: center;
+    }
+  }
+  .days {
+    padding: 0;
+    background: #ffffff;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    li {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      width: 14.2%;
+      height: 3.6rem;
+      font-size: 1rem;
+      list-style-type: none;
+      &:hover {
+        background: #e1e1e1;
+      }
+      span {
+        $width: 2.7rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: $width;
+        height: $width;
+        line-height: $width;
+      }
+      .active {
+        border-radius: 50%;
+        border: 1.5px solid #95e2a6;
+      }
+      .other-month {
+        padding: 5px;
+        color: gainsboro;
+      }
+    }
+    .is_sign {
+      color: #00b8ec;
+      background: url(../../img/sign/is_sign.png);
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 52%;
+    }
+  }
+}

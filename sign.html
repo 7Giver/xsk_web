@@ -27,8 +27,40 @@
 			</div>
 			<div class="calendar_wrap">
 				<div class="calendar_wrap" v-if="showDate">
-					<van-calendar :row-height="36" :min-date="minDate" :max-date="maxDate" :show-mark="false" :show-title="false"
-						:show-subtitle="false" :poppable="false" :show-confirm="false" :readonly="true" :formatter="formatter" />
+					<div id="calendar">
+						<div class="month">
+							<ul>
+								<li class="arrow" @click="pickPre(currentYear,currentMonth)">❮</li>
+								<li class="year-month" @click="pickYear(currentYear,currentMonth)">
+									<span class="choose-year">{{ currentYear }}年</span>
+									<span class="choose-month">{{ currentMonth < 10 ? '0'+currentMonth : currentMonth }}月</span>
+								</li>
+								<li class="arrow" @click="pickNext(currentYear,currentMonth)">❯</li>
+							</ul>
+						</div>
+						<ul class="weekdays">
+							<li>一</li>
+							<li>二</li>
+							<li>三</li>
+							<li>四</li>
+							<li>五</li>
+							<li>六</li>
+							<li>日</li>
+						</ul>
+						<ul class="days">
+							<li :class="{is_sign: day.sign}" v-for="day in days" @click="pick(day)">
+								<!--今天-->
+								<span v-if="day.date.getMonth()+1 != currentMonth" class="other-month">{{ day.date.getDate() }}</span>
+								<template v-else>
+									<!--今天-->
+									<span
+										v-if="day.date.getFullYear() == new Date().getFullYear() && day.date.getMonth() == new Date().getMonth() && day.date.getDate() == new Date().getDate()"
+										class="active">{{ day.date.getDate() }}</span>
+									<span v-else>{{ day.date.getDate() }}</span>
+								</template>
+							</li>
+						</ul>
+					</div>
 				</div>
 				<div class="sign_btn">
 					<p class="disabled" v-if="userInfo.today_is_sign"><span>{{userInfo.sign_time}}</span> 已签到</p>
@@ -84,7 +116,13 @@
 				finished: false, // 结束分页加载
 				showDate: false, // 展示日历
 				userInfo: {}, //签到信息
-				signRank: [] // 排行数组
+				signRank: [], // 排行数组
+				currentDay: 1,
+				currentMonth: 1,
+				currentYear: 1970,
+				currentWeek: 1,
+				days: [],
+				signList: [], // 已签到日期
 			}
 		},
 		computed: {
@@ -98,6 +136,7 @@
 				this.nowTime()
 			}, 1000);
 			this.getUserInfo()
+			this.initData()
 			// this.initSignMonth('2020-10')
 		},
 		methods: {
@@ -144,6 +183,7 @@
 							if (data.today_is_sign == 0) this.canSign = true;
 							data.today_is_sign && this.clearTimer()
 							data.month && this.initSignMonth(data.month)
+							this.getSignDate()
 						}
 					},
 					err => {
@@ -217,14 +257,35 @@
 								type: 'success',
 								message: `签到成功 +${data.integral}积分！`,
 								duration: 1200,
-								onClose: () => {
-
-								}
 							})
 						}
 					},
 					err => {
 						console.log("signIn 请求失败");
+					}
+				);
+			},
+			// 获取每月已签到日期
+			getSignDate(date) {
+				this.$http.get(URL + "/register/sign/month", {
+					params: {
+						token: this.token,
+						date: date
+					}
+				}).then(
+					res => {
+						const {
+							errCode,
+							data,
+							msg
+						} = res.body;
+						if (errCode === 0) {
+							this.signList = data.list
+							this.initSignDate()
+						}
+					},
+					err => {
+						console.log("getSignDate 请求失败");
 					}
 				);
 			},
@@ -298,35 +359,97 @@
 					}
 				});
 			},
-			// 格式化日期
-			formatter(day) {
-				const now = new Date()
-				const month = day.date.getMonth() + 1;
-				const date = day.date.getDate();
+			// 载入日历
+			initData(cur) {
+				var date;
+				if (cur) {
+					date = new Date(cur);
+				} else {
+					date = new Date();
+				}
+				this.currentDay = date.getDate();
+				this.currentYear = date.getFullYear();
+				this.currentMonth = date.getMonth() + 1;
+				this.currentWeek = date.getDay(); // 1...6,0
+				if (this.currentWeek == 0) {
+					this.currentWeek = 7;
+				}
+				var str = this.formatDate(this.currentYear, this.currentMonth, 1);
+				console.log("initDay:" + str + "," + this.currentWeek);
+				this.days.length = 0;
+				// 今天是周日，放在第一行第7个位置，前面6个
+				for (var i = this.currentWeek - 1; i >= 0; i--) {
+					var d = new Date(str);
+					d.setDate(d.getDate() - i);
+					// console.log("y:" + d.getDate());
+					this.days.push({
+						date: d,
+						sign: 0
+					});
+				}
+				for (var i = 1; i <= 35 - this.currentWeek; i++) {
+					var d = new Date(str);
+					d.setDate(d.getDate() + i);
+					this.days.push({
+						date: d,
+						sign: 0
+					});
+				}
+				this.initSignDate()
+			},
+			// 日期点击
+			pick(date) {
+				// alert(this.formatDate(date.getFullYear(), date.getMonth() + 1, date.getDate()));
+			},
+			// 上一个月
+			pickPre(year, month) {
+				// setDate(0); 上月最后一天
+				// setDate(-1); 上月倒数第二天
+				// setDate(dx) 参数dx为 上月最后一天的前后dx天
+				var d = new Date(this.formatDate(year, month, 1));
+				d.setDate(0);
+				this.getSignDate(this.formatDate(d.getFullYear(), d.getMonth() + 1))
+				this.initData(this.formatDate(d.getFullYear(), d.getMonth() + 1, 1));
+			},
+			// 下一个月
+			pickNext(year, month) {
+				var d = new Date(this.formatDate(year, month, 1));
+				d.setDate(35);
+				this.getSignDate(this.formatDate(d.getFullYear(), d.getMonth() + 1))
+				this.initData(this.formatDate(d.getFullYear(), d.getMonth() + 1, 1));
+			},
+			// 点击标题年月
+			pickYear(year, month) {
+				// alert(year + "," + month);
+			},
+			// 返回 类似 2016-01-02 格式的字符串
+			formatDate: function (year, month, day) {
+				let y = year;
+				let m = month;
+				let d = day;
+				let result = ''
+				if (m < 10) m = "0" + m;
+				if (day) {
+					if (d < 10) d = "0" + d;
+					result = y + "-" + m + "-" + d
+				} else {
+					result = y + "-" + m
+				}
+				return result
+			},
+			// 渲染已签到日期
+			initSignDate() {
+				let days = this.days;
+				let signList = this.signList;
 
-				let newArr = []
-				let dayArr = this.userInfo.sign_list
-				if (dayArr.length) {
-					dayArr.forEach(item => {
-						let arr = item.add_date.split('-')
-						newArr.push({
-							month: arr[1],
-							day: arr[2]
-						})
-					})
-					newArr.forEach((item) => {
-						if (item.month == month) {
-							if (item.day == date) {
-								day.className = 'is_sign';
-							}
+				days.forEach(item => {
+					signList.forEach(v => {
+						if (item.date.getTime() === new Date(v.add_date).getTime()) {
+							item.sign = 1;
 						}
 					})
-				}
-				if (now.getDate() === date) {
-					// day.text = '今天';
-				}
-				return day;
-			},
+				});
+			}
 		}
 	})
 </script>
