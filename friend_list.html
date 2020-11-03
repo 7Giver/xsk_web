@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>好友列表</title>
+  <link rel="stylesheet" href="./css/common/main.css">
+  <link rel="stylesheet" href="./css/common/vant.css">
+  <link rel="stylesheet" href="./css/friend_list/friend_list.css">
+  <!-- <link rel="stylesheet" href="./css/integral_detail/integral_detail.css?v=<?php echo time(); php?>"> -->
+</head>
+
+<body>
+  <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <div class="data_list">
+      <div class="item" v-for="(item, index) in dataList" :key="index">
+        <div class="avatar">
+          <img :src="item.avatar" alt="">
+        </div>
+        <div class="right">
+          <p class="name">{{item.name}}</p>
+          <span class="sign">{{item.sign}}</span>
+        </div>
+        <div :class="[item.news ? 'message news' : 'message']">
+          <img src="./img/chat/message_icon.png" alt="">
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script src="./js/vue.min.js"></script>
+<script src="./js/vue-resource.min.js"></script>
+<script src="./js/vant.min.js?v=1.2"></script>
+
+<script>
+  const URL = "{:H5_DOMAIN}";
+
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        token: '',
+        page: 1, // 页码
+        pageSize: 20, // 每页条数
+        loading: false, // 分页加载
+        finished: false, // 结束分页加载
+        dataList: [
+          {
+            avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/girl.jpg',
+            name: '王冰冰',
+            sign: '谁能帮我设计免费个性签名,我叫蒙广福',
+            news: true
+          },
+          {
+            avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/bear.jpg',
+            name: '小熊宝',
+            sign: '坚强并不只是在大是大非中不屈服四大皆空房价大幅是大家看法上岛咖啡'
+          },
+          {
+            avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/girl.jpg',
+            name: '王冰冰',
+            sign: '谁能帮我设计免费个性签名,我叫蒙广福',
+            news: true
+          },
+          {
+            avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/bear.jpg',
+            name: '小熊宝',
+            sign: '坚强并不只是在大是大非中不屈服四大皆空房价大幅是大家看法上岛咖啡'
+          },
+        ],
+      }
+    },
+    computed: {
+      innerPage() {
+        return window.innerHeight + 'px'
+      }
+    },
+    mounted() {
+      // this.getUserInfo()
+    },
+    methods: {
+      // 获取个人信息
+      getUserInfo() {
+        this.$http.get(URL + "/H5/Visitor/getLoginInfo").then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.token = data.token;
+              this.getDataList()
+            }
+          },
+          err => {
+            this.$toast({
+              type: 'fail',
+              message: '登录失败',
+              duration: 1500,
+            });
+          }
+        );
+      },
+      // 签到排名
+      getDataList() {
+        this.$http.get(URL + "/register/sign/integralLog", {
+            params: {
+              token: this.token,
+              page: this.page
+            }
+          }).then(
+            res => {
+              const {
+                errCode,
+                data,
+                msg
+              } = res.body;
+              if (errCode === 0) {
+                let result = data.list
+                if (data == null || result.length == 0) {
+                  // 加载结束
+                  this.finished = true;
+                  return;
+                }
+                if (result.length < this.pageSize) {
+                  // 一页不足的情况
+                  this.finished = true;
+                } else {
+                  this.finished = false;
+                }
+                // 处理数据
+                if (this.page === 1) {
+                  this.dataList = result;
+                } else {
+                  this.dataList = this.dataList.concat(result);
+                }
+              }
+            },
+            err => {
+              console.log("getSignRank 请求失败");
+            }
+          )
+          .catch((err) => {
+            console.log("获取资源列表异常");
+          })
+          .finally(() => {
+            this.loading = false;
+          });
+      },
+      // 上拉加载请求方法
+      onLoadList() {
+        if (this.signRank.length >= this.pageSize) {
+          this.page++;
+          setTimeout(() => {
+            this.getSignRank(this.tabIndex);
+          }, 600)
+        }
+      },
+    }
+  })
+</script>
+
+</html>
