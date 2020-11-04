@@ -125,6 +125,7 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
+  padding-top: 0.4rem;
 }
 
 #app .inner_wrap .calendar_wrap .calendar_wrap #calendar .days li {

@@ -158,3 +158,38 @@
 #app .content_wrap .content .disabled .btn_wrap {
   background: #b5b5b5;
 }
+
+#app .data_wrap .data_list {
+  padding: 0.5rem 1.2rem 0;
+}
+
+#app .data_wrap .data_list .item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #E8E8E8;
+}
+
+#app .data_wrap .data_list .item .left > p {
+  color: #333537;
+  font-size: 0.92rem;
+  margin-bottom: 0.2rem;
+}
+
+#app .data_wrap .data_list .item .left > span {
+  color: #999999;
+  font-size: 0.7rem;
+}
+
+#app .data_wrap .data_list .item .right {
+  font-size: 0.8rem;
+}
+
+#app .data_wrap .data_list .item .right .add {
+  color: #ff8e16;
+}
+
+#app .data_wrap .data_list .item .right .minus {
+  color: #2daa74;
+}

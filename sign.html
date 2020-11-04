@@ -365,7 +365,9 @@
 				if (cur) {
 					date = new Date(cur);
 				} else {
-					date = new Date();
+					let year = new Date().getFullYear();
+					let month = new Date().getMonth();
+					date = new Date(year, month);
 				}
 				this.currentDay = date.getDate();
 				this.currentYear = date.getFullYear();
@@ -374,7 +376,7 @@
 				if (this.currentWeek == 0) {
 					this.currentWeek = 7;
 				}
-				var str = this.formatDate(this.currentYear, this.currentMonth, 1);
+				var str = this.formatDate(this.currentYear, this.currentMonth, this.currentDay);
 				console.log("initDay:" + str + "," + this.currentWeek);
 				this.days.length = 0;
 				// 今天是周日，放在第一行第7个位置，前面6个

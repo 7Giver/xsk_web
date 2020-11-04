@@ -20,7 +20,7 @@
         <p>{{signObj.integral}}</p>
         <span>我的积分</span>
       </div>
-      <a class="link" href="/register/page/integral_detail">积分明细</a>
+      <!-- <a class="link" href="/register/page/integral_detail">积分明细</a> -->
     </div>
     <div class="inner_wrap">
       <div class="item">
@@ -33,16 +33,12 @@
       </div>
     </div>
     <div class="wrap"></div>
-    <div class="content_wrap">
+    <!-- 勋章 -->
+    <!-- <div class="content_wrap">
       <div class="title">勋章<span>({{totalNum}})</span></div>
       <div class="content">
         <div :class="[signObj.is_silver ? 'item disabled' : 'item']">
           <div class="icon_wrap">
-            <!-- <div class="icon">
-              <img src="{:REGISTER_PUBLIC}img/integral/silver.png" alt="" v-if="signObj.is_silver">
-              <img src="{:REGISTER_PUBLIC}img/integral/silver_on.png" alt="" v-else>
-              <p class="fixed" v-if="signObj.is_silver">已领</p>
-            </div> -->
             <div class="icon">
               <img src="{:REGISTER_PUBLIC}img/integral/silver_on.png" alt="">
             </div>
@@ -60,11 +56,6 @@
         </div>
         <div :class="[signObj.is_gold ? 'item disabled' : 'item']">
           <div class="icon_wrap">
-            <!-- <div class="icon">
-              <img src="{:REGISTER_PUBLIC}img/integral/gold.png" alt="" v-if="signObj.is_gold">
-              <img src="{:REGISTER_PUBLIC}img/integral/gold_on.png" alt="" v-else>
-              <p class="fixed" v-if="signObj.is_gold">已领</p>
-            </div> -->
             <div class="icon">
               <img src="{:REGISTER_PUBLIC}img/integral/gold_on.png" alt="">
             </div>
@@ -81,6 +72,22 @@
           </div>
         </div>
       </div>
+    </div> -->
+    <!-- 积分列表 -->
+    <div class="data_wrap">
+      <van-list class="data_list" v-model="loading" :finished="finished" :immediate-check="false" finished-text="没有更多了"
+      @load="onLoadList">
+        <div class="item" v-for="(item, index) in dataList" :key="index" v-if="dataList.length">
+          <div class="left">
+            <p>{{item.content}}</p>
+            <span>{{item.add_time}}</span>
+          </div>
+          <div class="right">
+            <p class="add" v-if="item.type == 1">+{{item.integral}}</p>
+            <p class="minus" v-if="item.type == 2">-{{item.integral}}</p>
+          </div>
+        </div>
+      </van-list>
     </div>
   </div>
 </body>
@@ -100,7 +107,11 @@
         totalNum: 0, //勋章数量
         userInfo: {},
         signObj: {}, // 积分信息
-        dataList: []
+        page: 1, // 页码
+        pageSize: 20, // 每页条数
+        loading: false, // 分页加载
+        finished: false, // 结束分页加载
+        dataList: [],
       }
     },
     computed: {
@@ -125,6 +136,7 @@
               this.token = data.token;
               this.userInfo = data.userInfo
               this.getSignMsg()
+              this.getDataList()
             }
           },
           err => {
@@ -256,6 +268,61 @@
             this.getConvert(type)
           }
         });
+      },
+      // 签到排名
+      getDataList() {
+        this.$http.get(URL + "/register/sign/integralLog", {
+            params: {
+              token: this.token,
+              page: this.page
+            }
+          }).then(
+            res => {
+              const {
+                errCode,
+                data,
+                msg
+              } = res.body;
+              if (errCode === 0) {
+                let result = data.list
+                if (data == null || result.length == 0) {
+                  // 加载结束
+                  this.finished = true;
+                  return;
+                }
+                if (result.length < this.pageSize) {
+                  // 一页不足的情况
+                  this.finished = true;
+                } else {
+                  this.finished = false;
+                }
+                // 处理数据
+                if (this.page === 1) {
+                  this.dataList = result;
+                } else {
+                  this.dataList = this.dataList.concat(result);
+                }
+              }
+            },
+            err => {
+              console.log("getSignRank 请求失败");
+            }
+          )
+          .catch((err) => {
+            console.log("获取资源列表异常");
+          })
+          .finally(() => {
+            this.loading = false;
+          });
+      },
+      // 上拉加载请求方法
+      onLoadList() {
+        if (this.signRank.length >= this.pageSize) {
+          this.page++;
+          setTimeout(() => {
+            this.getSignRank(this.tabIndex);
+          }, 600)
+        }
       },
     }
   })
