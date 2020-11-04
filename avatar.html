@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>生成头像</title>
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/cropper.min.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/avatar/avatar.css?v=<?php echo time(); php?>">
+</head>
+
+<body>
+  <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <!-- 无口令 -->
+    <div class="hasno_code" v-show="!showWrap">
+      <div class="container">
+        <div class="title">
+          <img src="{:REGISTER_PUBLIC}img/avatar/title1.png" alt="">
+        </div>
+        <div class="input_wrap">
+          <input type="text" v-model="word" placeholder="请输入您的6位数口令...">
+        </div>
+        <div class="submit_btn" @click="goEnter">
+          <p>立即进入</p>
+        </div>
+      </div>
+    </div>
+    <!-- 有口令 -->
+    <div class="has_code" v-show="showWrap">
+      <div class="top_wrap">
+        <div class="avatar_wrap">
+          <img class="result" :src="avatarSrc" alt="" v-if="avatarSrc">
+          <div id="avatar" ref="avatar">
+            <img class="inner" :src="avatar.bgUrl" alt="">
+            <img class="mask" :src="avatar.maskUrl" alt="">
+          </div>
+        </div>
+        <!-- <p>长按保存新头像</p> -->
+      </div>
+      <div class="mask_wrap">
+        <img class="title" src="{:REGISTER_PUBLIC}img/avatar/title.png" alt="">
+        <div class="scroll_wrap">
+          <div :class="[maskIndex == index ? 'item on' : 'item']" v-for="(item, index) in maskList" :key="index"
+            @click="checkMask(index)">
+            <img :src="item.img" alt="">
+          </div>
+        </div>
+      </div>
+      <div class="btn_wrap">
+        <div class="reset_btn" @click="avatarReset">
+          <img src="{:REGISTER_PUBLIC}img/avatar/reset_defalut.png" alt="">
+          <p>重置</p>
+        </div>
+        <div class="upLoad_btn">
+          <van-uploader class="upload_wrap" accept="image/*" :after-read="afterRead">
+            {{isUpLoad ? '修改头像' : '上传头像'}}
+          </van-uploader>
+        </div>
+      </div>
+      <div class="instructions">
+        <img src="{:REGISTER_PUBLIC}img/avatar/instructions.png" alt="">
+      </div>
+
+    </div>
+
+    <!-- 裁剪弹窗 -->
+    <div class="cropper_wrap" v-show="showCropper">
+      <div class="poster">
+        <img :src="uploadImg" ref="uploadImg" alt="">
+      </div>
+      <div class="submit" @click="resultCropper">
+        <img src="{:RES_FILES}/images/modify_icon_caijian.png" alt="" />
+        <p>裁剪</p>
+      </div>
+    </div>
+
+  </div>
+</body>
+
+
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/cropper.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/html2canvas.min.js?v=1.1"></script>
+<script src="{:REGISTER_PUBLIC}js/jweixin-1.1.0.js"></script>
+<script src="{:REGISTER_PUBLIC}js/wx.share.js"></script>
+<!-- <script src="https://cdn.staticfile.org/vConsole/3.3.4/vconsole.min.js"></script> -->
+
+<!-- <script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/html2canvas.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/cropper.min.js"></script> -->
+
+<script>
+  // new VConsole();
+  const URL = "{:H5_DOMAIN}";
+
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        token: '111',
+        word: '', //输入口令
+        codeKey: '', //口令密钥
+        avatarSrc: '', //生成头像地址
+        uploadImg: '', // 上传裁剪用地址
+        maskIndex: 0,
+        myCropper: null, // 裁剪工具对象
+        showWrap: false, // 展示有口令页面
+        isUpLoad: false, // 是否上传头像
+        showAvatar: false, //展示生成头像
+        showCropper: false, //展示裁剪
+        maskList: [], //素材罩数组
+        avatar: {
+          bgUrl: '{:REGISTER_PUBLIC}img/avatar/default_avatar.jpg',
+          maskUrl: ''
+        }
+      }
+    },
+    computed: {
+      innerPage() {
+        return window.innerHeight + 'px'
+      }
+    },
+    mounted() {
+      this.getUserInfo()
+      this.initCropper()
+      this.initWxShare()
+    },
+    methods: {
+      // 获取个人信息
+      getUserInfo() {
+        this.$http.get(URL + "/H5/Visitor/getLoginInfo").then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.userInfo = data.userInfo;
+              this.token = data.token;
+              this.getCode()
+              this.getMask()
+            }
+          },
+          err => {
+            this.$toast({
+              type: 'fail',
+              message: '登录失败',
+              duration: 1500
+            })
+            console.log("getLoginInfo 请求失败");
+          }
+        );
+      },
+      // 获取口令
+      getCode() {
+        this.$http.get(URL + "/register/avatar/command", {
+          params: {
+            token: this.token,
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.codeKey = data.command
+            }
+          },
+          err => {
+            console.log("getCode 请求失败");
+          }
+        );
+      },
+      // 获取素材
+      getMask() {
+        this.$http.get(URL + "/register/avatar/posters", {
+          params: {
+            token: this.token,
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.maskList = data.pics;
+              if (this.maskList.length) {
+                this.avatar.maskUrl = this.maskList[0].img
+                this.$nextTick(() => {
+                  this.resultAvatar()
+                })
+              }
+            }
+          },
+          err => {
+            console.log("getCode 请求失败");
+          }
+        );
+      },
+      // 点击进入
+      goEnter() {
+        if (!this.word) {
+          this.$toast({
+            type: 'fail',
+            message: '请输入口令',
+            duration: 1500
+          })
+          return false
+        }
+        this.$toast.loading({
+          message: '认证中...',
+          forbidClick: true,
+          duration: 1000,
+          onClose: () => {
+            next()
+          }
+        });
+        next = () => {
+          if (this.codeKey == this.word) {
+            this.showWrap = true
+            this.$toast({
+              type: 'success',
+              message: '验证成功！',
+              duration: 1000,
+            })
+            this.$nextTick(() => {
+              this.resultAvatar()
+            })
+          } else {
+            this.$toast({
+              type: 'fail',
+              message: '口令不正确',
+              duration: 1000
+            })
+            return false
+          }
+        }
+      },
+      // 选择海报
+      checkMask(index) {
+        this.avatar.maskUrl = this.maskList[index].img;
+        this.maskIndex = index;
+        this.$nextTick(() => {
+          this.resultAvatar()
+        })
+      },
+      // 重置头像
+      avatarReset() {
+        this.avatar.bgUrl = '{:REGISTER_PUBLIC}img/avatar/default_avatar.jpg';
+        this.avatar.maskUrl = this.maskList[0].img
+        this.maskIndex = 0
+        this.$nextTick(() => {
+          this.resultAvatar()
+        })
+      },
+      // 获取上传的图片
+      afterRead(file) {
+        this.uploadImg = file.content
+        this.myCropper.replace(file.content)
+        this.showCropper = true
+      },
+      // 载入裁剪工具
+      initCropper() {
+        this.myCropper = new Cropper(this.$refs.uploadImg, {
+          aspectRatio: 1 / 1,
+          viewMode: 1,
+          background: false, //网格装背景
+          zoomOnTouch: true, //触摸缩放图片
+          zoomOnWheel: false, // 滚轮缩放图片
+        })
+      },
+      // 输出裁剪图片
+      resultCropper() {
+        let resultImg = this.myCropper.getCroppedCanvas({
+          imageSmoothingQuality: 'high'
+        }).toDataURL('image/jpeg')
+        this.avatar.bgUrl = resultImg
+        this.isUpLoad = true
+        this.showCropper = false
+        this.$nextTick(() => {
+          this.resultAvatar()
+        })
+      },
+      // 生成头像
+      resultAvatar() {
+        window.pageYoffset = 0;
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        new html2canvas(this.$refs.avatar, {
+          allowTaint: true,
+          useCORS: true
+        }).then(canvas => {
+          this.avatarSrc = canvas.toDataURL();
+          // this.showAvatar = true
+        });
+      },
+      // 载入微信分享
+      initWxShare() {
+        let title = '头像制作';
+        let desc = "头像制作，限时抢领";
+        let imgUrl = `${URL}/{:REGISTER_PUBLIC}img/avatar/share_icon.png`;
+        let url = location.href;
+        Wxshare.call(this, title, desc, imgUrl, url);
+      },
+    }
+  })
+</script>
+
+</html>
