@@ -1,0 +1,118 @@
+#app {
+  background-image: url(../../img/user_card/bg.png);
+  background-repeat: no-repeat;
+  background-position: top;
+  background-size: 100% 100%;
+  .header {
+    position: relative;
+    padding: 3rem 0 1rem;
+    .follow {
+      position: absolute;
+      top: 17%;
+      right: 7%;
+      color: #af130c;
+      padding: 0 0.5rem;
+      font-size: 0.92rem;
+      text-align: center;
+      line-height: 1.6rem;
+      border-radius: 0.2rem;
+      background: linear-gradient(37deg, #ff9b21, #ffd747);
+    }
+    .top_wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      position: relative;
+      .avatar {
+        width: 4rem;
+        height: 4rem;
+        border: 2px solid #f6ca25;
+        border-radius: 50%;
+        overflow: hidden;
+        img {
+          display: block;
+          width: 100%;
+          height: 100;
+        }
+      }
+      .name {
+        color: #fff;
+        font-size: 1rem;
+        font-weight: bold;
+        margin: 0.5rem auto 0;
+      }
+      .chat {
+        position: absolute;
+        right: 10%;
+        top: 30%;
+        width: 1.6rem;
+        img {
+          display: block;
+          width: 100%;
+        }
+      }
+    }
+    .bottom_wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      margin: 1rem auto;
+      .item {
+        font-size: 1rem;
+        text-align: center;
+        p {
+          color: #facaca;
+          margin-bottom: 0.5rem;
+        }
+        span {
+          color: #fff;
+        }
+      }
+    }
+  }
+  .circle_wrap {
+    background-image: url(../../img/user_card/circle_bg.png);
+    background-repeat: no-repeat;
+    background-position: top;
+    background-size: 88%;
+    height: 20rem;
+    position: relative;
+    .item {
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      img {
+        display: block;
+        width: 2.5rem;
+      }
+      p {
+        color: #fff;
+        font-size: 0.9rem;
+        line-height: 1.2rem;
+      }
+    }
+    .center {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .left {
+      position: absolute;
+      left: 16%;
+      top: 27%;
+    }
+    .right {
+      position: absolute;
+      right: 16%;
+      top: 27%;
+    }
+    .bottom {
+      position: absolute;
+      left: 50%;
+      bottom: -4%;
+      transform: translate(-50%, -50%);
+    }
+  }
+}

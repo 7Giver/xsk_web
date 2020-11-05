@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>名片</title>
+
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/user_card/user_card.css?v=<?php echo time(); php?>">
+
+  <!-- <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/user_card/user_card.css"> -->
+</head>
+
+<body>
+  <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <div class="header">
+      <div class="follow" @click="getFocus">
+        {{guest.is_focus ? '已关注' : '+关注'}}
+      </div>
+      <div class="top_wrap">
+        <div class="avatar">
+          <img :src="userInfo.upic" alt="">
+        </div>
+        <p class="name">{{userInfo.name}}</p>
+        <div class="chat">
+          <img src="{:REGISTER_PUBLIC}img/user_card/message_icon.png" alt="">
+        </div>
+      </div>
+      <div class="bottom_wrap">
+        <div class="item">
+          <p>粉丝</p>
+          <span>{{guest.fans || 0}}</span>
+        </div>
+        <div class="item">
+          <p>关注</p>
+          <span>{{guest.fans || 0}}</span>
+        </div>
+        <div class="item">
+          <p>好友</p>
+          <span>{{guest.fans || 0}}</span>
+        </div>
+      </div>
+    </div>
+    <div class="circle_wrap">
+      <a class="item center">
+        <img src="{:REGISTER_PUBLIC}img/user_card/home_icon.png" alt="">
+        <p>我的主页</p>
+      </a>
+      <a class="item left">
+        <img src="{:REGISTER_PUBLIC}img/user_card/news_icon.png" alt="">
+        <p>最新资讯</p>
+      </a>
+      <a class="item right">
+        <img src="{:REGISTER_PUBLIC}img/user_card/friend_icon.png" alt="">
+        <p>人脉市集</p>
+      </a>
+      <a class="item bottom" href="">
+        <img src="{:REGISTER_PUBLIC}img/user_card/sign_icon.png" alt="">
+        <p>签到打卡</p>
+      </a>
+    </div>
+  </div>
+</body>
+
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js?v=1.2"></script>
+
+<!-- <script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js?v=1.2"></script> -->
+
+<script>
+  const URL = "{:H5_DOMAIN}";
+
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        token: '',
+        userInfo: {
+          upic: '{:REGISTER_PUBLIC}img/avatar/default_avatar.jpg',
+          name: '我是马朵朵'
+        },
+        guest: {}, // 个人信息
+        dataList: [],
+      }
+    },
+    computed: {
+      innerPage() {
+        return window.innerHeight + 'px'
+      }
+    },
+    mounted() {
+      this.getUserInfo()
+    },
+    methods: {
+      // 获取个人信息
+      getUserInfo() {
+        this.$http.get(URL + "/H5/Visitor/getLoginInfo").then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.token = data.token;
+              this.userInfo = data.userInfo
+              this.getGuestMsg()
+            }
+          },
+          err => {
+            this.$toast({
+              type: 'fail',
+              message: '登录失败',
+              duration: 1500,
+            });
+            console.log("getLoginInfo 请求失败");
+          }
+        );
+      },
+      // 获取签到详情
+      getGuestMsg() {
+        this.$http.get(URL + "/register/friend/userinfo", {
+          params: {
+            token: this.token,
+            uid: this.userInfo.vid
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.guest = data;
+            }
+          },
+          err => {
+            console.log("getSignDetail 请求失败");
+          }
+        );
+      },
+      // 获取签到详情
+      getFocus() {
+        this.$http.get(URL + "/register/friend/focus", {
+          params: {
+            token: this.token,
+            focus_id: this.guest.id
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.$toast({
+                type: 'success',
+                message: '关注成功',
+                duration: 1500,
+              });
+            } else {
+              this.$toast({
+                type: 'fail',
+                message: msg,
+                duration: 1500,
+              });
+            }
+          },
+          err => {
+            console.log("getSignDetail 请求失败");
+          }
+        );
+      },
+    }
+  })
+</script>
+
+</html>
