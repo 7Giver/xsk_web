@@ -149,6 +149,7 @@
           .bottom {
             display: flex;
             > p {
+              flex: 1;
               color: #999999;
               font-size: 0.8rem;
               padding-right: 0.9rem;

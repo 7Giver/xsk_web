@@ -5,10 +5,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
   <title>消息列表</title>
-  <link rel="stylesheet" href="./css/common/main.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/message_list/message_list.css?v=<?php echo time(); php?>">
+
+  <!-- <link rel="stylesheet" href="./css/common/main.css">
   <link rel="stylesheet" href="./css/common/vant.css">
-  <link rel="stylesheet" href="./css/message_list/message.css">
-  <!-- <link rel="stylesheet" href="./css/message_list/message_list.css?v=<?php echo time(); php?>"> -->
+  <link rel="stylesheet" href="./css/message_list/message_list.css"> -->
 </head>
 
 <body>
@@ -56,9 +59,13 @@
   </div>
 </body>
 
-<script src="./js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js?v=1.2"></script>
+
+<!-- <script src="./js/vue.min.js"></script>
 <script src="./js/vue-resource.min.js"></script>
-<script src="./js/vant.min.js?v=1.2"></script>
+<script src="./js/vant.min.js?v=1.2"></script> -->
 
 <script>
   const URL = "{:H5_DOMAIN}";
@@ -119,7 +126,7 @@
       }
     },
     mounted() {
-      // this.getUserInfo()
+      this.getUserInfo()
     },
     methods: {
       // 获取个人信息
@@ -145,9 +152,9 @@
           }
         );
       },
-      // 签到排名
+      // 消息列表
       getDataList() {
-        this.$http.get(URL + "/register/sign/integralLog", {
+        this.$http.get(URL + "/register/friend/notice_list", {
             params: {
               token: this.token,
               page: this.page
@@ -181,7 +188,7 @@
               }
             },
             err => {
-              console.log("getSignRank 请求失败");
+              console.log("getDataList 请求失败");
             }
           )
           .catch((err) => {
@@ -193,10 +200,10 @@
       },
       // 上拉加载请求方法
       onLoadList() {
-        if (this.signRank.length >= this.pageSize) {
+        if (this.dataList.length >= this.pageSize) {
           this.page++;
           setTimeout(() => {
-            this.getSignRank(this.tabIndex);
+            this.getDataList();
           }, 600)
         }
       },

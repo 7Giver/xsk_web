@@ -5,34 +5,44 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
   <title>好友列表</title>
-  <link rel="stylesheet" href="./css/common/main.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/friend_list/friend_list.css?v=<?php echo time(); php?>">
+
+  <!-- <link rel="stylesheet" href="./css/common/main.css">
   <link rel="stylesheet" href="./css/common/vant.css">
-  <link rel="stylesheet" href="./css/friend_list/friend_list.css">
-  <!-- <link rel="stylesheet" href="./css/integral_detail/integral_detail.css?v=<?php echo time(); php?>"> -->
+  <link rel="stylesheet" href="./css/friend_list/friend_list.css"> -->
 </head>
 
 <body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
-    <div class="data_list">
-      <div class="item" v-for="(item, index) in dataList" :key="index">
-        <div class="avatar">
-          <img :src="item.avatar" alt="">
+    <div class="data_wrap">
+      <van-list class="data_list" v-model="loading" :finished="finished" :immediate-check="false" finished-text="没有更多了"
+        @load="onLoadList">
+        <div class="item" v-for="(item, index) in dataList" :key="index">
+          <div class="avatar">
+            <img :src="item.avatar" alt="">
+          </div>
+          <div class="right">
+            <p class="name">{{item.name}}</p>
+            <span class="sign">{{item.sign}}</span>
+          </div>
+          <div :class="[item.unreads ? 'message news' : 'message']">
+            <img src="{:REGISTER_PUBLIC}img/chat/message_icon.png" alt="">
+          </div>
         </div>
-        <div class="right">
-          <p class="name">{{item.name}}</p>
-          <span class="sign">{{item.sign}}</span>
-        </div>
-        <div :class="[item.news ? 'message news' : 'message']">
-          <img src="./img/chat/message_icon.png" alt="">
-        </div>
-      </div>
+      </van-list>
     </div>
   </div>
 </body>
 
-<script src="./js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js?v=1.2"></script>
+
+<!-- <script src="./js/vue.min.js"></script>
 <script src="./js/vue-resource.min.js"></script>
-<script src="./js/vant.min.js?v=1.2"></script>
+<script src="./js/vant.min.js?v=1.2"></script> -->
 
 <script>
   const URL = "{:H5_DOMAIN}";
@@ -46,30 +56,7 @@
         pageSize: 20, // 每页条数
         loading: false, // 分页加载
         finished: false, // 结束分页加载
-        dataList: [
-          {
-            avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/girl.jpg',
-            name: '王冰冰',
-            sign: '谁能帮我设计免费个性签名,我叫蒙广福',
-            news: true
-          },
-          {
-            avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/bear.jpg',
-            name: '小熊宝',
-            sign: '坚强并不只是在大是大非中不屈服四大皆空房价大幅是大家看法上岛咖啡'
-          },
-          {
-            avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/girl.jpg',
-            name: '王冰冰',
-            sign: '谁能帮我设计免费个性签名,我叫蒙广福',
-            news: true
-          },
-          {
-            avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/bear.jpg',
-            name: '小熊宝',
-            sign: '坚强并不只是在大是大非中不屈服四大皆空房价大幅是大家看法上岛咖啡'
-          },
-        ],
+        dataList: [],
       }
     },
     computed: {
@@ -78,7 +65,7 @@
       }
     },
     mounted() {
-      // this.getUserInfo()
+      this.getUserInfo()
     },
     methods: {
       // 获取个人信息
@@ -106,7 +93,7 @@
       },
       // 签到排名
       getDataList() {
-        this.$http.get(URL + "/register/sign/integralLog", {
+        this.$http.get(URL + "/register/friend/friend_list", {
             params: {
               token: this.token,
               page: this.page
@@ -140,7 +127,7 @@
               }
             },
             err => {
-              console.log("getSignRank 请求失败");
+              console.log("getDataList 请求失败");
             }
           )
           .catch((err) => {
@@ -152,10 +139,10 @@
       },
       // 上拉加载请求方法
       onLoadList() {
-        if (this.signRank.length >= this.pageSize) {
+        if (this.dataList.length >= this.pageSize) {
           this.page++;
           setTimeout(() => {
-            this.getSignRank(this.tabIndex);
+            this.getDataList();
           }, 600)
         }
       },
