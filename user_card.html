@@ -18,14 +18,15 @@
 <body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
     <div class="header">
-      <div class="follow" @click="getFocus">
-        {{guest.is_focus ? '已关注' : '+关注'}}
+      <div class="follow">
+        <span v-if="guest.is_focus == 0" @click="getFocus">+关注</span>
+        <span v-else>已关注</span>
       </div>
       <div class="top_wrap">
         <div class="avatar">
-          <img :src="userInfo.upic" alt="">
+          <img :src="guest.avatar" alt="">
         </div>
-        <p class="name">{{userInfo.name}}</p>
+        <p class="name">{{guest.name}}</p>
         <div class="chat">
           <img src="{:REGISTER_PUBLIC}img/user_card/message_icon.png" alt="">
         </div>
@@ -81,6 +82,7 @@
     el: '#app',
     data() {
       return {
+        vid: '', //当前名片vid
         token: '',
         userInfo: {
           upic: '{:REGISTER_PUBLIC}img/avatar/default_avatar.jpg',
@@ -111,7 +113,12 @@
             if (errCode === 0) {
               this.token = data.token;
               this.userInfo = data.userInfo
-              this.getGuestMsg()
+              let mid = this.getQueryString('mid')
+              if (mid) {
+                this.getGuestMsg(mid)
+              } else {
+                this.getGuestMsg(this.userInfo.mid)
+              }
             }
           },
           err => {
@@ -125,11 +132,11 @@
         );
       },
       // 获取签到详情
-      getGuestMsg() {
+      getGuestMsg(mid) {
         this.$http.get(URL + "/register/friend/userinfo", {
           params: {
             token: this.token,
-            uid: this.userInfo.vid
+            uid: mid
           }
         }).then(
           res => {
@@ -147,7 +154,7 @@
           }
         );
       },
-      // 获取签到详情
+      // 关注请求
       getFocus() {
         this.$http.get(URL + "/register/friend/focus", {
           params: {
@@ -167,6 +174,7 @@
                 message: '关注成功',
                 duration: 1500,
               });
+              this.getGuestMsg(this.guest.id)
             } else {
               this.$toast({
                 type: 'fail',
@@ -180,6 +188,16 @@
           }
         );
       },
+      // 获取url参数
+      getQueryString(name, url) {
+        var url = url || window.location.href;
+        var reg = new RegExp("(^|&|/?)" + name + "=([^&|/#?]*)(&|/?|$)", "i");
+        var r = url.substr(1).match(reg);
+        if (r != null) {
+          return r[2];
+        }
+        return null;
+      }
     }
   })
 </script>

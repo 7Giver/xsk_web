@@ -14,6 +14,7 @@
   position: absolute;
   top: 17%;
   right: 7%;
+  z-index: 99;
   color: #af130c;
   padding: 0 0.5rem;
   font-size: 0.92rem;
