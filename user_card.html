@@ -18,7 +18,7 @@
 <body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
     <div class="header">
-      <div class="follow">
+      <div class="follow" v-if="guest.id && userInfo.mid !== guest.id">
         <span v-if="guest.is_focus == 0" @click="getFocus">+关注</span>
         <span v-else>已关注</span>
       </div>
@@ -27,9 +27,9 @@
           <img :src="guest.avatar" alt="">
         </div>
         <p class="name">{{guest.name}}</p>
-        <div class="chat">
+        <a class="chat" href="/register/page/message_list">
           <img src="{:REGISTER_PUBLIC}img/user_card/message_icon.png" alt="">
-        </div>
+        </a>
       </div>
       <div class="bottom_wrap">
         <div class="item">
@@ -40,10 +40,10 @@
           <p>关注</p>
           <span>{{guest.fans || 0}}</span>
         </div>
-        <div class="item">
+        <a class="item" href="/register/page/friend_list">
           <p>好友</p>
           <span>{{guest.fans || 0}}</span>
-        </div>
+        </a>
       </div>
     </div>
     <div class="circle_wrap">

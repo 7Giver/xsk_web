@@ -4,61 +4,74 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-  <title>消息列表</title>
-  <link rel="stylesheet" href="./css/common/main.css">
-  <link rel="stylesheet" href="./css/common/vant.css">
-  <link rel="stylesheet" href="./css/chat/chat.css">
-  <!-- <link rel="stylesheet" href="./css/message_list/message_list.css?v=<?php echo time(); php?>"> -->
+  <title>对话聊天</title>
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/chat/chat.css?v=<?php echo time(); php?>">
 </head>
 
 <body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
-    <div class="data_list">
-      <div class="item" v-for="(item, index) in dataList" :key="index">
+    <!-- 聊天消息区 -->
+    <div class="message_wrap" v-show="messageList.length">
+      <div :class="[item.from == sid ? 'item reverse' : 'item row']" v-for="(item, index) in messageList" :key="index">
         <div class="avatar">
-          <img :src="item.avatar" alt="">
-          <div class="tips" v-if="item.news">{{item.news}}</div>
+          <img :src="item.data.from.avatar || default_avatar" alt="">
         </div>
         <div class="content">
-          <div class="top_wrap">
-            <div class="name">
-              <span v-if="item.type == 2">群聊</span>
-              <p>{{item.name}}</p>
-            </div>
-            <p class="time">{{item.time}}</p>
+          <div class="text" v-if="item.data.typ==100">{{item.data.content.txt}}</div>
+          <div class="img" v-if="item.data.typ==104">
+            <img :src="item.data.content.img" alt="">
           </div>
-          <div class="sign" v-if="item.type < 3">{{item.sign}}</div>
-          <div class="card" v-if="item.type == 3">
-            <div class="title">{{item.name}}的{{item.brand}}的微名片请惠存！</div>
-            <div class="inner_wrap">
-              <div class="img_wrap">
-                <img :src="item.img" alt="">
-              </div>
-              <div class="right">
-                <p>姓名：{{item.name}}</p>
-                <p>品牌：{{item.brand}}</p>
-              </div>
-            </div>
-            <div class="footer">
-              <p>名片</p>
-            </div>
+          <!-- <div class="audio" v-if="item.data.typ==3">
+            <audio src=""></audio>
+          </div> -->
+        </div>
+      </div>
+    </div>
+    <!-- 聊天输入区 -->
+    <div id="chat-footer">
+      <div class="input_wrap">
+        <div class="left_wrap" @click="toggleContent">
+          <img :src="minus" alt="" v-if="showContent">
+          <img :src="plus" alt="" v-else>
+        </div>
+        <div class="content">
+          <input type="text" v-model="typingText" @blur="onBlur">
+          <div class="icon">
+            <img :src="smile" alt="" @click="faceContent">
           </div>
-          <div class="news" v-if="item.type == 4">
-            <div class="title">{{item.title}}</div>
-            <div class="bottom">
-              <p>{{item.desc}}</p>
-              <img :src="item.img" alt="">
-            </div>
+        </div>
+        <div class="submit" @click="sendText">发送</div>
+      </div>
+      <div class="content_wrap" v-show="showContent">
+        <div class="apply_wrap" v-if="!faceShow">
+          <div class="item" v-for="(item, index) in applyList" :key="index" @click="applyItem(item.type)">
+            <van-uploader :after-read="afterRead" v-if="index === 0">
+              <img :src="item.icon" alt="" />
+              <p>{{ item.title }}</p>
+            </van-uploader>
+            <template v-else>
+              <img :src="item.icon" alt="" />
+              <p>{{ item.title }}</p>
+            </template>
           </div>
+        </div>
+        <div class="emoji_wrap" v-if="faceShow">
+          <ul>
+            <li v-for="(item, index) in faceList" :key="index" @click="getBrow(index)">
+              {{ item }}
+            </li>
+          </ul>
         </div>
       </div>
     </div>
   </div>
 </body>
 
-<script src="./js/vue.min.js"></script>
-<script src="./js/vue-resource.min.js"></script>
-<script src="./js/vant.min.js?v=1.2"></script>
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js?v=1.2"></script>
 
 <script>
   const URL = "{:H5_DOMAIN}";
@@ -67,48 +80,52 @@
     el: '#app',
     data() {
       return {
+        option: {}, // 页面url参数
         token: '',
+        sid: '',
+        connectKey: '',
+        ws: null, //websocket对象
+        isGroup: false, // 是否群聊
+        default_avatar: '{:REGISTER_PUBLIC}img/avatar/default_avatar.jpg',
+        authUrl: "http://123.206.118.205:10800/auth?timestamp=" + new Date().valueOf(),
+        wsServer: "ws://123.206.118.205:10800/io?timestamp=" + new Date().valueOf(), //ws请求地址
+        //列表
         page: 1, // 页码
         pageSize: 20, // 每页条数
         loading: false, // 分页加载
         finished: false, // 结束分页加载
-        dataList: [
-          {
-            avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/girl.jpg',
-            name: '王冰冰',
-            time: '下午13:08',
-            sign: '谁能帮我设计免费个性签名,我叫蒙广福',
-            news: 2,
-            type: 1,
+        dataList: [],
+        // footer
+        minus: '{:REGISTER_PUBLIC}img/chat/minus.png',
+        plus: '{:REGISTER_PUBLIC}img/chat/plus.png',
+        smile: '{:REGISTER_PUBLIC}img/chat/smile.png',
+        show: false,
+        showContent: false, //显示面板
+        faceShow: false, //显示表情
+        typingText: "",
+        faceString: "", //选中表情
+        faceData: {}, //表情json
+        faceList: [], //表情
+        messageList: [],
+        applyList: [{
+            type: "image",
+            icon: '{:REGISTER_PUBLIC}img/chat/card.png',
+            title: "图片",
           },
           {
-            avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/bear.jpg',
-            name: '小熊宝',
-            time: '上午13:08',
-            sign: '坚强并不只是在大是大非中不屈服四大皆空房价大幅是大家看法上岛咖啡',
-            type: 2,
-            news: 10,
+            type: "news",
+            icon: '{:REGISTER_PUBLIC}img/chat/news.png',
+            title: "资讯",
           },
           {
-            avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/girl.jpg',
-            name: '王冰冰',
-            time: '昨天13:08',
-            sign: '坚强并不只是在大是大非中不屈服四大皆空房价大幅是大家看法上岛咖啡',
-            type: 3,
-            news: 2,
-            brand: '中国平安',
-            img: 'https://gitee.com/run27017/assets/raw/master/avatars/girl.jpg'
+            type: "card",
+            icon: '{:REGISTER_PUBLIC}img/chat/card.png',
+            title: "名片",
           },
           {
-            avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/bear.jpg',
-            name: '小熊宝',
-            time: '下午13:08',
-            sign: '谁能帮我设计免费个性签名,我叫蒙广福',
-            news: 11,
-            type: 4,
-            title: '为什么跟某些人说话总会充满戾气？你可能想错了',
-            desc: '我正在读书，邀您一起与我攻读赶快娿来来~~',
-            img: 'https://gitee.com/run27017/assets/raw/master/avatars/bear.jpg'
+            type: "voice",
+            icon: '{:REGISTER_PUBLIC}img/chat/voice.png',
+            title: "语音",
           },
         ],
       }
@@ -119,10 +136,315 @@
       }
     },
     mounted() {
-      // this.getUserInfo()
+      this.getUserInfo()
+    },
+    updated() {
+      console.log('updated!!');
+      window.scrollTo(0, document.body.scrollHeight)
     },
     methods: {
-      
+      // 获取url参数 判断单聊群聊
+      getUrlQuery() {
+        this.option.id = getQueryString('id')
+        this.option.sid = getQueryString('sid')
+        if (this.option.sid) {
+          this.isGroup = false
+          this.getChatDetail(0, this.option.id, 1001)
+        } else {
+          this.isGroup = true
+        }
+
+        // 获取url参数
+        function getQueryString(name, url) {
+          var url = url || window.location.href;
+          var reg = new RegExp("(^|&|/?)" + name + "=([^&|/#?]*)(&|/?|$)", "i");
+          var r = url.substr(1).match(reg);
+          if (r != null) {
+            return r[2];
+          }
+          return null;
+        }
+      },
+      // 获取个人信息
+      getUserInfo() {
+        this.$http.get(URL + "/H5/Visitor/getLoginInfo").then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.token = data.token;
+              this.getUrlQuery()
+              this.getEmoji()
+              this.getOnlineMsg()
+            }
+          },
+          err => {
+            this.$toast({
+              type: 'fail',
+              message: '授权失败',
+              duration: 1500,
+            });
+          }
+        );
+      },
+      // 登录获取信息
+      getOnlineMsg() {
+        this.$http.get(URL + "/register/friend/online", {
+          params: {
+            token: this.token
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.getWsAuth()
+            }
+          },
+          err => {
+            this.$toast({
+              type: 'fail',
+              message: '登录失败',
+              duration: 1500,
+            });
+          }
+        );
+      },
+      // ws授权
+      getWsAuth() {
+        let uri = this.authUrl;
+        let token = this.token;
+        if (token != null && token !== undefined) {
+          uri += "&token=" + token;
+        }
+        this.$http.get(uri).then(
+          res => {
+            const {
+              code,
+              data,
+              message
+            } = res.body;
+            if (code === 1) {
+              this.connectKey = data.key;
+              this.sid = data.sid;
+              this.initWebSocket()
+            }
+          },
+          err => {
+            this.$toast({
+              type: 'fail',
+              message: '登录失败',
+              duration: 1500,
+            });
+          }
+        );
+      },
+      // 请求表情json
+      getEmoji() {
+        this.$http.get(URL + "/register/friend/emoji", {
+          params: {
+            token: this.token
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.faceData = data
+              for (let i in this.faceData) {
+                this.faceList.push(this.faceData[i].char);
+              }
+            }
+          },
+          err => {
+            console.log('getEmoji 请求失败');
+          }
+        );
+      },
+      // 获取历史消息
+      getChatDetail(last = 0, id, type) {
+        this.$http.get(URL + "/register/friend/chat_detail", {
+          params: {
+            token: this.token,
+            lastid: last,
+            id: id,
+            class: type
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.messageList = data.list.reverse()
+            }
+          },
+          err => {
+            console.log('getChatDetail 请求失败');
+          }
+        );
+      },
+      // 发送消息请求
+      sendChatMessage(obj) {
+        this.$http.post(URL + "/register/friend/send_notice", obj, {
+          emulateJSON: true
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.showContent = false;
+              this.faceShow = false;
+              this.ws.send(4 + JSON.stringify(data))
+              this.messageList.push(data)
+            }
+          },
+          err => {
+            console.log('sendChatMessage 请求失败');
+          }
+        );
+      },
+      // 请求设置已读消息
+      getChatRead(type, id) {
+        this.$http.get(URL + "/register/friend/read", {
+          params: {
+            token: this.token,
+            class: type,
+            id: id,
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {}
+          },
+          err => {
+            console.log('getChatRead 请求失败');
+          }
+        );
+      },
+      // 载入websocket
+      initWebSocket() {
+        if (!"WebSocket" in window) {
+          this.$tost({
+            type: 'fail',
+            message: '您的浏览器不支持WebSocket!',
+            duration: 2000,
+          })
+          return false
+        }
+        let self = this;
+        let wsServer = this.wsServer + "&sid=" + this.sid + "&key=" + this.connectKey;
+        var ws = new WebSocket(wsServer);
+        ws.onopen = function (e) {
+          console.log('onopen>>', e);
+        };
+        ws.onmessage = function (e) {
+          console.log('onmessage>>', e.data);
+          let str = e.data.substring(1);
+          self.messageList.push(JSON.parse(str))
+          if (this.isGroup) {
+            self.getChatRead(1002, self.option.id)
+          } else {
+            self.getChatRead(1001, self.option.id)
+          }
+        };
+        ws.onerror = function (e) {
+          console.log('onerror>>', e);
+        };
+        ws.onclose = function (e) {
+          console.log('onclose>>', e);
+        };
+        this.ws = ws
+      },
+      // 切换显示面板
+      toggleContent() {
+        this.showContent = !this.showContent;
+        this.faceShow = false;
+      },
+      // 点击面板选项
+      applyItem(type) {
+        switch (type) {
+          case "image":
+            console.log("image");
+            break;
+          case "news":
+            console.log("news");
+            break;
+          case "card":
+            console.log("card");
+            break;
+          case "voice":
+            console.log("voice");
+            break;
+          default:
+            break;
+        }
+      },
+      // 显示表情
+      faceContent() {
+        if (!this.showContent) {
+          this.toggleContent();
+        }
+        this.faceShow = !this.faceShow;
+      },
+      // 获取用户点击之后的标签 ，存放到输入框内
+      getBrow(index) {
+        for (let i in this.faceList) {
+          if (index == i) {
+            this.faceString = this.faceList[index];
+            this.typingText += this.faceString;
+          }
+        }
+      },
+      // 输入框失焦
+      onBlur(e) {
+        // console.log(e);
+        window.scrollTo(0, document.body.scrollHeight)
+      },
+      // 图片上传
+      afterRead(file) {
+        console.log(file);
+        let obj = {
+          token: this.token,
+          class: 1001,
+          type: 104,
+          toid: this.option.id,
+          file: file.content
+        }
+        this.sendChatMessage(obj)
+      },
+      // 发送消息
+      sendText() {
+        let obj = {
+          token: this.token,
+          class: 1001,
+          type: 100,
+          toid: this.option.id,
+          content: this.typingText
+        }
+        this.sendChatMessage(obj)
+        this.typingText = null;
+        this.showContent = false;
+        this.faceShow = false;
+      },
     }
   })
 </script>

@@ -19,7 +19,7 @@
     <div class="data_wrap">
       <van-list class="data_list" v-model="loading" :finished="finished" :immediate-check="false" finished-text="没有更多了"
         @load="onLoadList">
-        <div class="item" v-for="(item, index) in dataList" :key="index">
+        <div class="item" v-for="(item, index) in dataList" :key="index" @click="goChat(item)">
           <div class="avatar">
             <img :src="item.avatar" alt="">
           </div>
@@ -91,7 +91,7 @@
           }
         );
       },
-      // 签到排名
+      // 好友列表
       getDataList() {
         this.$http.get(URL + "/register/friend/friend_list", {
             params: {
@@ -146,6 +146,10 @@
           }, 600)
         }
       },
+      // 点击进入聊天
+      goChat(item) {
+        location.href= `/register/page/chat?id=${item.id}&sid=${item.sid}`
+      }
     }
   })
 </script>
