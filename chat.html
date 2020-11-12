@@ -13,22 +13,38 @@
 <body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
     <!-- 聊天消息区 -->
-    <div class="message_wrap" v-show="messageList.length">
+    <van-list class="message_wrap" v-model="loading" :finished="finished" finished-text="没有更多了" :immediate-check="false" direction="up"
+      @load="onLoadList">
       <div :class="[item.from == sid ? 'item reverse' : 'item row']" v-for="(item, index) in messageList" :key="index">
         <div class="avatar">
           <img :src="item.data.from.avatar || default_avatar" alt="">
         </div>
         <div class="content">
-          <div class="text" v-if="item.data.typ==100">{{item.data.content.txt}}</div>
-          <div class="img" v-if="item.data.typ==104">
+          <div class="text" v-if="item.data.typ == 100">{{item.data.content.txt}}</div>
+          <div class="img" v-if="item.data.typ == 104">
             <img :src="item.data.content.img" alt="">
+          </div>
+          <div class="card" v-if="item.data.typ == 102" @click="goUserCard(item.data.content.card_id)">
+            <div class="title">{{item.data.content.card_name}}的{{item.data.content.card_brand}}的微名片请惠存！</div>
+            <div class="inner_wrap">
+              <div class="img_wrap">
+                <img :src="item.data.content.card_avatar" alt="">
+              </div>
+              <div class="right">
+                <p>姓名：{{item.data.content.card_name}}</p>
+                <p>品牌：{{item.data.content.card_brand}}</p>
+              </div>
+            </div>
+            <div class="footer">
+              <p>名片</p>
+            </div>
           </div>
           <!-- <div class="audio" v-if="item.data.typ==3">
             <audio src=""></audio>
           </div> -->
         </div>
       </div>
-    </div>
+    </van-list>
     <!-- 聊天输入区 -->
     <div id="chat-footer">
       <div class="input_wrap">
@@ -81,6 +97,7 @@
     data() {
       return {
         option: {}, // 页面url参数
+        userInfo: {},
         token: '',
         sid: '',
         connectKey: '',
@@ -89,12 +106,12 @@
         default_avatar: '{:REGISTER_PUBLIC}img/avatar/default_avatar.jpg',
         authUrl: "http://123.206.118.205:10800/auth?timestamp=" + new Date().valueOf(),
         wsServer: "ws://123.206.118.205:10800/io?timestamp=" + new Date().valueOf(), //ws请求地址
-        //列表
+        lastid: 0, // 聊天记录分页id
         page: 1, // 页码
         pageSize: 20, // 每页条数
         loading: false, // 分页加载
         finished: false, // 结束分页加载
-        dataList: [],
+        newsList: [], //资讯列表
         // footer
         minus: '{:REGISTER_PUBLIC}img/chat/minus.png',
         plus: '{:REGISTER_PUBLIC}img/chat/plus.png',
@@ -139,7 +156,7 @@
       this.getUserInfo()
     },
     updated() {
-      console.log('updated!!');
+      // console.log('updated!!');
       window.scrollTo(0, document.body.scrollHeight)
     },
     methods: {
@@ -176,6 +193,7 @@
             } = res.body;
             if (errCode === 0) {
               this.token = data.token;
+              this.userInfo = data.userInfo
               this.getUrlQuery()
               this.getEmoji()
               this.getOnlineMsg()
@@ -287,7 +305,24 @@
               msg
             } = res.body;
             if (errCode === 0) {
-              this.messageList = data.list.reverse()
+              let result = data.list
+              this.lastid = data.lastid
+              if (data == null || result.length == 0) {
+                // 加载结束
+                this.loading = false;
+                this.finished = true;
+                return false
+              }
+              result.forEach(item => {
+                this.messageList.unshift(item)
+              })
+              if (result.length < this.pageSize) {
+                // 一页不足的情况
+                this.loading = false;
+                this.finished = true;
+              } else {
+                this.loading = false;
+              }
             }
           },
           err => {
@@ -340,6 +375,34 @@
           }
         );
       },
+      // 最近热门列表
+      getNewsList() {
+        this.$http
+          .get(API_URL + "/news/getNewsList", {
+            params: {
+              token: this.token,
+              vid: this.userInfo.vid,
+              bid: this.userInfo.bid,
+              ccid: -2,
+              cate_id: this.userInfo.cate_id,
+              page: 1,
+              pageSize: 20,
+            },
+          })
+          .then(
+            res => {
+              if (res.body.errCode === 0) {
+                const data = res.body.data;
+                if (data) {
+                  this.newsList = data.slice(0, 5);
+                }
+              }
+            },
+            err => {
+              console.log("getNewsList 请求失败");
+            }
+          );
+      },
       // 载入websocket
       initWebSocket() {
         if (!"WebSocket" in window) {
@@ -374,6 +437,18 @@
         };
         this.ws = ws
       },
+      // 上拉加载请求方法
+      onLoadList() {
+        if (this.messageList.length >= this.pageSize) {
+          setTimeout(() => {
+            if (this.isGroup) {
+              this.getChatDetail(this.lastid, this.option.id, 1002)
+            } else {
+              this.getChatDetail(this.lastid, this.option.id, 1001)
+            }
+          }, 600)
+        }
+      },
       // 切换显示面板
       toggleContent() {
         this.showContent = !this.showContent;
@@ -382,14 +457,18 @@
       // 点击面板选项
       applyItem(type) {
         switch (type) {
-          case "image":
-            console.log("image");
-            break;
           case "news":
             console.log("news");
             break;
           case "card":
             console.log("card");
+            let obj = {
+              token: this.token,
+              class: 1001,
+              type: 102,
+              toid: this.option.id
+            }
+            this.sendChatMessage(obj)
             break;
           case "voice":
             console.log("voice");
@@ -430,6 +509,10 @@
           file: file.content
         }
         this.sendChatMessage(obj)
+      },
+      // 名片跳转
+      goUserCard(id) {
+        location.href = `/register/page/user_card?mid=${id}`
       },
       // 发送消息
       sendText() {
