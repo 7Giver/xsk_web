@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=0">
+  <title>新名片</title>
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/user_card_new/user_card_new.css">
+</head>
+
+<body>
+  <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <div class="header">
+      <div class="top_wrap">
+        <div class="brand_wrap">
+          <img :src="guest.brand_logo" alt="">
+        </div>
+        <div class="name_wrap">
+          <p class="name">{{guest.name}}</p>
+          <p class="brand">{{guest.brand}}</p>
+        </div>
+        <div class="content_wrap">
+          <div class="avatar">
+            <img :src="guest.avatar" alt="">
+          </div>
+          <div class="right_wrap">
+            <div class="item_m">
+              <p>{{guest.need_hide ? encodeTel : guest.tel}}</p>
+              <img src="{:REGISTER_PUBLIC}img/user_card_new/tel_mini.png" alt="">
+            </div>
+            <div class="item_m">
+              <p>{{guest.wechat || '尚未完善'}}</p>
+              <img src="{:REGISTER_PUBLIC}img/user_card_new/wx_mini.png" alt="">
+            </div>
+            <div class="apply_wrap">
+              <div class="item" v-if="guest.wechat" @click="copyContentH5(guest.wechat)">
+                <img src="{:REGISTER_PUBLIC}img/user_card_new/wx_icon.png" alt="">
+                <p>复制微信号</p>
+              </div>
+              <div class="item" @click="callTel(guest.tel)">
+                <img src="{:REGISTER_PUBLIC}img/user_card_new/tel_icon.png" alt="">
+                <p>拨打电话</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sign_wrap">
+          <div @click="goEditSign">
+            <img class="sign_icon" src="{:REGISTER_PUBLIC}img/user_card_new/sign_icon.png" alt="">
+            <div class="sign">{{userInfo.sign || '这个家伙很懒，什么都没有留下...'}}</div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom_wrap">
+        <div class="left" @click="sendCard(2)">
+          <p>回传名片</p>
+        </div>
+        <div class="right" @click="sendCard(1)">
+          <img src="{:REGISTER_PUBLIC}img/user_card_new/star_icon.png" alt="">
+          <p>收藏名片</p>
+        </div>
+      </div>
+    </div>
+    <div class="news_wrap">
+      <div class="title">
+        <div class="left">
+          <div class="icon">
+            <img src="{:REGISTER_PUBLIC}img/user_card_new/New.png" alt="">
+            <p>{{today}}</p>
+          </div>
+          <p class="off_title"><span>最新</span>资讯</p>
+        </div>
+        <div class="right" @click="goArticle">全部 ❯</div>
+      </div>
+      <div class="list_wrap">
+        <div class="item" v-for="(item, index) in articleList" :key="index" @click="_gOtherNews(item)">
+          <div class="wrap_l">
+            <div class="title">{{item.description}}</div>
+            <div class="bottom">
+              <img :src="item.editor_avatar" alt="">
+              <p>{{item.editor_name}}<span>丨</span>{{item.add_time}}</p>
+            </div>
+          </div>
+          <div class="wrap_r">
+            <img :src="item.cover" alt="">
+          </div>
+        </div>
+        <div class="show_more" @click="goArticle">查看更多</div>
+      </div>
+    </div>
+    <div class="presence_wrap">
+      <div class="title">我的风采</div>
+      <div class="presence_list">
+        <div class="item" v-for="(item, index) in presence" :key="index">
+          <img :src="item" alt="">
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js?v=1.2"></script>
+
+<script>
+  const URL = "{:H5_DOMAIN}";
+  const API_URL = "{:API_DOMAIN}";
+  const URLShare = "http://{:API_SUB_DOMAIN}.{:DOMAIN}";
+  const ROUTE_DETAIL_DOMAIN = "{:ROUTE_DETAIL_DOMAIN}"; //文章详情授权
+
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        token: '',
+        userInfo: {},
+        guest: {},
+        encodeTel: '', // 加密号码
+        articleList: [{
+            id: 11,
+            title: '美国垃圾债收益率跌至记录新低疫苗利好推动风险情绪上升房贷首付',
+            avatar: 'http://cdn.yingku878.com/wmp_upload_photo_8292341594621289.jpeg',
+            name: '小魔仙驾到',
+            time: '3分钟前',
+            img: 'http://cdn2.tuku689.com/cover/202006/5edf48083f62a.jpg'
+          },
+          {
+            id: 11,
+            title: '美国垃圾债收益率跌至记录新低疫苗利好推动风险情绪上升房贷首付',
+            avatar: 'http://cdn.yingku878.com/wmp_upload_photo_8292341594621289.jpeg',
+            name: '小魔仙驾到',
+            time: '3分钟前',
+            img: 'http://cdn2.tuku689.com/cover/202006/5edf48083f62a.jpg'
+          },
+        ],
+        presence: ['http://cdn2.tuku689.com/cover/202006/5edf48083f62a.jpg',
+          'http://cdn2.yingku878.com/editor/images/20201110/1604999795879.jpg'
+        ]
+      }
+    },
+    computed: {
+      innerPage() {
+        return window.innerHeight + 'px'
+      }
+    },
+    created() {
+      this.today = `${new Date().getMonth() + 1}-${new Date().getDate()}`
+    },
+    mounted() {
+      this.getUserInfo()
+    },
+    methods: {
+      // 获取个人信息
+      getUserInfo() {
+        this.$http.get(URL + "/H5/Visitor/getLoginInfo").then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.token = data.token;
+              this.userInfo = data.userInfo
+              let mid = this.getQueryString('mid')
+              if (mid) {
+                this.getUserCardMsg(mid)
+              } else {
+                this.getUserCardMsg(this.userInfo.mid)
+              }
+              this.getNewsList()
+            }
+          },
+          err => {
+            this.$toast({
+              type: 'fail',
+              message: '授权失败',
+              duration: 1500,
+            });
+          }
+        );
+      },
+      // 请求获取风采列表签名id
+      getUserCardMsg(id) {
+        this.$http.get(URL + "/register/card/style_list", {
+          params: {
+            token: this.token,
+            id: id
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.guest = data
+              this.getEncodeTel(data.tel)
+            }
+          },
+          err => {
+            console.log('getUserCardMsg 请求失败');
+          }
+        );
+      },
+      // 回传名片
+      sendCard(type) {
+        let id = this.getQueryString('mid') || this.userInfo.mid
+        this.$http.get(URL + "/register/card/favor", {
+          params: {
+            token: this.token,
+            type: type,
+            id: id
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.$toast({
+                type: 'success',
+                message: type == 1 ? '收藏成功' : '回传成功'
+              })
+            } else {
+              this.$toast({
+                type: 'fail',
+                message: msg
+              })
+            }
+          },
+          err => {
+            console.log('getUserCardMsg 请求失败');
+          }
+        );
+      },
+      // 最近热门列表
+      getNewsList() {
+        this.$http
+          .get(API_URL + "/news/getNewsList", {
+            params: {
+              token: this.token,
+              vid: this.userInfo.vid,
+              bid: this.userInfo.bid,
+              ccid: -2,
+              cate_id: this.userInfo.cate_id,
+              page: 1,
+              pageSize: 20,
+            },
+          })
+          .then(
+            res => {
+              if (res.body.errCode === 0) {
+                const data = res.body.data;
+                if (data) {
+                  this.articleList = data.slice(0, 5);
+                  this.articleList.forEach(item => {
+                    if (item.editor_name.length > 4) {
+                      item.editor_name = this.resultName(item.editor_name, 4)
+                    }
+                    item.add_time = item.add_time.slice(5)
+                  });
+                }
+              }
+            },
+            err => {
+              console.log("getNewsList 请求失败");
+            }
+          );
+      },
+      // 号码加密处理
+      getEncodeTel(tel) {
+        var reg = /^(\d{3})\d{4}(\d{4})$/;
+        this.encodeTel = tel.replace(reg, "$1****$2");
+      },
+      // 处理过长姓名
+      resultName(name, num) {
+        let arr = name.split('')
+        let newArr = arr.slice(0, num)
+        newArr.push('...')
+        let str = newArr.join('')
+        return str
+      },
+      // 获取url参数
+      getQueryString(name, url) {
+        var url = url || window.location.href;
+        var reg = new RegExp("(^|&|/?)" + name + "=([^&|/#?]*)(&|/?|$)", "i");
+        var r = url.substr(1).match(reg);
+        if (r != null) {
+          return r[2];
+        }
+        return null;
+      },
+      //复制文本到剪切板
+      copyContentH5(content) {
+        var copyDom = document.createElement('div');
+        copyDom.innerText = content;
+        copyDom.style.position = 'absolute';
+        copyDom.style.top = '0px';
+        copyDom.style.right = '-9999px';
+        document.body.appendChild(copyDom);
+        //创建选中范围
+        var range = document.createRange();
+        range.selectNode(copyDom);
+        //移除剪切板中内容
+        window.getSelection().removeAllRanges();
+        //添加新的内容到剪切板
+        window.getSelection().addRange(range);
+        //复制
+        var successful = document.execCommand('copy');
+        copyDom.parentNode.removeChild(copyDom);
+        try {
+          var msg = successful ? "successful" : "failed";
+          this.$toast({
+            type: successful ? "success" : "fail",
+            message: successful ? "复制成功" : "复制失败",
+            duration: 1500,
+          })
+          console.log('Copy command was : ' + msg);
+        } catch (err) {
+          console.log('Oops , unable to copy!');
+        }
+      },
+      // 拨打电话
+      callTel(tel) {
+        if (!this.guest.hasOwnProperty('need_hide') || this.guest.need_hide == 1) {
+          this.$dialog.alert({
+            title: '提示',
+            message: '当前用户尚未开通此功能，您的联系请求已收集，稍后会通知该客户',
+            confirmButtonColor: '#FF730C',
+          });
+          return false
+        }
+        location.href = 'tel://' + tel
+      },
+      // 跳转文章详情
+      _gOtherNews(item) {
+        location.href =
+          ROUTE_DETAIL_DOMAIN +
+          "?nid=" +
+          item.id +
+          "&cid=" +
+          item.cid +
+          "&uid=" +
+          this.userInfo.vid +
+          "&proid=" +
+          this.userInfo.vid +
+          "&otherBid=" +
+          this.userInfo.bid;
+      },
+      // 查看全部文章
+      goArticle() {
+        location.href = URL + '/h5/news/all'
+      },
+      // 跳转编辑签名
+      goEditSign() {
+        if (this.userInfo.mid !== this.guest.id) {
+          console.log('非本人');
+          return false
+        }
+        location.href = URL + '/register/page/user_sign_edit'
+      }
+    }
+  })
+</script>
+
+</html>
