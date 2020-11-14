@@ -8,72 +8,73 @@
 
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/anime.min.css">
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/user_card/user_card.css?v=<?php echo time(); php?>">
-
-  <!-- <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
-  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
-  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/user_card/user_card.css"> -->
 </head>
 
 <body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
     <div class="header">
-      <div class="follow" v-if="guest.id && userInfo.mid !== guest.id">
-        <span v-if="guest.is_focus == 0" @click="getFocus">+关注</span>
-        <span v-else>已关注</span>
-      </div>
       <div class="top_wrap">
         <div class="avatar">
           <img :src="guest.avatar" alt="">
         </div>
-        <p class="name">{{guest.name}}</p>
-        <a class="chat" href="/register/page/message_list">
-          <img src="{:REGISTER_PUBLIC}img/user_card/message_icon.png" alt="">
-        </a>
+        <div class="uid">UID:{{guest.id}}</div>
+        <div class="bottom">
+          <p>{{guest.name || '尚未完善'}}</p>
+          <span>丨</span>
+          <p>{{guest.brand || '尚未完善'}}</p>
+        </div>
       </div>
-      <div class="bottom_wrap">
-        <div class="item">
-          <p>粉丝</p>
-          <span>{{guest.fans || 0}}</span>
+      <div class="btn_wrap">
+        <div class="contact">
+          <img src="{:REGISTER_PUBLIC}img/user_card/message_icon.png" alt="">
+          <p>联系我</p>
         </div>
-        <div class="item">
-          <p>关注</p>
-          <span>{{guest.fans || 0}}</span>
-        </div>
-        <a class="item" href="/register/page/friend_list">
-          <p>好友</p>
-          <span>{{guest.fans || 0}}</span>
-        </a>
+        <div>+关注</div>
+      </div>
+      <div class="sign_wrap" @click="goEditMsg('sign')">
+        <img class="sign_icon" src="{:REGISTER_PUBLIC}img/user_card/tips_icon.png" alt="">
+        <div class="sign van-multi-ellipsis--l2">{{guest.sign || '这个家伙很懒，什么都没有留下...'}}</div>
       </div>
     </div>
-    <div class="circle_wrap">
-      <a class="item center">
-        <img src="{:REGISTER_PUBLIC}img/user_card/home_icon.png" alt="">
-        <p>我的主页</p>
+    <div class="container">
+      <a class="item top_left">
+        <img src="{:REGISTER_PUBLIC}img/user_card/sign_icon.png" alt="">
+        <p>签到打卡</p>
+      </a>
+      <a class="item top_right">
+        <img src="{:REGISTER_PUBLIC}img/user_card/friend_icon.png" alt="">
+        <p>添加好友</p>
       </a>
       <a class="item left">
         <img src="{:REGISTER_PUBLIC}img/user_card/news_icon.png" alt="">
         <p>最新资讯</p>
       </a>
+      <a class="item center">
+        <img src="{:REGISTER_PUBLIC}img/user_card/home_icon.png" alt="">
+        <p>我的主页</p>
+      </a>
       <a class="item right">
-        <img src="{:REGISTER_PUBLIC}img/user_card/friend_icon.png" alt="">
+        <img src="{:REGISTER_PUBLIC}img/user_card/track_icon.png" alt="">
         <p>人脉市集</p>
       </a>
-      <a class="item bottom" href="">
-        <img src="{:REGISTER_PUBLIC}img/user_card/sign_icon.png" alt="">
-        <p>签到打卡</p>
+      <a class="item bottom_left" href="">
+        <img src="{:REGISTER_PUBLIC}img/user_card/show_icon.png" alt="">
+        <p>我的风采</p>
+      </a>
+      <a class="item bottom_right" href="">
+        <img src="{:REGISTER_PUBLIC}img/user_card/poster_icon.png" alt="">
+        <p>我的海报</p>
       </a>
     </div>
+    <a class="float_wrpa" href="/register/page/user_card" v-if="!isSelf">一键换成我的</a>
   </div>
 </body>
 
 <script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
 <script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
 <script src="{:REGISTER_PUBLIC}js/vant.min.js?v=1.2"></script>
-
-<!-- <script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
-<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
-<script src="{:REGISTER_PUBLIC}js/vant.min.js?v=1.2"></script> -->
 
 <script>
   const URL = "{:H5_DOMAIN}";
@@ -82,14 +83,11 @@
     el: '#app',
     data() {
       return {
-        vid: '', //当前名片vid
         token: '',
-        userInfo: {
-          upic: '{:REGISTER_PUBLIC}img/avatar/default_avatar.jpg',
-          name: '我是马朵朵'
-        },
+        mid: '', // 当前用户mid
+        userInfo: {},
         guest: {}, // 个人信息
-        dataList: [],
+        isSelf: false, // 是否本人
       }
     },
     computed: {
@@ -115,6 +113,7 @@
               this.userInfo = data.userInfo
               let mid = this.getQueryString('mid')
               if (mid) {
+                this.mid = mid
                 this.getGuestMsg(mid)
               } else {
                 this.getGuestMsg(this.userInfo.mid)
@@ -131,7 +130,7 @@
           }
         );
       },
-      // 获取签到详情
+      // 获取用户信息
       getGuestMsg(mid) {
         this.$http.get(URL + "/register/friend/userinfo", {
           params: {
@@ -147,10 +146,16 @@
             } = res.body;
             if (errCode === 0) {
               this.guest = data;
+              let id = this.mid
+              if (!id || id == this.userInfo.mid) {
+                this.isSelf = true
+              } else {
+                this.isSelf = false
+              }
             }
           },
           err => {
-            console.log("getSignDetail 请求失败");
+            console.log("getGuestMsg 请求失败");
           }
         );
       },
@@ -184,7 +189,7 @@
             }
           },
           err => {
-            console.log("getSignDetail 请求失败");
+            console.log("getFocus 请求失败");
           }
         );
       },
@@ -197,7 +202,21 @@
           return r[2];
         }
         return null;
-      }
+      },
+      // 跳转编辑信息
+      goEditMsg(type) {
+        if (!this.isSelf) {
+          console.log('非本人');
+          return false
+        }
+        switch (type) {
+          case 'sign':
+            location.href = URL + '/register/page/user_sign_edit'
+            break;
+          default:
+            break;
+        }
+      },
     }
   })
 </script>

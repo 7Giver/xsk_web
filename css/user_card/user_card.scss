@@ -1,24 +1,11 @@
 #app {
-  background-image: url(../../img/user_card/bg.png);
+  background-image: url(../../img/user_card/card_bg.png);
   background-repeat: no-repeat;
   background-position: top;
   background-size: 100% 100%;
   .header {
     position: relative;
-    padding: 3rem 0 1rem;
-    .follow {
-      position: absolute;
-      top: 17%;
-      right: 7%;
-      z-index: 99;
-      color: #af130c;
-      padding: 0 0.5rem;
-      font-size: 0.92rem;
-      text-align: center;
-      line-height: 1.6rem;
-      border-radius: 0.2rem;
-      background: linear-gradient(37deg, #ff9b21, #ffd747);
-    }
+    padding: 1.1rem 0 0.8rem;
     .top_wrap {
       display: flex;
       align-items: center;
@@ -37,43 +24,77 @@
           height: 100;
         }
       }
-      .name {
-        color: #fff;
+      .uid {
+        color: #fee0a6;
+        font-size: 0.92rem;
+        margin: 0.5rem auto 0.2rem;
+      }
+      .bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 90%;
+        color: #fffd81;
         font-size: 1rem;
         font-weight: bold;
-        margin: 0.5rem auto 0;
-      }
-      .chat {
-        position: absolute;
-        right: 10%;
-        top: 30%;
-        width: 1.6rem;
-        img {
-          display: block;
-          width: 100%;
+        overflow: hidden;
+        > p {
+          flex: 1;
+          white-space: nowrap;
+          &:first-child {
+            text-align: right;
+          }
         }
       }
     }
-    .bottom_wrap {
+    .btn_wrap {
       display: flex;
       align-items: center;
-      justify-content: space-around;
-      margin: 1rem auto;
-      .item {
-        font-size: 1rem;
+      justify-content: space-between;
+      width: 64%;
+      margin: 0 auto;
+      padding: 0.8rem 0;
+      > div {
+        color: #af130c;
+        width: 6.4rem;
+        font-size: 0.9rem;
+        line-height: 1.82rem;
         text-align: center;
-        p {
-          color: #facaca;
-          margin-bottom: 0.5rem;
+        border-radius: 4rem;
+        background: linear-gradient(37deg, #ff9b21, #ffd747);
+      }
+      .contact {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        img {
+          width: 1rem;
+          margin-right: 0.2rem;
         }
-        span {
-          color: #fff;
-        }
+      }
+    }
+    .sign_wrap {
+      display: flex;
+      width: 85%;
+      margin: 0 auto;
+      padding: 0.5rem;
+      border-radius: 0.3rem;
+      background: rgba(255, 155, 33, 0.2);
+      .sign_icon {
+        width: 1.2rem;
+        height: 1.2rem;
+        margin-top: 0.2rem;
+        margin-right: 0.2rem;
+      }
+      .sign {
+        color: #fad49d;
+        font-size: 0.85rem;
+        line-height: 1.4;
       }
     }
   }
-  .circle_wrap {
-    background-image: url(../../img/user_card/circle_bg.png);
+  .container {
+    background-image: url(../../img/user_card/apply_bg.png);
     background-repeat: no-repeat;
     background-position: top;
     background-size: 88%;
@@ -85,35 +106,69 @@
       flex-direction: column;
       img {
         display: block;
-        width: 2.5rem;
+        width: 2.6rem;
       }
       p {
-        color: #fff;
-        font-size: 0.9rem;
+        color: #ffd08a;
+        font-size: 0.92rem;
         line-height: 1.2rem;
+        letter-spacing: 1px;
       }
+    }
+    .top_left {
+      position: absolute;
+      left: 27%;
+      top: 8%;
+    }
+    .top_right {
+      position: absolute;
+      right: 27%;
+      top: 8%;
+    }
+    .left {
+      position: absolute;
+      left: 12.5%;
+      top: 39%;
     }
     .center {
       position: absolute;
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
-    }
-    .left {
-      position: absolute;
-      left: 16%;
-      top: 27%;
+      padding-bottom: 0.6rem;
     }
     .right {
       position: absolute;
-      right: 16%;
-      top: 27%;
+      right: 12.5%;
+      top: 39%;
     }
-    .bottom {
+    .bottom_left {
       position: absolute;
-      left: 50%;
-      bottom: -4%;
-      transform: translate(-50%, -50%);
+      left: 27%;
+      bottom: 14%;
     }
+    .bottom_right {
+      position: absolute;
+      right: 27.5%;
+      bottom: 14%;
+    }
+  }
+  .float_wrpa {
+    position: fixed;
+    bottom: 9%;
+    left: 16%;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    color: #cc0419;
+    padding: 0 5rem;
+    font-size: 1rem;
+    text-align: center;
+    font-weight: bold;
+    line-height: 2.6rem;
+    border-radius: 4rem;
+    background: linear-gradient(0deg, #f8c674, #ffd143);
+    box-shadow: 0px 6px 5px 0px rgba(175, 23, 22, 0.5);
+    animation: 7s bounceInUp alternate infinite;
   }
 }

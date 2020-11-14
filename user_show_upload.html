@@ -217,7 +217,8 @@
       },
       // 返回名片页面
       onClickLeft() {
-        location.href = URL + '/register/page/user_card_new'
+        // location.href = URL + '/register/page/user_card_new'
+        window.history.back(-1); 
       },
     }
   })
