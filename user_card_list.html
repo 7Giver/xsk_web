@@ -7,11 +7,33 @@
   <title>名片夹</title>
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/user_card_list/user_card_list.css?v=<?php echo time(); php?>">
 </head>
 
 <body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
-    user_card_list
+    <van-list class="card_list" v-model="loading" :finished="finished" :immediate-check="false" finished-text="没有更多了"
+      @load="onLoadList">
+      <div class="item" v-for="(item, index) in cardList" :key="index" @click="goCard(item)">
+        <div class="left_wrap">
+          <div class="avatar">
+            <img :src="item.avatar" alt="">
+          </div>
+          <div class="content">
+            <p class="name">{{item.name}}</p>
+            <div class="bottom">
+              <div class="tips send" v-if="item.type == 2">接收于</div>
+              <div class="tips like" v-if="item.type == 1">收藏于</div>
+              <p class="time">{{item.add_time}}</p>
+            </div>
+          </div>
+        </div>
+        <div class="right_wrap">
+          <img src="{:REGISTER_PUBLIC}img/user_card_new/tel_list.png" alt="" @click.stop="callTel(item)">
+          <img src="{:REGISTER_PUBLIC}img/user_card_new/wx_list.png" alt="" @click.stop="copyContentH5(item.wechat)">
+        </div>
+      </div>
+    </van-list>
   </div>
 </body>
 
@@ -28,7 +50,11 @@
       return {
         token: '',
         userInfo: {},
-        page: 1,
+        page: 1, // 页码
+        pageSize: 20, // 每页条数
+        loading: false, // 分页加载
+        finished: false, // 结束分页加载
+        cardList: []
       }
     },
     computed: {
@@ -79,7 +105,22 @@
               msg
             } = res.body;
             if (errCode === 0) {
-              console.log(data);
+              // this.is_member = data.is_member
+              let result = data.list
+              if (data == null || result.length == 0) {
+                // 加载结束
+                this.loading = false;
+                this.finished = true;
+                return false
+              }
+              this.cardList = this.cardList.concat(result);
+              if (result.length < this.pageSize) {
+                // 一页不足的情况
+                this.loading = false;
+                this.finished = true;
+              } else {
+                this.loading = false;
+              }
             }
           },
           err => {
@@ -87,6 +128,97 @@
           }
         );
       },
+      // 上拉加载请求方法
+      onLoadList() {
+        if (this.cardList.length >= this.pageSize) {
+          this.page++;
+          setTimeout(() => {
+            this.getUserCardList()
+          }, 600)
+        }
+      },
+      // 拨打电话
+      callTel(item) {
+        // if (!this.is_member) {
+        //   this.$dialog.alert({
+        //       title: '提示',
+        //       message: '您尚未开通此功能，请开通会员',
+        //       confirmButtonText: '去开通',
+        //       confirmButtonColor: '#FF730C',
+        //       showCancelButton: true,
+        //     })
+        //     .then(() => {
+        //       this.goHaveMember()
+        //     })
+        //     .catch(() => {
+        //       // console.log(222);
+        //     });
+        //   return false
+        // }
+        location.href = 'tel://' + item.tel
+      },
+      //复制文本到剪切板
+      copyContentH5(content) {
+        // if (!this.is_member) {
+        //   this.$dialog.alert({
+        //       title: '提示',
+        //       message: '您尚未开通此功能，请开通会员',
+        //       confirmButtonText: '去开通',
+        //       confirmButtonColor: '#FF730C',
+        //       showCancelButton: true,
+        //     })
+        //     .then(() => {
+        //       this.goHaveMember()
+        //     })
+        //     .catch(() => {
+        //       // console.log(222);
+        //     });
+        //   return false
+        // }
+        if (!this.content) {
+          this.$toast({
+            type: 'fail',
+            message: '暂无微信号',
+            duration: 1500,
+          });
+          return false
+        }
+        var copyDom = document.createElement('div');
+        copyDom.innerText = content;
+        copyDom.style.position = 'absolute';
+        copyDom.style.top = '0px';
+        copyDom.style.right = '-9999px';
+        document.body.appendChild(copyDom);
+        //创建选中范围
+        var range = document.createRange();
+        range.selectNode(copyDom);
+        //移除剪切板中内容
+        window.getSelection().removeAllRanges();
+        //添加新的内容到剪切板
+        window.getSelection().addRange(range);
+        //复制
+        var successful = document.execCommand('copy');
+        copyDom.parentNode.removeChild(copyDom);
+        try {
+          var msg = successful ? "successful" : "failed";
+          this.$toast({
+            type: successful ? "success" : "fail",
+            message: successful ? "复制成功" : "复制失败",
+            duration: 1500,
+          })
+          console.log('Copy command was : ' + msg);
+        } catch (err) {
+          console.log('Oops , unable to copy!');
+        }
+      },
+      // 跳转名片
+      goCard(item) {
+        location.href = URL + '/register/page/user_card_new?mid=' + item.id
+      },
+      // 开通会员
+      goHaveMember() {
+        console.log('开通会员');
+      }
     }
   })
 </script>

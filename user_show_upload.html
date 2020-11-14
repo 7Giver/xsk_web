@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=0">
+  <title>上传风采</title>
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/user_show_upload/user_show_upload.css">
+</head>
+
+<body>
+  <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <van-nav-bar title="上传风采" left-arrow @click-left="onClickLeft"></van-nav-bar>
+    <div class="wrap"></div>
+    <div class="content">
+      <div class="title">
+        <p class="main">上传风采</p>
+        <p class="off">（<span>*</span>注：最多5张，每张大小8M内）</p>
+      </div>
+      <div class="container">
+        <van-uploader v-model="fileList" :after-read="afterRead" :max-count="5" :max-size="8 * 1024 * 1024"
+          @oversize="onOversize" multiple>
+        </van-uploader>
+      </div>
+    </div>
+    <div class="submit_btn" @click="saveShowImage">确定</div>
+  </div>
+</body>
+
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js"></script>
+
+<script>
+  const URL = "{:H5_DOMAIN}";
+
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        token: '',
+        userInfo: {},
+        fileList: [],
+      }
+    },
+    computed: {
+      innerPage() {
+        return window.innerHeight + 'px'
+      }
+    },
+    mounted() {
+      this.getUserInfo()
+    },
+    methods: {
+      // 获取个人信息
+      getUserInfo() {
+        this.$http.get(URL + "/H5/Visitor/getLoginInfo").then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.token = data.token;
+              this.userInfo = data.userInfo;
+              this.getUserCardMsg(this.userInfo.mid)
+            }
+          },
+          err => {
+            this.$toast({
+              type: 'fail',
+              message: '授权失败',
+              duration: 1500,
+            });
+          }
+        );
+      },
+      // 请求获取风采列表
+      getUserCardMsg(id) {
+        this.$http.get(URL + "/register/card/style_list", {
+          params: {
+            token: this.token,
+            id: id
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              let arr = data.list
+              if (arr.length) {
+                arr.forEach(item => {
+                  this.fileList.push({
+                    url: item
+                  })
+                })
+              }
+            }
+          },
+          err => {
+            console.log('getUserCardMsg 请求失败');
+          }
+        );
+      },
+      // 请求保存风采
+      postShowImage(obj) {
+        this.$http.post(URL + "/register/card/save_style", obj, {
+          emulateJSON: true
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.$toast({
+                type: 'success',
+                message: '保存成功',
+                duration: 2000,
+                onClose: () => {
+                  this.onClickLeft()
+                }
+              });
+            } else {
+              this.$toast({
+                type: 'fail',
+                message: '保存失败',
+                duration: 1500,
+              });
+            }
+          },
+          err => {
+            console.log('postShowImage 请求失败');
+          }
+        );
+      },
+      // 上传图片请求
+      uploadImg(obj, item) {
+        this.$http.post(URL + "/register/card/upload", obj, {
+          emulateJSON: true
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              // console.log(index);
+              this.$set(item, 'url', data.url)
+              console.log(this.fileList);
+            }
+          },
+          err => {
+            console.log('uploadImg 请求失败');
+          }
+        );
+      },
+      // 文件读取后处理
+      afterRead(file) {
+        // console.log(file);
+        if (file.length) {
+          file.forEach((item, index) => {
+            this.uploadImg({
+              token: this.token,
+              file: item.content,
+            }, item)
+          });
+        } else {
+          this.uploadImg({
+            token: this.token,
+            file: file.content
+          }, file)
+        }
+      },
+      // 超出大小限制处理
+      onOversize() {
+        this.$toast({
+          type: 'fail',
+          message: '图片过大',
+          duration: 1500,
+        });
+      },
+      // 保存我的风采
+      saveShowImage() {
+        if (!this.token) {
+          this.$toast({
+            type: 'fail',
+            message: '请先授权',
+            duration: 1500
+          });
+          return false
+        }
+        if (this.fileList.length) {
+          let arr = []
+          this.fileList.forEach(item => {
+            arr.push(item.url)
+          })
+          this.postShowImage({
+            token: this.token,
+            pic_list: arr
+          })
+          // console.log(arr);
+        } else {
+          this.postShowImage({
+            token: this.token,
+            pic_list: []
+          })
+        }
+      },
+      // 返回名片页面
+      onClickLeft() {
+        location.href = URL + '/register/page/user_card_new'
+      },
+    }
+  })
+</script>
+
+</html>

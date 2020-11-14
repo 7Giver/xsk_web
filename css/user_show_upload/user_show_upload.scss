@@ -1,0 +1,61 @@
+#app {
+  background: #fff;
+  .van-nav-bar {
+    .van-icon {
+      color: #333;
+    }
+  }
+  .wrap {
+    height: 0.6rem;
+    background: #f5f5f6;
+  }
+  .content {
+    padding: 1rem 1.5rem;
+    .title {
+      display: flex;
+      align-items: flex-end;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid #f5f5f6;
+      .main {
+        color: #333537;
+        font-size: 1.1rem;
+        font-weight: bold;
+      }
+      .off {
+        font-size: 0.8rem;
+        span {
+          color: #f63f35;
+          font-size: 1rem;
+          margin-right: 0.2rem;
+        }
+      }
+    }
+    .container {
+      $lenth: 5.2rem;
+      padding: 1rem 0;
+      .van-uploader__preview {
+        position: relative;
+        margin: 0 10px 10px 0;
+      }
+      .van-uploader__preview-image {
+        width: $lenth;
+        height: $lenth;
+      }
+      .van-uploader__upload {
+        width: $lenth;
+        height: $lenth;
+      }
+    }
+  }
+  .submit_btn {
+    width: 80%;
+    margin: 4rem auto 2rem;
+    color: #fff;
+    text-align: center;
+    font-size: 1rem;
+    line-height: 2.8rem;
+    letter-spacing: 1px;
+    border-radius: 4rem;
+    background: linear-gradient(30deg, #ff8e16, #ff720c);
+  }
+}

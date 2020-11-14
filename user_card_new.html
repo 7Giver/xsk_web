@@ -7,6 +7,7 @@
   <title>新名片</title>
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/anime.min.css">
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/user_card_new/user_card_new.css">
 </head>
 
@@ -35,7 +36,7 @@
               <img src="{:REGISTER_PUBLIC}img/user_card_new/wx_mini.png" alt="">
             </div>
             <div class="apply_wrap">
-              <div class="item" v-if="guest.wechat" @click="copyContentH5(guest.wechat)">
+              <div class="item" @click="copyContentH5(guest.wechat)">
                 <img src="{:REGISTER_PUBLIC}img/user_card_new/wx_icon.png" alt="">
                 <p>复制微信号</p>
               </div>
@@ -47,9 +48,9 @@
           </div>
         </div>
         <div class="sign_wrap">
-          <div @click="goEditSign">
+          <div @click="goEditMsg('sign')">
             <img class="sign_icon" src="{:REGISTER_PUBLIC}img/user_card_new/sign_icon.png" alt="">
-            <div class="sign">{{userInfo.sign || '这个家伙很懒，什么都没有留下...'}}</div>
+            <div class="sign">{{guest.sign || '这个家伙很懒，什么都没有留下...'}}</div>
           </div>
         </div>
       </div>
@@ -93,17 +94,37 @@
     <div class="presence_wrap">
       <div class="title">我的风采</div>
       <div class="presence_list">
-        <div class="item" v-for="(item, index) in presence" :key="index">
-          <img :src="item" alt="">
+        <template v-if="showList.length && need_hide == 0">
+          <div class="item" v-for="(item, index) in guest.list" :key="index">
+            <img :src="item" alt="">
+          </div>
+        </template>
+        <template v-else-if="showList.length && need_hide == 1">
+          <div class="item">
+            <div class="faded">
+              <a href="">{{isSelf ? '开通VIP后可显示' : '该用户尚未开通此功能'}}</a>
+            </div>
+            <img :src="guest.list[0]" alt="">
+          </div>
+        </template>
+        <div class="item" @click="goEditMsg('show')" v-else>
+          <img src="{:REGISTER_PUBLIC}img/user_card_new/default_show.png" alt="">
+          <div class="nodata" v-if="!isSelf">暂无风采</div>
         </div>
       </div>
     </div>
+    <a class="float_btn" href="/register/page/user_card_new" v-if="!isSelf">
+      <p>一键换成我的</p>
+      <img src="{:REGISTER_PUBLIC}img/user_card_new/arrow_icon.png" alt="">
+    </a>
   </div>
 </body>
 
 <script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
 <script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
 <script src="{:REGISTER_PUBLIC}js/vant.min.js?v=1.2"></script>
+<script src="{:REGISTER_PUBLIC}js/jweixin-1.1.0.js"></script>
+<script src="{:REGISTER_PUBLIC}js/wx.share.js"></script>
 
 <script>
   const URL = "{:H5_DOMAIN}";
@@ -118,27 +139,12 @@
         token: '',
         userInfo: {},
         guest: {},
+        need_hide: true,
+        isSelf: false, // 是否本人
+        mid: '', // 查看当前的mid
         encodeTel: '', // 加密号码
-        articleList: [{
-            id: 11,
-            title: '美国垃圾债收益率跌至记录新低疫苗利好推动风险情绪上升房贷首付',
-            avatar: 'http://cdn.yingku878.com/wmp_upload_photo_8292341594621289.jpeg',
-            name: '小魔仙驾到',
-            time: '3分钟前',
-            img: 'http://cdn2.tuku689.com/cover/202006/5edf48083f62a.jpg'
-          },
-          {
-            id: 11,
-            title: '美国垃圾债收益率跌至记录新低疫苗利好推动风险情绪上升房贷首付',
-            avatar: 'http://cdn.yingku878.com/wmp_upload_photo_8292341594621289.jpeg',
-            name: '小魔仙驾到',
-            time: '3分钟前',
-            img: 'http://cdn2.tuku689.com/cover/202006/5edf48083f62a.jpg'
-          },
-        ],
-        presence: ['http://cdn2.tuku689.com/cover/202006/5edf48083f62a.jpg',
-          'http://cdn2.yingku878.com/editor/images/20201110/1604999795879.jpg'
-        ]
+        articleList: [],
+        showList: [], // 风采数组
       }
     },
     computed: {
@@ -165,10 +171,12 @@
             if (errCode === 0) {
               this.token = data.token;
               this.userInfo = data.userInfo
-              let mid = this.getQueryString('mid')
-              if (mid) {
-                this.getUserCardMsg(mid)
+              let id = this.getQueryString('mid')
+              if (id) {
+                this.mid = id
+                this.getUserCardMsg(id)
               } else {
+                this.mid = this.userInfo.mid
                 this.getUserCardMsg(this.userInfo.mid)
               }
               this.getNewsList()
@@ -199,7 +207,17 @@
             } = res.body;
             if (errCode === 0) {
               this.guest = data
+              let id = this.getQueryString('mid')
+              if (!id || id == this.userInfo.mid) {
+                this.isSelf = true
+              } else {
+                this.isSelf = false
+              }
+              this.need_hide = data.need_hide
+              this.showList = data.list
               this.getEncodeTel(data.tel)
+              document.title = `${data.name}的${data.brand}名片`;
+              this.initWxShare()
             }
           },
           err => {
@@ -209,12 +227,59 @@
       },
       // 回传名片
       sendCard(type) {
-        let id = this.getQueryString('mid') || this.userInfo.mid
+        switch (type) {
+          case 1:
+            if (this.isSelf) {
+              this.$dialog.alert({
+                  title: '提示',
+                  message: this.guest.need_hide ? '您还不是正式会员，别人无法收藏您的名片' : '不能收藏自己，您可以转发本名片，对方回传名片您可以收到',
+                  confirmButtonText: '去开通',
+                  confirmButtonColor: '#FF730C',
+                  showCancelButton: true,
+                })
+                .then(() => {
+                  this.goHaveMember()
+                })
+                .catch(() => {
+                  // console.log(222);
+                });
+              return false
+            }
+            if (!this.guest.can_favor) {
+              this.$dialog.alert({
+                title: '提示',
+                message: '当前用户尚未开通此功能，您的联系请求已收集，稍后会通知该客户',
+                confirmButtonColor: '#FF730C',
+              });
+              return false
+            }
+            break;
+          case 2:
+            if (!this.guest.can_return) {
+              this.$dialog.alert({
+                  title: '提示',
+                  message: '您还不是正式会员，您无法回传名片',
+                  confirmButtonText: '去开通',
+                  confirmButtonColor: '#FF730C',
+                  showCancelButton: true,
+                })
+                .then(() => {
+                  this.goHaveMember()
+                })
+                .catch(() => {
+                  // console.log(222);
+                });
+              return false
+            }
+            break;
+          default:
+            break;
+        }
         this.$http.get(URL + "/register/card/favor", {
           params: {
             token: this.token,
             type: type,
-            id: id
+            id: this.mid
           }
         }).then(
           res => {
@@ -299,6 +364,18 @@
       },
       //复制文本到剪切板
       copyContentH5(content) {
+        if (!this.hasPower()) {
+          this.hasPower()
+          return false
+        }
+        if (!content) {
+          this.$toast({
+            type: 'fail',
+            message: '暂无微信号',
+            duration: 1500,
+          });
+          return false
+        }
         var copyDom = document.createElement('div');
         copyDom.innerText = content;
         copyDom.style.position = 'absolute';
@@ -329,12 +406,8 @@
       },
       // 拨打电话
       callTel(tel) {
-        if (!this.guest.hasOwnProperty('need_hide') || this.guest.need_hide == 1) {
-          this.$dialog.alert({
-            title: '提示',
-            message: '当前用户尚未开通此功能，您的联系请求已收集，稍后会通知该客户',
-            confirmButtonColor: '#FF730C',
-          });
+        if (!this.hasPower()) {
+          this.hasPower()
           return false
         }
         location.href = 'tel://' + tel
@@ -358,14 +431,66 @@
       goArticle() {
         location.href = URL + '/h5/news/all'
       },
-      // 跳转编辑签名
-      goEditSign() {
-        if (this.userInfo.mid !== this.guest.id) {
+      // 跳转编辑信息
+      goEditMsg(type) {
+        if (!this.isSelf) {
           console.log('非本人');
           return false
         }
-        location.href = URL + '/register/page/user_sign_edit'
-      }
+        switch (type) {
+          case 'sign':
+            location.href = URL + '/register/page/user_sign_edit'
+            break;
+          case 'show':
+            location.href = URL + '/register/page/user_show_upload'
+            break;
+          default:
+            break;
+        }
+      },
+      // 是否有权限操作
+      hasPower(type) {
+        let result = false
+        if (this.isSelf && this.guest.need_hide == 1) {
+          this.$dialog.alert({
+              title: '提示',
+              message: '您尚未开通此功能，立即开通',
+              confirmButtonText: '去开通',
+              confirmButtonColor: '#FF730C',
+              showCancelButton: true,
+            })
+            .then(() => {
+              this.goHaveMember()
+            })
+            .catch(() => {
+              // console.log(222);
+            });
+          result = false
+        } else if (this.guest.need_hide == 1) {
+          this.$dialog.alert({
+            title: '提示',
+            message: '当前用户尚未开通此功能，您的联系请求已收集，稍后会通知该客户',
+            confirmButtonColor: '#FF730C',
+          });
+          result = false
+        } else {
+          result = true
+        }
+        return result
+      },
+      // 开通会员
+      goHaveMember() {
+        console.log('开通会员');
+      },
+      // 载入微信分享
+      initWxShare() {
+        let title = `${this.guest.name}的${this.guest.brand}名片`;
+        let desc = `姓名：${this.guest.name}  品牌：${this.guest.brand}`;
+        let imgUrl = this.guest.avatar;
+        let url = location.href;
+        let share_url = `${URLShare}/register/page/user_card_new?mid=${this.mid}&pid=${this.userInfo.vid}`;
+        Wxshare.call(this, title, desc, imgUrl, url, share_url);
+      },
     }
   })
 </script>

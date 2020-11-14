@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=0">
+  <title>我的签名</title>
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/user_sign_edit/user_sign_edit.css">
+</head>
+
+<body>
+  <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <van-nav-bar title="我的签名" left-arrow @click-left="onClickLeft"></van-nav-bar>
+    <div class="wrap"></div>
+    <div class="content">
+      <h3>我的签名</h3>
+      <div class="text_area">
+        <van-field v-model="sign" rows="3" type="textarea" maxlength="40" placeholder="请输入您的签名..." show-word-limit />
+      </div>
+    </div>
+    <div class="submit_btn" @click="goPostSign">确定</div>
+  </div>
+</body>
+
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js"></script>
+
+<script>
+  const URL = "{:H5_DOMAIN}";
+
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        token: '',
+        userInfo: {},
+        sign: ''
+      }
+    },
+    computed: {
+      innerPage() {
+        return window.innerHeight + 'px'
+      }
+    },
+    mounted() {
+      this.getUserInfo()
+    },
+    methods: {
+      // 获取个人信息
+      getUserInfo() {
+        this.$http.get(URL + "/H5/Visitor/getLoginInfo").then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.token = data.token;
+              this.userInfo = data.userInfo;
+              this.getUserCardMsg(this.userInfo.mid)
+            }
+          },
+          err => {
+            this.$toast({
+              type: 'fail',
+              message: '授权失败',
+              duration: 1500,
+            });
+          }
+        );
+      },
+      // 请求获取风采列表签名id
+      getUserCardMsg(id) {
+        this.$http.get(URL + "/register/card/style_list", {
+          params: {
+            token: this.token,
+            id: id
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.sign = data.sign
+            }
+          },
+          err => {
+            console.log('getUserCardMsg 请求失败');
+          }
+        );
+      },
+      // 提交签名
+      goPostSign() {
+        if (!this.token) {
+          this.$toast({
+            type: 'fail',
+            message: '缺少token',
+            duration: 1500,
+          });
+        }
+        let obj = {
+          token: this.token,
+          sign: this.sign
+        }
+        this.$http.post(URL + "/register/card/sign", obj, {
+          emulateJSON: true
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.$toast({
+                type: 'success',
+                message: '保存成功',
+                duration: 1500,
+                onClose: () => {
+                  this.onClickLeft()
+                }
+              });
+            }
+          },
+          err => {
+            console.log('goPostSign 请求失败');
+          }
+        );
+      },
+      // 返回名片页
+      onClickLeft() {
+        location.href = URL + '/register/page/user_card_new'
+      }
+    }
+  })
+</script>
+
+</html>
