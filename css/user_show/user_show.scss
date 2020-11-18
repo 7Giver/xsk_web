@@ -5,9 +5,12 @@ body {
   background-size: 100% 100%;
 }
 #app {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 1rem;
   .header {
     position: relative;
-    padding: 5% 0;
+    padding: 1.5rem 0 0.8rem;
     .top_wrap {
       display: flex;
       align-items: center;
@@ -55,7 +58,7 @@ body {
       justify-content: space-between;
       width: 64%;
       margin: 0 auto;
-      padding: 1rem 0;
+      padding: 0.8rem 0;
       > div {
         color: #af130c;
         width: 6.4rem;
@@ -116,94 +119,60 @@ body {
       }
     }
   }
-  .container {
-    background-image: url(../../img/user_card/apply_bg1.png);
-    background-repeat: no-repeat;
-    background-position: top;
-    background-size: 88% 100%;
-    width: 100%;
-    height: 20rem;
-    position: relative;
-    .item {
-      display: flex;
-      align-items: center;
-      flex-direction: column;
-      img {
-        display: block;
-        width: 2.6rem;
-      }
-      p {
-        color: #ffd08a;
-        font-size: 0.92rem;
-        line-height: 1.2rem;
-        letter-spacing: 1px;
-      }
-    }
-    .top_left {
-      position: absolute;
-      left: 27%;
-      top: 8%;
-    }
-    .top_right {
-      position: absolute;
-      right: 27%;
-      top: 8%;
-    }
-    .left {
-      position: absolute;
-      left: 11.5%;
-      top: 39%;
-    }
-    .center {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      padding-bottom: 0.6rem;
-    }
-    .right {
-      position: absolute;
-      right: 11.5%;
-      top: 39%;
-    }
-    .bottom_left {
-      position: absolute;
-      left: 27%;
-      bottom: 12%;
-    }
-    .bottom_right {
-      position: absolute;
-      right: 27.5%;
-      bottom: 12%;
-    }
-  }
-  .float_wrap {
-    position: fixed;
-    bottom: 9%;
-    left: 16%;
-    z-index: 2;
+  .show_wrap {
+    flex: 1;
     display: flex;
-    align-items: center;
-    color: #cc0419;
-    padding: 0 5rem;
-    font-size: 1rem;
-    text-align: center;
-    font-weight: bold;
-    line-height: 2.6rem;
-    border-radius: 4rem;
-    background: linear-gradient(0deg, #f8c674, #ffd143);
-    box-shadow: 0px 6px 5px 0px rgba(175, 23, 22, 0.5);
-    animation: 7s bounceInUp alternate infinite;
-  }
-}
-
-@media screen and (min-height: 667px) {
-  #app {
-    .header {
-      padding: 10% 0;
-      .btn_wrap {
-        padding: 6% 0;
+    flex-direction: column;
+    padding: 0 0.8rem 0.8rem;
+    margin: 0rem 1rem 0;
+    border-radius: 0.4rem;
+    background: #ffe1b5;
+    overflow: scroll;
+    -webkit-overflow-scrolling: touch;
+    .title {
+      color: #af130c;
+      font-size: 1.1rem;
+      line-height: 2.6;
+      text-align: center;
+      font-weight: bold;
+      border-bottom: 1px solid rgba(248, 190, 140, 0.24);
+    }
+    .show_list {
+      flex: 1;
+      padding: 0.8rem 0 0;
+      overflow: scroll;
+      -webkit-overflow-scrolling: touch;
+      .item {
+        width: 100%;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        &:not(:last-child) {
+          margin-bottom: 0.8rem;
+        }
+        img {
+          display: block;
+          width: 100%;
+        }
       }
+      .nodata {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 12rem;
+        margin: 24% auto 0;
+        img {
+          display: block;
+          width: 100%;
+        }
+      }
+    }
+  }
+  .van-nav-bar {
+    .van-icon {
+      color: #cc0419;
+    }
+    .van-nav-bar__title {
+      color: #cc0419;
     }
   }
 }

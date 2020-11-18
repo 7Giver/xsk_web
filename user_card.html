@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-  <title>名片</title>
+  <title></title>
 
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
@@ -27,57 +27,66 @@
         </div>
       </div>
       <div class="btn_wrap">
-        <div class="contact">
+        <div class="contact" @click="goChat">
           <img src="{:REGISTER_PUBLIC}img/user_card/message_icon.png" alt="">
           <p>联系我</p>
         </div>
-        <div>+关注</div>
+        <div @click="getFocus">{{guest.is_focus ? '已关注' : '+关注'}}</div>
       </div>
       <div class="sign_wrap" @click="goEditMsg('sign')">
         <img class="sign_icon" src="{:REGISTER_PUBLIC}img/user_card/tips_icon.png" alt="">
-        <div class="sign van-multi-ellipsis--l2">{{guest.sign || '这个家伙很懒，什么都没有留下...'}}</div>
+        <div class="sign">
+          <p>{{guest.sign || '这个家伙很懒，什么都没有留下...'}}</p>
+          <div class="edit_tip" v-if="isSelf">
+            <img src="{:REGISTER_PUBLIC}/img/user_card/edit_icon.png" alt="">
+          </div>
+        </div>
       </div>
     </div>
     <div class="container">
-      <a class="item top_left">
+      <div class="item top_left" @click="goNext('sign')">
         <img src="{:REGISTER_PUBLIC}img/user_card/sign_icon.png" alt="">
         <p>签到打卡</p>
-      </a>
-      <a class="item top_right">
-        <img src="{:REGISTER_PUBLIC}img/user_card/friend_icon.png" alt="">
-        <p>添加好友</p>
-      </a>
-      <a class="item left">
-        <img src="{:REGISTER_PUBLIC}img/user_card/news_icon.png" alt="">
-        <p>最新资讯</p>
-      </a>
-      <a class="item center">
-        <img src="{:REGISTER_PUBLIC}img/user_card/home_icon.png" alt="">
-        <p>我的主页</p>
-      </a>
-      <a class="item right">
-        <img src="{:REGISTER_PUBLIC}img/user_card/track_icon.png" alt="">
-        <p>人脉市集</p>
-      </a>
-      <a class="item bottom_left" href="">
+      </div>
+      <div class="item top_right" @click="goNext('show')">
         <img src="{:REGISTER_PUBLIC}img/user_card/show_icon.png" alt="">
         <p>我的风采</p>
-      </a>
-      <a class="item bottom_right" href="">
-        <img src="{:REGISTER_PUBLIC}img/user_card/poster_icon.png" alt="">
-        <p>我的海报</p>
-      </a>
+      </div>
+      <div class="item left" @click="goNext('news')">
+        <img src="{:REGISTER_PUBLIC}img/user_card/news_icon.png" alt="">
+        <p>最新资讯</p>
+      </div>
+      <div class="item center" @click="goNext('home')">
+        <img src="{:REGISTER_PUBLIC}img/user_card/home_icon.png" alt="">
+        <p>我的主页</p>
+      </div>
+      <div class="item right" @click="goNext('connact')">
+        <img src="{:REGISTER_PUBLIC}img/user_card/track_icon.png" alt="">
+        <p>人脉市集</p>
+      </div>
+      <div class="item bottom_left" @click="goNext('wx')">
+        <img src="{:REGISTER_PUBLIC}img/user_card/friend_icon.png" alt="">
+        <p>添加微信</p>
+      </div>
+      <div class="item bottom_right" @click="goNext('tel')">
+        <img src="{:REGISTER_PUBLIC}/img/user_card/tel_icon.png" alt="">
+        <p>联系电话</p>
+      </div>
     </div>
-    <a class="float_wrpa" href="/register/page/user_card" v-if="!isSelf">一键换成我的</a>
+    <a class="float_wrap" href="/register/page/user_card" v-if="!isSelf">一键换成我的</a>
   </div>
 </body>
 
 <script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
 <script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
 <script src="{:REGISTER_PUBLIC}js/vant.min.js?v=1.2"></script>
+<script src="{:REGISTER_PUBLIC}js/jweixin-1.1.0.js"></script>
+<script src="{:REGISTER_PUBLIC}js/wx.share.js"></script>
+<script src="{:REGISTER_PUBLIC}js/geometry-bg.js?v=1.1"></script>
 
 <script>
   const URL = "{:H5_DOMAIN}";
+  const URLShare = "http://{:API_SUB_DOMAIN}.{:DOMAIN}";
 
   new Vue({
     el: '#app',
@@ -88,6 +97,7 @@
         userInfo: {},
         guest: {}, // 个人信息
         isSelf: false, // 是否本人
+        isMember: false, // 当前名片用户是否会员
       }
     },
     computed: {
@@ -95,7 +105,7 @@
         return window.innerHeight + 'px'
       }
     },
-    mounted() {
+    created() {
       this.getUserInfo()
     },
     methods: {
@@ -111,12 +121,14 @@
             if (errCode === 0) {
               this.token = data.token;
               this.userInfo = data.userInfo
-              let mid = this.getQueryString('mid')
-              if (mid) {
-                this.mid = mid
-                this.getGuestMsg(mid)
+              let mid = this.getQueryString('mid') || data.userInfo.mid
+              this.mid = mid
+              this.getGuestMsg(mid)
+              let id = this.getQueryString('mid')
+              if (!id || id == this.userInfo.mid) {
+                this.isSelf = true
               } else {
-                this.getGuestMsg(this.userInfo.mid)
+                this.isSelf = false
               }
             }
           },
@@ -146,12 +158,9 @@
             } = res.body;
             if (errCode === 0) {
               this.guest = data;
-              let id = this.mid
-              if (!id || id == this.userInfo.mid) {
-                this.isSelf = true
-              } else {
-                this.isSelf = false
-              }
+              this.isMember = data.is_open
+              document.title = `${data.name}的${data.brand}名片`;
+              this.initWxShare()
             }
           },
           err => {
@@ -161,6 +170,22 @@
       },
       // 关注请求
       getFocus() {
+        if (this.isSelf) {
+          this.$toast({
+            type: 'fail',
+            message: '不能关注自己',
+            duration: 1500,
+          });
+          return false
+        }
+        if (this.guest.is_focus) {
+          this.$toast({
+            type: 'fail',
+            message: '已关注',
+            duration: 1500,
+          });
+          return false
+        }
         this.$http.get(URL + "/register/friend/focus", {
           params: {
             token: this.token,
@@ -203,6 +228,44 @@
         }
         return null;
       },
+      //复制文本到剪切板
+      copyContentH5(content) {
+        if (!content) {
+          this.$toast({
+            type: 'fail',
+            message: '暂无微信号',
+            duration: 1500,
+          });
+          return false
+        }
+        var copyDom = document.createElement('div');
+        copyDom.innerText = content;
+        copyDom.style.position = 'absolute';
+        copyDom.style.top = '0px';
+        copyDom.style.right = '-9999px';
+        document.body.appendChild(copyDom);
+        //创建选中范围
+        var range = document.createRange();
+        range.selectNode(copyDom);
+        //移除剪切板中内容
+        window.getSelection().removeAllRanges();
+        //添加新的内容到剪切板
+        window.getSelection().addRange(range);
+        //复制
+        var successful = document.execCommand('copy');
+        copyDom.parentNode.removeChild(copyDom);
+        try {
+          var msg = successful ? "successful" : "failed";
+          this.$toast({
+            type: successful ? "success" : "fail",
+            message: successful ? "复制成功" : "复制失败",
+            duration: 1500,
+          })
+          console.log('Copy command was : ' + msg);
+        } catch (err) {
+          console.log('Oops , unable to copy!');
+        }
+      },
       // 跳转编辑信息
       goEditMsg(type) {
         if (!this.isSelf) {
@@ -211,11 +274,92 @@
         }
         switch (type) {
           case 'sign':
-            location.href = URL + '/register/page/user_sign_edit'
+            location.href = '/register/page/user_sign_edit'
             break;
           default:
             break;
         }
+      },
+      // 跳转聊天
+      goChat() {
+        if (this.isSelf) {
+          this.$toast({
+            type: 'fail',
+            message: '不能联系自己',
+            duration: 1500,
+          });
+          return false
+        }
+        if (!this.isMember) {
+          this.$dialog.alert({
+            title: '提示',
+            message: '当前用户尚未开通此功能，您的联系请求已收集，稍后会通知该客户',
+            confirmButtonColor: '#FF730C',
+          });
+          return false
+        }
+        if (this.guest.id) {
+          location.href = `/register/page/chat?id=${this.guest.id}`
+        } else {
+          this.$toast({
+            type: 'fail',
+            message: '缺少ID',
+            duration: 1500,
+          });
+        }
+      },
+      // 跳转集合
+      goNext(type) {
+        switch (type) {
+          case 'sign':
+            location.href = '/H5/sign/index';
+            break;
+          case 'wx':
+            this.copyContentH5(this.wechat);
+            break;
+          case 'news':
+            location.href = '/H5/news/all';
+            break;
+          case 'home':
+            // codes...
+            break;
+          case 'connact':
+            location.href = '/H5/Connection/index';
+            break;
+          case 'show':
+            location.href = `/register/page/user_show?mid=${this.mid}`
+            break;
+          case 'tel':
+            if (!this.isMember) {
+              this.$dialog.alert({
+                title: '提示',
+                message: '当前用户尚未开通此功能，您的联系请求已收集，稍后会通知该客户',
+                confirmButtonColor: '#FF730C',
+              });
+              return false
+            }
+            if (this.guest.tel) {
+              location.href = 'tel://' + this.guest.tel
+            } else {
+              this.$toast({
+                type: 'fail',
+                message: '暂无号码',
+                duration: 1500,
+              });
+            }
+            break;
+          default:
+            break;
+        }
+      },
+      // 载入微信分享
+      initWxShare() {
+        let title = `${this.guest.name}的${this.guest.brand}名片`;
+        let desc = `姓名：${this.guest.name}  品牌：${this.guest.brand}`;
+        let imgUrl = this.guest.avatar;
+        let url = location.href;
+        let share_url = `${URLShare}/register/page/user_card_new?mid=${this.mid}&pid=${this.userInfo.vid}`;
+        Wxshare.call(this, title, desc, imgUrl, url, share_url);
       },
     }
   })

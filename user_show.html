@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>我的风采</title>
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/user_show/user_show.css?v=<?php echo time(); php?>">
+</head>
+
+<body>
+  <div id="app" :style="{'height': innerPage}" v-cloak>
+    <van-nav-bar title="我的风采" left-arrow @click-left="onClickLeft"></van-nav-bar>
+    <div class="header">
+      <div class="top_wrap">
+        <div class="avatar">
+          <img :src="guest.avatar" alt="">
+        </div>
+        <div class="uid">UID:{{guest.id}}</div>
+        <div class="bottom">
+          <p>{{guest.name}}</p>
+          <span>丨</span>
+          <p>{{guest.brand}}</p>
+        </div>
+      </div>
+      <div class="btn_wrap">
+        <div class="contact" @click="goChat">
+          <img src="{:REGISTER_PUBLIC}img/user_card/message_icon.png" alt="">
+          <p>联系我</p>
+        </div>
+        <div @click="getFocus">{{guest.is_focus ? '已关注' : '+关注'}}</div>
+      </div>
+      <div class="sign_wrap" @click="goEditMsg('sign')">
+        <img class="sign_icon" src="{:REGISTER_PUBLIC}img/user_card/tips_icon.png" alt="">
+        <div class="sign">
+          <p>{{guest.sign || '这个家伙很懒，什么都没有留下...'}}</p>
+          <div class="edit_tip" v-if="isSelf">
+            <img src="{:REGISTER_PUBLIC}/img/user_card/edit_icon.png" alt="">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="show_wrap">
+      <div class="title">我的风采</div>
+      <div class="show_list">
+        <template v-if="show_list.length">
+          <div class="item" v-for="(item, index) in show_list" :key="index">
+            <img :src="item" alt="">
+          </div>
+        </template>
+        <div class="nodata" v-else>
+          <img src="{:REGISTER_PUBLIC}img/user_card/nodata_icon.png" alt="" v-if="!isSelf">
+          <img src="{:REGISTER_PUBLIC}img/user_card/upload_icon.png" alt="" @click="goEditMsg('show')" v-else>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/geometry-bg.js?v=1.1"></script>
+
+<script>
+  const URL = "{:H5_DOMAIN}";
+
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        token: '',
+        guest: {},
+        userInfo: {},
+        // show_list: ['http://cdn2.tuku689.com/cover/202006/5edf48083f62a.jpg',
+        //   'http://cdn2.yingku878.com/editor/images/20201110/1604999795879.jpg',
+        //   'http://cdn2.yingku878.com/editor/images/20201110/1604999795879.jpg',
+        //   'http://cdn2.yingku878.com/editor/images/20201110/1604999795879.jpg'
+        // ],
+        isSelf: false, // 是否本人
+        isMember: false, // 当前名片用户是否会员
+        show_list: []
+      }
+    },
+    computed: {
+      innerPage() {
+        return window.innerHeight + 'px'
+      }
+    },
+    mounted() {
+      this.getUserInfo()
+    },
+    methods: {
+      // 获取个人信息
+      getUserInfo() {
+        this.$http.get(URL + "/H5/Visitor/getLoginInfo").then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.token = data.token;
+              this.userInfo = data.userInfo
+              let id = this.getQueryString('mid')
+              if (!id || id == data.userInfo.mid) {
+                this.isSelf = true
+              } else {
+                this.isSelf = false
+              }
+              this.getGuestMsg(id || data.userInfo.mid)
+              this.getUserShow(id || data.userInfo.mid)
+            }
+          },
+          err => {
+            this.$toast({
+              type: 'fail',
+              message: '登录失败',
+              duration: 1500,
+            });
+            console.log("getLoginInfo 请求失败");
+          }
+        );
+      },
+      // 获取用户信息
+      getGuestMsg(id) {
+        this.$http.get(URL + "/register/friend/userinfo", {
+          params: {
+            token: this.token,
+            uid: id
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.guest = data;
+              this.isMember = data.is_open
+            }
+          },
+          err => {
+            console.log("getGuestMsg 请求失败");
+          }
+        );
+      },
+      // 获取用户风采
+      getUserShow(id) {
+        this.$http.get(URL + "/register/friend/userstyle", {
+          params: {
+            token: this.token,
+            uid: id
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.show_list = data.pic_list || [];
+            }
+          },
+          err => {
+            console.log("getGuestMsg 请求失败");
+          }
+        );
+      },
+      // 关注请求
+      getFocus() {
+        if (this.isSelf) {
+          this.$toast({
+            type: 'fail',
+            message: '不能关注自己',
+            duration: 1500,
+          });
+          return false
+        }
+        if (this.guest.is_focus) {
+          this.$toast({
+            type: 'fail',
+            message: '已关注',
+            duration: 1500,
+          });
+          return false
+        }
+        this.$http.get(URL + "/register/friend/focus", {
+          params: {
+            token: this.token,
+            focus_id: this.guest.id
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.$toast({
+                type: 'success',
+                message: '关注成功',
+                duration: 1500,
+              });
+              this.getGuestMsg(this.guest.id)
+            } else {
+              this.$toast({
+                type: 'fail',
+                message: msg,
+                duration: 1500,
+              });
+            }
+          },
+          err => {
+            console.log("getFocus 请求失败");
+          }
+        );
+      },
+      goChat() {
+        if (this.isSelf) {
+          this.$toast({
+            type: 'fail',
+            message: '不能联系自己',
+            duration: 1500,
+          });
+          return false
+        }
+        if (!this.isMember) {
+          this.$dialog.alert({
+            title: '提示',
+            message: '当前用户尚未开通此功能，您的联系请求已收集，稍后会通知该客户',
+            confirmButtonColor: '#FF730C',
+          });
+          return false
+        }
+        if (this.guest.id) {
+          location.href = `/register/page/chat?id=${this.guest.id}`
+        } else {
+          this.$toast({
+            type: 'fail',
+            message: '缺少ID',
+            duration: 1500,
+          });
+        }
+      },
+      // 获取url参数
+      getQueryString(name, url) {
+        var url = url || window.location.href;
+        var reg = new RegExp("(^|&|/?)" + name + "=([^&|/#?]*)(&|/?|$)", "i");
+        var r = url.substr(1).match(reg);
+        if (r != null) {
+          return r[2];
+        }
+        return null;
+      },
+      // 跳转编辑信息
+      goEditMsg(type) {
+        if (!this.isSelf) {
+          console.log('非本人');
+          return false
+        }
+        switch (type) {
+          case 'sign':
+            location.href = '/register/page/user_sign_edit'
+            break;
+          case 'show':
+            location.href = '/register/page/user_show_upload'
+            break;
+          default:
+            break;
+        }
+      },
+      // 返回名片页面
+      onClickLeft() {
+        // location.href = URL + '/register/page/user_card'
+        window.history.back(-1);
+      },
+    }
+  })
+</script>
+
+</html>
