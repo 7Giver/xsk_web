@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>中国梦筑梦人</title>
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/base.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/activity_sign/activity_sign.css?v=<?php echo time(); php?>">
+</head>
+
+<body>
+  <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <div class="container">
+      <!-- 无口令 -->
+      <div class="enter wrap" v-if="showWrap == 0">
+        <p class="title">请输入您的报名口令</p>
+        <div class="input_wrap">
+          <input type="text" v-model="word" maxlength="12" placeholder="请输入您的口令...">
+        </div>
+        <div class="submit_btn" @click="goEnter">
+          <p>立即进入</p>
+        </div>
+      </div>
+      <!-- 有口令 -->
+      <div class="sign wrap" v-if="showWrap == 1">
+        <div class="top">
+          <p class="title">请输入您的姓名</p>
+          <div class="input_wrap">
+            <input type="text" v-model="name" @input="debounceInput" placeholder="请输入您的姓名...">
+          </div>
+          <p class="tips" v-if="!is_sign">请正确输入您的姓名，一经提交不可更改！</p>
+          <!-- <div class="check_wrap" v-show="startCheck">
+            <div class="icon">
+              <van-loading color="#e61814" v-if="checkStatus == 0"></van-loading>
+              <img src="{:REGISTER_PUBLIC}img/activity_sign/success_icon.png" alt="" v-if="checkStatus == 1">
+              <img src="{:REGISTER_PUBLIC}img/activity_sign/error_icon.png" alt="" v-if="checkStatus == 2">
+            </div>
+            <div class="message">
+              <span v-if="checkStatus == 0">校验中，一经填写不可修改</span>
+              <span v-if="checkStatus == 1">校验成功</span>
+              <span v-if="checkStatus == 2">校验失败</span>
+            </div>
+          </div> -->
+        </div>
+        <div class="bottom_wrap">
+          <div class="submit_btn" @click="goSign" v-if="!is_sign">
+            <p>参与报名</p>
+          </div>
+          <div class="submit_btn" @click="showDialog=true" v-else>查看报名信息</div>
+        </div>
+      </div>
+    </div>
+    <div class="title_wrap">
+      <img src="{:REGISTER_PUBLIC}img/activity_sign/title.png" alt="">
+    </div>
+    <!-- 报名成功弹窗 -->
+    <van-popup v-model="showDialog" :close-on-click-overlay="false">
+      <div class="success_wrap">
+        <div class="avatar">
+          <img :src="guest.avatar" alt="">
+        </div>
+        <div class="name">{{guest.name}}</div>
+        <div class="code">
+          <span>报名编码: {{guest.apply_code}}</span>
+        </div>
+        <p class="tips">请妥善保管，不要泄漏</p>
+        <!-- <div class="submit_btn" @click="showDialog=false">知道了</div> -->
+      </div>
+      <!-- <div class="close_btn">
+        <img src="{:REGISTER_PUBLIC}img/activity_sign/close.png" alt="" @click="showDialog=false">
+      </div> -->
+    </van-popup>
+  </div>
+</body>
+
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/jweixin-1.1.0.js"></script>
+<script src="{:REGISTER_PUBLIC}js/wx.share.js"></script>
+<script src="{:REGISTER_PUBLIC}js/lodash.min.js"></script>
+
+<script>
+  const URL = "{:H5_DOMAIN}";
+
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        token: '',
+        userInfo: {},
+        guest: {}, //报名用户信息
+        codeKey: '', //对应口令
+        word: '', //输入的口令
+        name: '', //输入姓名
+        showWrap: 0, //显示报名
+        checkStatus: 0, //校验状态
+        is_sign: false, //是否报名
+        startCheck: false, //开始校验
+        canSign: false, // 报名按钮可点击
+        showDialog: false, // 成功弹窗
+        nameDisable: false, // 禁用姓名输入
+      }
+    },
+    computed: {
+      innerPage() {
+        return window.innerHeight + 'px'
+      }
+    },
+    mounted() {
+      this.getUserInfo()
+      this.initWxShare()
+    },
+    methods: {
+      // 获取个人信息
+      getUserInfo() {
+        this.$http.get(URL + "/H5/Visitor/getLoginInfo").then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.userInfo = data.userInfo;
+              this.token = data.token;
+              this.getSignInfo()
+            }
+          },
+          err => {
+            this.$toast({
+              type: 'fail',
+              message: '登录失败',
+              duration: 1500,
+            });
+            console.log("getLoginInfo 请求失败");
+          }
+        );
+      },
+      // 获取口令
+      getSignInfo() {
+        this.$http.get(URL + "/register/apply/info", {
+          params: {
+            token: this.token,
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.codeKey = data.command;
+              this.is_sign = data.is_apply;
+              if (data.is_apply == 1) {
+                this.name = data.name;
+                this.nameDisable = true;
+                this.guest = {
+                  avatar: data.avatar,
+                  name: data.name,
+                  apply_code: data.apply_code
+                }
+              }
+            }
+          },
+          err => {
+            console.log("getSignInfo 请求失败");
+          }
+        );
+      },
+      // 校验姓名
+      goCheckName(obj) {
+        this.$http.post(URL + "/register/apply/preview", obj, {
+          emulateJSON: true
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              console.log(data);
+              setTimeout(() => {
+                this.checkStatus = 1
+                this.canSign = true
+              }, 800)
+            } else {
+              this.checkStatus = 2
+              this.canSign = false
+            }
+          },
+          err => {
+            console.log("goCheckName 请求失败");
+          }
+        );
+      },
+      // 报名请求
+      postSign(obj) {
+        this.$http.post(URL + "/register/apply/submit", obj, {
+          emulateJSON: true
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              console.log(data);
+              this.guest = data;
+              this.$toast.loading({
+                message: '正在报名',
+                forbidClick: true,
+                duration: 1000,
+                onClose: () => {
+                  this.signSuccess();
+                }
+              });
+            }
+          },
+          err => {
+            console.log("postSign 请求失败");
+          }
+        );
+      },
+      // 节流输入
+      debounceInput: _.debounce(function () {
+        if (!this.token) {
+          console.log('缺少token！');
+          return false
+        }
+        if (this.is_sign) {
+          console.log('已经报名');
+          return false
+        }
+        if (!this.name) {
+          console.log('没有内容！');
+          return false
+        }
+        this.startCheck = true
+        this.goCheckName({
+          token: this.token,
+          name: this.name
+        })
+      }, 100),
+      // 点击进入
+      goEnter() {
+        if (!this.token) {
+          console.log('缺少token！', 'color:red');
+          return false
+        }
+        if (!this.word) {
+          this.$toast({
+            type: 'fail',
+            message: '请输入口令',
+            duration: 1000
+          })
+          return false
+        }
+        this.$toast.loading({
+          message: '认证中...',
+          forbidClick: true,
+          duration: 1000,
+          onClose: () => {
+            next()
+          }
+        });
+        next = () => {
+          if (this.codeKey === this.word) {
+            this.showWrap = 1
+            this.$toast({
+              type: 'success',
+              message: '验证成功！',
+              duration: 1000,
+              onClose: () => {
+                if (this.is_sign) {
+                  this.$nextTick(() => {
+                    this.showDialog = true
+                  })
+                }
+              }
+            })
+          } else {
+            this.$toast({
+              type: 'fail',
+              message: '口令不正确',
+              duration: 1000
+            })
+            return false
+          }
+        }
+      },
+      // 参与报名
+      goSign() {
+        if (!this.canSign) {
+          console.log('不能报名');
+          return false
+        }
+        this.postSign({
+          token: this.token,
+          name: this.name
+        })
+      },
+      // 报名成功
+      signSuccess() {
+        this.$toast({
+          type: 'success',
+          message: '报名成功！',
+          onClose: () => {
+
+          }
+        })
+        setTimeout(() => {
+          this.showDialog = true
+          this.is_sign = true;
+        }, 800)
+      },
+      // 载入微信分享
+      initWxShare() {
+        let title = '中国梦筑梦人';
+        let desc = "中国梦筑梦人，筑梦之旅";
+        let imgUrl = `${URL}/{:REGISTER_PUBLIC}img/activity_sign/share.png`;
+        let url = location.href;
+        let share_url = location.href;
+        Wxshare.call(this, title, desc, imgUrl, url, share_url);
+      },
+    }
+  })
+</script>
+
+</html>

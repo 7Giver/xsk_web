@@ -1,0 +1,208 @@
+#app {
+  background-image: url("../../img/activity_sign/bg01.jpg");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  position: relative;
+}
+
+#app .container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 86%;
+  margin: 0 auto;
+  text-align: center;
+  background: #fff5ea;
+  border-radius: 0.16rem;
+  background-image: url("../../img/activity_sign/wrap_top.png"), url("../../img/activity_sign/wrap_bottom.png");
+  background-repeat: no-repeat, no-repeat;
+  background-position: top, bottom;
+  background-size: 100%, 100%;
+}
+
+#app .container .wrap {
+  padding: 1.1rem 0;
+  border-radius: 0.16rem;
+  border: 4px solid #ca0009;
+}
+
+#app .container .enter .title {
+  font-size: 0.32rem;
+}
+
+#app .container .enter .input_wrap {
+  width: 64%;
+  margin: 0.3rem auto;
+  border-radius: 0.2rem;
+  background: #f4e4db;
+}
+
+#app .container .enter .input_wrap input {
+  color: #e61814;
+  font-size: 0.3rem;
+  line-height: 3;
+  text-align: center;
+}
+
+#app .container .sign {
+  padding: 1.3rem 0 1rem;
+}
+
+#app .container .sign .top {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+}
+
+#app .container .sign .top .title {
+  font-size: 0.32rem;
+}
+
+#app .container .sign .input_wrap {
+  width: 100%;
+  margin: 0.22rem auto 0;
+}
+
+#app .container .sign .input_wrap p {
+  font-size: 0.3rem;
+  margin-right: 0.3rem;
+  white-space: nowrap;
+}
+
+#app .container .sign .input_wrap input {
+  width: 80%;
+  color: #e61814;
+  font-size: 0.3rem;
+  line-height: 3;
+  text-align: center;
+  border-radius: 0.2rem;
+  background: #f4e4db;
+}
+
+#app .container .sign .tips {
+  padding-top: 0.16rem;
+  color: #8b0000;
+  font-size: 0.23rem;
+}
+
+#app .container .sign .check_wrap {
+  display: flex;
+  align-items: center;
+  padding-left: 1.5rem;
+  padding-top: 0.1rem;
+}
+
+#app .container .sign .check_wrap .icon {
+  width: 0.34rem;
+  margin-right: 0.15rem;
+}
+
+#app .container .sign .check_wrap .icon img {
+  display: block;
+  width: 100%;
+}
+
+#app .container .sign .check_wrap .message {
+  color: #8b0000;
+  font-size: 0.23rem;
+}
+
+#app .title_wrap {
+  position: absolute;
+  bottom: 0%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2.8rem;
+}
+
+#app .title_wrap img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#app .submit_btn {
+  width: 76%;
+  margin: 0.4rem auto 0;
+  color: #d00000;
+  font-size: 0.32rem;
+  line-height: 2.85;
+  font-weight: bold;
+  text-align: center;
+  letter-spacing: 1px;
+  border-radius: 2rem;
+  background: linear-gradient(to bottom, #f4d543, #ff7d16);
+}
+
+#app .disabled {
+  opacity: 0.6;
+}
+
+#app .van-popup {
+  width: 80%;
+  top: 44%;
+  background: transparent;
+}
+
+#app .van-popup .success_wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  height: 9rem;
+  padding-top: 2.2rem;
+  background: url("../../img/activity_sign/dialog.png") no-repeat center/100% 100%;
+}
+
+#app .van-popup .success_wrap .avatar {
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #fff;
+  background: #fff;
+}
+
+#app .van-popup .success_wrap .avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#app .van-popup .success_wrap .name {
+  color: #f9cf83;
+  font-size: 0.3rem;
+  line-height: 2.6;
+}
+
+#app .van-popup .success_wrap .code {
+  color: #ffd4af;
+  font-size: 0.3rem;
+  margin: 0.1rem auto;
+  text-align: center;
+}
+
+#app .van-popup .success_wrap .code span {
+  display: block;
+  color: #f9c752;
+  padding: 0 0.3rem;
+  line-height: 1.6;
+  border-radius: 2rem;
+  background: #c1171e;
+}
+
+#app .van-popup .success_wrap .tips {
+  color: #fff;
+  font-size: 0.24rem;
+  line-height: 2.6;
+}
+
+#app .van-popup .close_btn {
+  text-align: center;
+  padding-top: 0.3rem;
+}
+
+#app .van-popup .close_btn img {
+  width: 0.8rem;
+}
