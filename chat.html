@@ -13,8 +13,8 @@
 <body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
     <!-- 聊天消息区 -->
-    <van-list class="message_wrap" v-model="loading" :finished="finished" finished-text="没有更多了" :immediate-check="false" direction="up"
-      @load="onLoadList">
+    <van-list class="message_wrap" v-model="loading" :finished="finished" finished-text="没有更多了" :immediate-check="false"
+      direction="up" @load="onLoadList">
       <div :class="[item.from == sid ? 'item reverse' : 'item row']" v-for="(item, index) in messageList" :key="index">
         <div class="avatar">
           <img :src="item.data.from.avatar || default_avatar" alt="">
@@ -37,6 +37,13 @@
             </div>
             <div class="footer">
               <p>名片</p>
+            </div>
+          </div>
+          <div class="news" @click="_gOtherNews(item.data.content)" v-if="item.data.typ == 103">
+            <div class="title van-multi-ellipsis--l2">{{item.data.content.article_title}}</div>
+            <div class="bottom">
+              <p class="van-multi-ellipsis--l2">{{item.data.content.article_desc}}</p>
+              <img :src="item.data.content.article_pic" alt="">
             </div>
           </div>
           <!-- <div class="audio" v-if="item.data.typ==3">
@@ -67,6 +74,10 @@
               <img :src="item.icon" alt="" />
               <p>{{ item.title }}</p>
             </van-uploader>
+            <template v-else-if="index === 3">
+              <img :src="item.icon" alt="" />
+              <p>{{isStartRecord ? '停止录音' : item.title }}</p>
+            </template>
             <template v-else>
               <img :src="item.icon" alt="" />
               <p>{{ item.title }}</p>
@@ -82,15 +93,33 @@
         </div>
       </div>
     </div>
+    <!-- 资讯弹窗列表 -->
+    <van-popup v-model="showNews">
+      <div class="news_list">
+        <div class="item" v-for="(item, index) in newsList" :key="index" @click="sendNews(item)">
+          <div class="left_wrap">
+            <img :src="item.cover" alt="">
+          </div>
+          <div class="right_wrap">
+            <p class="van-multi-ellipsis--l2">{{item.description}}</p>
+          </div>
+        </div>
+      </div>
+    </van-popup>
   </div>
 </body>
 
 <script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
 <script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
 <script src="{:REGISTER_PUBLIC}js/vant.min.js?v=1.2"></script>
+<script src="{:REGISTER_PUBLIC}js/jweixin-1.1.0.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vconsole.min.js"></script>
 
 <script>
+  // new VConsole();
   const URL = "{:H5_DOMAIN}";
+  const API_URL = "{:API_DOMAIN}";
+  const ROUTE_DETAIL_DOMAIN = "{:ROUTE_DETAIL_DOMAIN}"; //文章详情授权
 
   new Vue({
     el: '#app',
@@ -116,9 +145,10 @@
         minus: '{:REGISTER_PUBLIC}img/chat/minus.png',
         plus: '{:REGISTER_PUBLIC}img/chat/plus.png',
         smile: '{:REGISTER_PUBLIC}img/chat/smile.png',
-        show: false,
         showContent: false, //显示面板
         faceShow: false, //显示表情
+        showNews: false, // 显示资讯列表
+        isStartRecord: false, // 是否正在录音
         typingText: "",
         faceString: "", //选中表情
         faceData: {}, //表情json
@@ -128,18 +158,15 @@
             type: "image",
             icon: '{:REGISTER_PUBLIC}img/chat/card.png',
             title: "图片",
-          },
-          {
+          },{
             type: "news",
             icon: '{:REGISTER_PUBLIC}img/chat/news.png',
             title: "资讯",
-          },
-          {
+          },{
             type: "card",
             icon: '{:REGISTER_PUBLIC}img/chat/card.png',
             title: "名片",
-          },
-          {
+          },{
             type: "voice",
             icon: '{:REGISTER_PUBLIC}img/chat/voice.png',
             title: "语音",
@@ -154,10 +181,12 @@
     },
     mounted() {
       this.getUserInfo()
+      this.initWxSDK()
+      window.scrollTo(0, document.body.scrollHeight)
     },
     updated() {
       // console.log('updated!!');
-      window.scrollTo(0, document.body.scrollHeight)
+      // window.scrollTo(0, document.body.scrollHeight)
     },
     methods: {
       // 获取url参数 判断单聊群聊
@@ -197,6 +226,7 @@
               this.getUrlQuery()
               this.getEmoji()
               this.getOnlineMsg()
+              this.getNewsList()
             }
           },
           err => {
@@ -394,7 +424,7 @@
               if (res.body.errCode === 0) {
                 const data = res.body.data;
                 if (data) {
-                  this.newsList = data.slice(0, 5);
+                  this.newsList = data;
                 }
               }
             },
@@ -402,6 +432,43 @@
               console.log("getNewsList 请求失败");
             }
           );
+      },
+      // 载入微信sdk
+      initWxSDK() {
+        this.$http.get(`${URL}/H5/Share/getSign`, {
+          params: {
+            url: location.href
+          }
+        }).then(
+          (response) => {
+            if (response.body.errCode == 0) {
+              let res = response.data.data;
+              wx.config({
+                debug: false,
+                appId: res.appId,
+                timestamp: res.timestamp,
+                nonceStr: res.nonceStr,
+                signature: res.signature,
+                jsApiList: [
+                  "startRecord",
+                  "stopRecord",
+                  "playVoice",
+                  "pauseVoice",
+                  "stopVoice",
+                  "uploadVoice",
+                ],
+              });
+              wx.ready(function () {
+                console.log('sdk ready');
+              });
+            } else {
+              console.log("code is not 200");
+            }
+          },
+          (err) => {
+            console.log("请求失败");
+          }
+        );
       },
       // 载入websocket
       initWebSocket() {
@@ -459,6 +526,8 @@
         switch (type) {
           case "news":
             console.log("news");
+            this.showNews = true;
+            this.showContent = false;
             break;
           case "card":
             console.log("card");
@@ -468,10 +537,26 @@
               type: 102,
               toid: this.option.id
             }
-            this.sendChatMessage(obj)
+            this.$dialog.alert({
+                title: '消息提示',
+                message: '确认发送您的名片吗？',
+                confirmButtonColor: '#FF730C',
+                showCancelButton: true,
+              })
+              .then(() => {
+                this.sendChatMessage(obj);
+              })
+              .catch(() => {
+                // ...
+              });
             break;
           case "voice":
             console.log("voice");
+            if (!this.isStartRecord) {
+              this.startRecord()
+            } else {
+              this.stopRecord()
+            }
             break;
           default:
             break;
@@ -500,7 +585,7 @@
       },
       // 图片上传
       afterRead(file) {
-        console.log(file);
+        // console.log(file);
         let obj = {
           token: this.token,
           class: 1001,
@@ -528,6 +613,109 @@
         this.showContent = false;
         this.faceShow = false;
       },
+      // 点击发送选中文章
+      sendNews(item) {
+        let obj = {
+          token: this.token,
+          class: 1001,
+          type: 103,
+          toid: this.option.id,
+          cid: item.cid,
+          article_id: item.id,
+          article_title: item.title,
+          article_desc: item.description,
+          article_pic: item.cover
+        }
+        this.$dialog.alert({
+            title: '消息提示',
+            message: '确认发送该文章吗？',
+            confirmButtonColor: '#FF730C',
+            showCancelButton: true,
+          })
+          .then(() => {
+            this.sendChatMessage(obj);
+            this.showNews = false;
+          })
+          .catch(() => {
+            // ...
+          });
+      },
+      // 跳转文章详情
+      _gOtherNews(item) {
+        location.href =
+          ROUTE_DETAIL_DOMAIN +
+          "?nid=" +
+          item.article_id +
+          "&cid=" +
+          item.cid +
+          "&uid=" +
+          this.userInfo.vid +
+          "&proid=" +
+          this.userInfo.vid +
+          "&otherBid=" +
+          this.userInfo.bid;
+      },
+      // 点击录音
+      startRecord() {
+        let self = this;
+        wx.startRecord({
+          success: function (res) {
+            self.isStartRecord = true;
+          },
+          cancel: function () {
+            console.log('用户拒绝授权录音');
+          },
+          fail: function (res) {
+            //录音失败
+            console.log('fail', res);
+          }
+        })
+      },
+      // 点击停止录音
+      stopRecord() {
+        console.log('>>>>>>>>>>停止语音');
+        let self = this;
+        wx.stopRecord({
+          success: function (res) {
+            let voiceId = res.localId;
+            self.isStartRecord = false;
+            self.upLoadRecord(voiceId);
+            console.log('stopRecord', res);
+          },
+          fail: function (res) {
+            alert(JSON.stringify(res));
+          }
+        });
+      },
+      // 上传语音
+      upLoadRecord(id) {
+        let self = this;
+        wx.uploadVoice({
+          localId: id,
+          isShowProgressTips: 1, // 默认为1，显示进度提示
+          success: function (res) {
+            let obj = {
+              token: self.token,
+              class: 1001,
+              type: 101,
+              toid: self.option.id,
+              file: res.serverId
+            }
+            self.$dialog.alert({
+                title: '消息提示',
+                message: '确认发送语音吗？',
+                confirmButtonColor: '#FF730C',
+                showCancelButton: true,
+              })
+              .then(() => {
+                self.sendChatMessage(obj)
+              })
+              .catch(() => {
+                // ...
+              });
+          }
+        });
+      }
     }
   })
 </script>
