@@ -46,12 +46,21 @@
               <img :src="item.data.content.article_pic" alt="">
             </div>
           </div>
-          <!-- <div class="audio" v-if="item.data.typ==3">
-            <audio src=""></audio>
-          </div> -->
+          <div class="audio" v-if="item.data.typ == 101">
+            <div class="audio_content" @click="goPlayAudio(item)">
+              <div class="sound_icon">
+                <img src="{:REGISTER_PUBLIC}img/chat/sound.png" alt="" v-if="!isAudioPlay">
+                <img src="{:REGISTER_PUBLIC}img/chat/sound_on.gif" alt="" v-else>
+              </div>
+              <p class="audio_length">{{item.data.content.time}}"</p>
+            </div>
+            <div class="noread" v-if="!item.data.content.is_listen"></div>
+            <audio :src="item.data.content.audio" ref="audio" controls style="display: none;"></audio>
+          </div>
         </div>
       </div>
     </van-list>
+    <!-- <audio src="" ref="audio" style="display: none;"></audio> -->
     <!-- 聊天输入区 -->
     <div id="chat-footer">
       <div class="input_wrap">
@@ -116,7 +125,7 @@
 <script src="{:REGISTER_PUBLIC}js/vconsole.min.js"></script>
 
 <script>
-  // new VConsole();
+  new VConsole();
   const URL = "{:H5_DOMAIN}";
   const API_URL = "{:API_DOMAIN}";
   const ROUTE_DETAIL_DOMAIN = "{:ROUTE_DETAIL_DOMAIN}"; //文章详情授权
@@ -149,29 +158,29 @@
         faceShow: false, //显示表情
         showNews: false, // 显示资讯列表
         isStartRecord: false, // 是否正在录音
+        isAudioPlay: false, // 是否在播放语音
         typingText: "",
         faceString: "", //选中表情
         faceData: {}, //表情json
         faceList: [], //表情
         messageList: [],
         applyList: [{
-            type: "image",
-            icon: '{:REGISTER_PUBLIC}img/chat/card.png',
-            title: "图片",
-          },{
-            type: "news",
-            icon: '{:REGISTER_PUBLIC}img/chat/news.png',
-            title: "资讯",
-          },{
-            type: "card",
-            icon: '{:REGISTER_PUBLIC}img/chat/card.png',
-            title: "名片",
-          },{
-            type: "voice",
-            icon: '{:REGISTER_PUBLIC}img/chat/voice.png',
-            title: "语音",
-          },
-        ],
+          type: "image",
+          icon: '{:REGISTER_PUBLIC}img/chat/card.png',
+          title: "图片",
+        }, {
+          type: "news",
+          icon: '{:REGISTER_PUBLIC}img/chat/news.png',
+          title: "资讯",
+        }, {
+          type: "card",
+          icon: '{:REGISTER_PUBLIC}img/chat/card.png',
+          title: "名片",
+        }, {
+          type: "voice",
+          icon: '{:REGISTER_PUBLIC}img/chat/voice.png',
+          title: "语音",
+        }, ],
       }
     },
     computed: {
@@ -180,6 +189,11 @@
       }
     },
     mounted() {
+      // this.$nextTick(() => {
+      //   let audio = this.$refs.audio;
+      //   console.log(audio);
+      //   audio.load();
+      // })
       this.getUserInfo()
       this.initWxSDK()
       window.scrollTo(0, document.body.scrollHeight)
@@ -335,8 +349,9 @@
               msg
             } = res.body;
             if (errCode === 0) {
-              let result = data.list
-              this.lastid = data.lastid
+              let self = this;
+              let result = data.list;
+              this.lastid = data.lastid;
               if (data == null || result.length == 0) {
                 // 加载结束
                 this.loading = false;
@@ -344,7 +359,18 @@
                 return false
               }
               result.forEach(item => {
-                this.messageList.unshift(item)
+                // if (item.data.typ == 101) {
+                //   let audioElement = new Audio();
+                //   audioElement.src = item.data.content.audio;
+                //   if (audioElement) {
+                //     audioElement.addEventListener('canplay', () => {
+                //       console.log(222);
+                //       let duration = Math.round(audioElement.duration);
+                //       self.$set(item.data.content, 'time', duration);
+                //     })
+                //   }
+                // }
+                this.messageList.unshift(item);
               })
               if (result.length < this.pageSize) {
                 // 一页不足的情况
@@ -353,6 +379,29 @@
               } else {
                 this.loading = false;
               }
+
+              this.$nextTick(() => {
+                let audio = self.$refs.audio;
+                console.log(audio);
+                
+                audio.forEach(item => {
+                  item.load();
+                  item.addEventListener('canplay', () => {
+                    console.log(222);
+                    let duration = Math.round(item.duration);
+                    console.log(duration);
+                    // self.$set(item.data.content, 'time', duration);
+                  })
+                })
+              })
+
+              // audio.forEach(item => {
+              //   item.addEventListener('canplay', () => {
+              //     console.log(222);
+              //     let duration = Math.round(audio.duration);
+              //     self.$set(item.data.content, 'time', duration);
+              //   })
+              // })
             }
           },
           err => {
@@ -459,7 +508,7 @@
                 ],
               });
               wx.ready(function () {
-                console.log('sdk ready');
+                // console.log('sdk ready');
               });
             } else {
               console.log("code is not 200");
@@ -715,6 +764,25 @@
               });
           }
         });
+      },
+      // 播放/暂停音频
+      goPlayAudio(item) {
+        let mpeg = item.data.content.audio;
+        let myAudio = new Audio(mpeg);
+        this.isAudioPlay = !this.isAudioPlay;
+        if (myAudio) {
+          myAudio.addEventListener('ended', () => {
+            console.log('stop');
+            this.isAudioPlay = false;
+          })
+          if (!this.isAudioPlay) {
+            console.log('pause');
+            myAudio.pause();
+          } else {
+            console.log('play');
+            myAudio.play();
+          }
+        }
       }
     }
   })
