@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>投诉建议</title>
+  <link rel="stylesheet" href="./css/common/main.css">
+  <link rel="stylesheet" href="./css/common/vant.css">
+  <link rel="stylesheet" href="./css/group_advice/group_advice.css">
+</head>
+
+<body>
+  <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <van-nav-bar title="投诉建议" left-arrow @click-left="goback"></van-nav-bar>
+    <div class="container">
+      <h3>投诉建议</h3>
+      <div class="text_area">
+        <van-field v-model="advice" rows="3" type="textarea" maxlength="40" placeholder="请输入您的投诉建议..."
+          show-word-limit />
+      </div>
+      <h3>上传图片</h3>
+      <van-uploader v-model="fileList" :after-read="afterRead" :max-count="2" :max-size="8 * 1024 * 1024"
+        @oversize="onOversize" multiple>
+      </van-uploader>
+    </div>
+    <div class="submit_btn">提交</div>
+  </div>
+</body>
+
+<script src="./js/common/vue.min.js"></script>
+<script src="./js/common/vant.min.js"></script>
+
+<script>
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        token: '',
+        userInfo: {},
+        group: {
+          avatar: './img/default_avatar.png',
+          name: '旺仔交流群',
+          code: './img/code.png'
+        },
+        advice: '', // 投诉建议
+        fileList: [], // 上传图片列表
+        isMember: false, // 当前用户是否是群员
+        loading: false
+      }
+    },
+    computed: {
+      innerPage() {
+        return window.innerHeight + 'px'
+      }
+    },
+    created() {
+      // 
+    },
+    methods: {
+      // 点击返回
+      goback() {
+        window.history.back(-1);
+      },
+      // 点击编辑
+      editNotice() {
+        this.loading = true;
+        setTimeout(() => {
+          this.loading = false
+        }, 1000)
+      },
+      // 超出大小限制处理
+      onOversize() {
+        this.$toast({
+          type: 'fail',
+          message: '图片过大',
+          duration: 1500,
+        });
+      },
+      afterRead(file) {
+        // 此时可以自行将文件上传至服务器
+        console.log(file);
+      },
+    }
+  })
+</script>
+
+</html>

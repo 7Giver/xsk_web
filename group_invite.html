@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>邀请好友</title>
+  <link rel="stylesheet" href="./css/common/main.css">
+  <link rel="stylesheet" href="./css/common/vant.css">
+  <link rel="stylesheet" href="./css/group_invite/group_invite.css">
+</head>
+
+<body>
+  <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <van-nav-bar title="邀请好友" left-arrow @click-left="goback"></van-nav-bar>
+    <div class="container">
+      <div class="share_wrap" v-if="!isMember">
+        <div class="top">
+          <img :src="group.avatar" alt="">
+          <p class="van-ellipsis">{{group.name}}</p>
+        </div>
+        <div class="bottom">
+          <img :src="group.code" alt="">
+          <p>长按识别二维码加入群聊</p>
+        </div>
+      </div>
+      <div class="join_wrap" v-else-if="isMember">
+        <div class="top">
+          <img :src="group.avatar" alt="">
+          <p class="van-ellipsis">{{group.name}}</p>
+        </div>
+        <div class="join_btn">+申请加入</div>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script src="./js/common/vue.min.js"></script>
+<script src="./js/common/vant.min.js"></script>
+
+<script>
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        token: '',
+        userInfo: {},
+        group: {
+          avatar: './img/default_avatar.png',
+          name: '旺仔交流群',
+          code: './img/code.png'
+        },
+        isMember: false,  //当前用户是否是群员
+        loading: false
+      }
+    },
+    computed: {
+      innerPage() {
+        return window.innerHeight + 'px'
+      }
+    },
+    created() {
+
+    },
+    methods: {
+      // 点击返回
+      goback() {
+        window.history.back(-1);
+      },
+      // 点击编辑
+      editNotice() {
+        this.loading = true;
+        setTimeout(() => {
+          this.loading = false
+        }, 1000)
+      }
+    }
+  })
+</script>
+
+</html>

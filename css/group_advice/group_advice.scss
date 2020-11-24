@@ -1,0 +1,41 @@
+#app {
+  background: #fff;
+  .van-nav-bar {
+    line-height: 46px;
+    .van-icon {
+      color: #ff7e10;
+    }
+  }
+  .container {
+    padding: 1rem 1.5rem;
+    h3 {
+      font-size: 1rem;
+      font-weight: bold;
+      margin-bottom: 0.8rem;
+    }
+    .text_area {
+      margin-bottom: 1rem;
+      border-radius: 0.3rem;
+      background: #f5f5f6;
+      overflow: hidden;
+      .van-cell {
+        background-color: transparent;
+      }
+    }
+  }
+  .submit_btn {
+    position: fixed;
+    left: 50%;
+    bottom: 10%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    color: #fff;
+    margin: 1.2rem auto;
+    font-size: 1.1rem;
+    line-height: 2.8;
+    text-align: center;
+    letter-spacing: 1px;
+    border-radius: 6rem;
+    background: linear-gradient(to right, #ff8e16, #ff720c);
+  }
+}

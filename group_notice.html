@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>群公告</title>
+  <link rel="stylesheet" href="./css/common/main.css">
+  <link rel="stylesheet" href="./css/common/vant.css">
+  <link rel="stylesheet" href="./css/group_notice/group_notice.css">
+</head>
+
+<body>
+  <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <van-nav-bar title="群聊公告" left-arrow @click-left="goback"></van-nav-bar>
+    <div class="content">
+      <h3>群聊公告</h3>
+      <div class="text_area">
+        <van-field v-model="message" rows="3" type="textarea" maxlength="40" placeholder="请输入群公告..." show-word-limit />
+      </div>
+    </div>
+    <div class="bottom_wrap">
+      <van-divider>仅群主及群管理员可编辑</van-divider>
+      <van-button plain round block color="#FF7E10" :loading="loading" @click="editNotice">编辑</van-button>
+    </div>
+  </div>
+</body>
+
+<script src="./js/common/vue.min.js"></script>
+<script src="./js/common/vant.min.js"></script>
+
+<script>
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        token: '',
+        userInfo: {},
+        message: '',
+        loading: false
+      }
+    },
+    computed: {
+      innerPage() {
+        return window.innerHeight + 'px'
+      }
+    },
+    created() {
+
+    },
+    methods: {
+      // 点击返回
+      goback() {
+        window.history.back(-1);
+      },
+      // 点击编辑
+      editNotice() {
+        this.loading = true;
+        setTimeout(() => {
+          this.loading = false
+        }, 1000)
+      }
+    }
+  })
+</script>
+
+</html>

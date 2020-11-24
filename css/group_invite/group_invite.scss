@@ -1,0 +1,92 @@
+#app {
+  background-image: url("../../img/group_manage/bg.png");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  .van-nav-bar {
+    width: 100%;
+    line-height: 46px;
+    .van-icon {
+      color: #ff7e10;
+    }
+  }
+  .container {
+    flex: 1;
+    width: 100%;
+    .share_wrap {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 77%;
+      padding: 1.4rem 2rem;
+      border-radius: 0.5rem;
+      background: #fff;
+      .top {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        img {
+          width: 3.6rem;
+          height: 3.6rem;
+          border: 2px solid #f8f9fb;
+          margin-right: 0.8rem;
+        }
+        p {
+          font-size: 1.1rem;
+          white-space: nowrap;
+        }
+      }
+      .bottom {
+        text-align: center;
+        img {
+          display: block;
+          width: 100%;
+          margin-bottom: 1rem;
+        }
+        p {
+          color: #666666;
+          font-size: 0.9rem;
+          white-space: nowrap;
+        }
+      }
+    }
+    .join_wrap {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 77%;
+      text-align: center;
+      padding: 1.4rem 2rem;
+      border-radius: 0.5rem;
+      background: #fff;
+      .top {
+        padding: 1.8rem 0;
+        img {
+          width: 6.2rem;
+          height: 6.2rem;
+          margin-bottom: 0.8rem;
+          border: 2px solid #f8f9fb;
+        }
+        p {
+          font-size: 1.1rem;
+          font-weight: bold;
+          white-space: nowrap;
+        }
+      }
+      .join_btn {
+        color: #fff;
+        margin: 1.2rem auto;
+        font-size: 1.1rem;
+        line-height: 3;
+        letter-spacing: 1px;
+        border-radius: 6rem;
+        background: linear-gradient(to right, #ff8e16, #ff720c);
+      }
+    }
+  }
+}

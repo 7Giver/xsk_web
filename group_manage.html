@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>群管理</title>
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/group_manage/group_manage.css?v=<?php echo time(); php?>">
+</head>
+
+<body>
+  <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <div class="manage_wrap" v-if="showWrap == 0">
+      <div class="header">
+        <div class="member_wrap">
+          <div class="avatar">
+            <img :src="groupInfo.avatar" alt="">
+          </div>
+          <div class="information">
+            <div class="group_name">{{groupInfo.name}}</div>
+            <div class="group_id">ID:{{groupInfo.id}}</div>
+          </div>
+        </div>
+        <div class="detail_wrap" @click="showWrap=1">
+          <p class="van-multi-ellipsis--l2">群简介：<span>{{groupInfo.detail}}</span></p>
+          <div class="arrow">❯</div>
+        </div>
+      </div>
+      <div class="container">
+        <div class="item" v-for="(item, index) in applyList" :key="index" @click="goNext(item)">
+          <img :src="item.icon" alt="">
+          <p>{{item.title}}</p>
+        </div>
+      </div>
+    </div>
+    <div class="detail_wrap" v-if="showWrap == 1">
+      <div class="content">
+        <h3>群简介</h3>
+        <div class="text_area">
+          <van-field v-model="detail" rows="3" type="textarea" maxlength="40" placeholder="请输入您的群简介..."
+            show-word-limit />
+        </div>
+      </div>
+      <div class="bottom_wrap">
+        <van-divider>仅群主及群管理员可编辑</van-divider>
+        <van-button plain round block color="#FF7E10" :loading="loading" @click="editDetail">编辑</van-button>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js?v=1.2"></script>
+<script src="{:REGISTER_PUBLIC}js/jweixin-1.1.0.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vconsole.min.js"></script>
+
+<script>
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        groupInfo: {
+          id: 686189,
+          avatar: '{:REGISTER_PUBLIC}img/default_avatar.png',
+          name: '旺仔小曼头交流群',
+          detail: '你发现本页的群简介/群内容介绍有错误,或者你有最新的群简介,JAJDSJ随时告诉我法山豆根地方广东省'
+        },
+        detail: '', // 群简介
+        showWrap: 0, // 展示群简介
+        loading: false,
+        applyList: [{
+            icon: '{:REGISTER_PUBLIC}img/group_manage/member_icon.png',
+            title: '群成员',
+            type: 'member'
+          },
+          {
+            icon: '{:REGISTER_PUBLIC}img/group_manage/notice_icon.png',
+            title: '群公告',
+            type: 'notice'
+          },
+          {
+            icon: '{:REGISTER_PUBLIC}img/group_manage/friend_icon.png',
+            title: '邀请好友',
+            type: 'invite'
+          },
+          {
+            icon: '{:REGISTER_PUBLIC}img/group_manage/advice_icon.png',
+            title: '投诉建议',
+            type: 'advice'
+          },
+        ]
+      }
+    },
+    computed: {
+      innerPage() {
+        return window.innerHeight + 'px'
+      }
+    },
+    created() {
+
+    },
+    methods: {
+      // 跳转集合
+      goNext(item) {
+        switch (item.type) {
+          case 'member':
+            location.href = '/register/page/group_member'
+            break;
+          case 'notice':
+            location.href = '/register/page/group_notice'
+            break;
+          case 'invite':
+            location.href = '/register/page/group_invite'
+            break;
+          case 'advice':
+            location.href = '/register/page/group_advice'
+            break;
+          default:
+            break;
+        }
+      },
+      // 群简介编辑
+      editDetail() {
+        this.showWrap = 0
+      }
+    }
+  })
+</script>
+
+</html>

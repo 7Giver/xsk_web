@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>群成员</title>
+  <link rel="stylesheet" href="./css/common/main.css">
+  <link rel="stylesheet" href="./css/common/vant.css">
+  <link rel="stylesheet" href="./css/group_member/group_member.css">
+</head>
+
+<body>
+  <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <van-search v-model="search" show-action shape="round" placeholder="输入昵称">
+      <template #action>
+        <div @click="onSearch">搜索</div>
+      </template>
+    </van-search>
+    <van-tabs v-model="active" color="#FF7E10" animated swipeable>
+      <van-tab title="活跃成员">
+        <div class="member_list">
+          <div class="item" v-for="(item, index) in memberList" :key="index">
+            <div class="left_wrap">
+              <div class="message">
+                <div class="avatar">
+                  <img :src="item.avatar" alt="">
+                </div>
+                <div class="content">
+                  <p class="name">{{item.name}}</p>
+                  <p class="add_time">{{item.add_time}} 入群</p>
+                </div>
+              </div>
+              <div class="btn_wrap">
+                <div class="disable" @click="goDisable(item)" v-if="isAdmin">禁言</div>
+                <img class="chat_icon" src="./img/group_manage/chat_icon.png" alt="">
+              </div>
+            </div>
+            <div class="right_wrap" @click="goFollow(item.id)">
+              {{item.is_follow ? '已关注':'+关注'}}
+            </div>
+          </div>
+        </div>
+      </van-tab>
+      <van-tab title="禁言成员">
+        <div class="member_list">
+          <div class="item" v-for="(item, index) in memberList" :key="index">
+            <div class="left_wrap">
+              <div class="message">
+                <div class="avatar">
+                  <img :src="item.avatar" alt="">
+                </div>
+                <div class="content">
+                  <p class="name">{{item.name}}</p>
+                  <p class="add_time">{{item.add_time}} 入群</p>
+                </div>
+              </div>
+              <div class="btn_wrap">
+                <div class="disable" @click="goDisable(item.id)" v-if="isAdmin">已禁言</div>
+                <img class="chat_icon" src="./img/group_manage/chat_icon.png" alt="">
+              </div>
+            </div>
+            <div class="right_wrap" @click="goFollow(item.id)">
+              {{item.is_follow ? '已关注':'+关注'}}
+            </div>
+          </div>
+        </div>
+      </van-tab>
+    </van-tabs>
+  </div>
+</body>
+
+<script src="./js/common/vue.min.js"></script>
+<script src="./js/common/vant.min.js"></script>
+
+<script>
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        search: '',
+        active: 0,
+        isAdmin: true,
+        memberList: [{
+          id: 11,
+          avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/girl.jpg',
+          name: '旺仔小曼头',
+          add_time: '2020-11-03',
+          is_follow: false,
+        }, {
+          // id: 12,
+          avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/bear.jpg',
+          name: '趣多多',
+          add_time: '2020-11-03',
+          is_follow: false,
+        }]
+      }
+    },
+    computed: {
+      innerPage() {
+        return window.innerHeight + 'px'
+      }
+    },
+    created() {
+
+    },
+    methods: {
+      // 搜索
+      onSearch() {
+        let result = this.memberList.filter(item => item.name == this.search)
+        console.log(result);
+      },
+      // 禁言成员
+      goDisable(item) {
+        if (!this.isAdmin) {
+          this.$toast({
+            type: 'fail',
+            message: '您暂无权限'
+          })
+          return false
+        }
+        if (!item.id) {
+          this.$toast({
+            type: 'fail',
+            message: '缺少ID，禁言失败'
+          })
+          return false
+        }
+        this.$dialog.alert({
+            title: '提示',
+            message: `您确定要禁言${item.name}吗？`,
+            // confirmButtonText: '去开通',
+            confirmButtonColor: '#FF730C',
+            showCancelButton: true,
+          })
+          .then(() => {
+            this.postDisable(item.id)
+          })
+          .catch(() => {
+            // console.log(222);
+          });
+      },
+      // 关注成员
+      goFollow(id) {
+        if (!id) {
+          this.$toast({
+            type: 'fail',
+            message: '缺少ID，关注失败'
+          })
+          return false
+        }
+      },
+      // 请求禁言
+      postDisable(id) {
+
+      }
+    }
+  })
+</script>
+
+</html>

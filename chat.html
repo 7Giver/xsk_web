@@ -52,15 +52,14 @@
                 <img src="{:REGISTER_PUBLIC}img/chat/sound.png" alt="" v-if="!isAudioPlay">
                 <img src="{:REGISTER_PUBLIC}img/chat/sound_on.gif" alt="" v-else>
               </div>
-              <p class="audio_length">{{item.data.content.time}}"</p>
+              <p class="audio_length">{{Math.round(item.data.content.duration)}}"</p>
             </div>
             <div class="noread" v-if="!item.data.content.is_listen"></div>
-            <audio :src="item.data.content.audio" ref="audio" controls style="display: none;"></audio>
+            <!-- <audio :src="item.data.content.audio" ref="audio" controls style="display: none;"></audio> -->
           </div>
         </div>
       </div>
     </van-list>
-    <!-- <audio src="" ref="audio" style="display: none;"></audio> -->
     <!-- 聊天输入区 -->
     <div id="chat-footer">
       <div class="input_wrap">
@@ -189,11 +188,6 @@
       }
     },
     mounted() {
-      // this.$nextTick(() => {
-      //   let audio = this.$refs.audio;
-      //   console.log(audio);
-      //   audio.load();
-      // })
       this.getUserInfo()
       this.initWxSDK()
       window.scrollTo(0, document.body.scrollHeight)
@@ -359,17 +353,6 @@
                 return false
               }
               result.forEach(item => {
-                // if (item.data.typ == 101) {
-                //   let audioElement = new Audio();
-                //   audioElement.src = item.data.content.audio;
-                //   if (audioElement) {
-                //     audioElement.addEventListener('canplay', () => {
-                //       console.log(222);
-                //       let duration = Math.round(audioElement.duration);
-                //       self.$set(item.data.content, 'time', duration);
-                //     })
-                //   }
-                // }
                 this.messageList.unshift(item);
               })
               if (result.length < this.pageSize) {
@@ -379,29 +362,6 @@
               } else {
                 this.loading = false;
               }
-
-              this.$nextTick(() => {
-                let audio = self.$refs.audio;
-                console.log(audio);
-                
-                audio.forEach(item => {
-                  item.load();
-                  item.addEventListener('canplay', () => {
-                    console.log(222);
-                    let duration = Math.round(item.duration);
-                    console.log(duration);
-                    // self.$set(item.data.content, 'time', duration);
-                  })
-                })
-              })
-
-              // audio.forEach(item => {
-              //   item.addEventListener('canplay', () => {
-              //     console.log(222);
-              //     let duration = Math.round(audio.duration);
-              //     self.$set(item.data.content, 'time', duration);
-              //   })
-              // })
             }
           },
           err => {
