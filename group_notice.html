@@ -5,9 +5,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
   <title>群公告</title>
-  <link rel="stylesheet" href="./css/common/main.css">
-  <link rel="stylesheet" href="./css/common/vant.css">
-  <link rel="stylesheet" href="./css/group_notice/group_notice.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/group_notice/group_notice.css?v=<?php echo time(); php?>">
 </head>
 
 <body>
@@ -21,23 +21,29 @@
     </div>
     <div class="bottom_wrap">
       <van-divider>仅群主及群管理员可编辑</van-divider>
-      <van-button plain round block color="#FF7E10" :loading="loading" @click="editNotice">编辑</van-button>
+      <van-button plain round block color="#FF7E10" :loading="loading" :disabled="disabled" @click="editNotice">编辑</van-button>
     </div>
   </div>
 </body>
 
-<script src="./js/common/vue.min.js"></script>
-<script src="./js/common/vant.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js?v=1.2"></script>
 
 <script>
+  const URL = "{:H5_DOMAIN}";
+
   new Vue({
     el: '#app',
     data() {
       return {
         token: '',
         userInfo: {},
+        groupInfo: {},
+        groupId: '',
         message: '',
-        loading: false
+        loading: false,
+        disabled: false,
       }
     },
     computed: {
@@ -45,20 +51,146 @@
         return window.innerHeight + 'px'
       }
     },
-    created() {
-
+    mounted() {
+      this.getUrlQuery();
     },
     methods: {
+      // 获取url参数
+      getUrlQuery() {
+        let id = getQueryString('id');
+        if (id) {
+          this.groupId = getQueryString('id');
+          this.getUserInfo();
+        } else {
+          this.disabled = true;
+          this.$toast({
+            type: 'fail',
+            message: '缺少群id',
+            duration: 1500,
+          });
+        }
+        // 获取url参数
+        function getQueryString(name, url) {
+          var url = url || window.location.href;
+          var reg = new RegExp("(^|&|/?)" + name + "=([^&|/#?]*)(&|/?|$)", "i");
+          var r = url.substr(1).match(reg);
+          if (r != null) {
+            return r[2];
+          }
+          return null;
+        }
+      },
+      // 获取个人信息
+      getUserInfo() {
+        this.$http.get(URL + "/H5/Visitor/getLoginInfo").then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.userInfo = data.userInfo;
+              this.token = data.token;
+              if (this.groupId) {
+                this.getGroupInfo(this.groupId)
+              }
+            }
+          },
+          err => {
+            this.$toast({
+              type: 'fail',
+              message: '授权失败',
+              duration: 1500,
+            });
+            console.log("getLoginInfo 请求失败");
+          }
+        );
+      },
+      // 获取群信息
+      getGroupInfo(id) {
+        this.$http.get(URL + "/register/group/info", {
+          params: {
+            token: this.token,
+            id: id,
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.groupInfo = data;
+              this.message = data.annoucement;
+            }
+          },
+          err => {
+            console.log("getGroupInfo 请求失败");
+          }
+        );
+      },
+      // 群简介编辑
+      editGroupNotice(obj) {
+        this.$http.post(URL + "/register/group/announce_edit", obj, {
+          emulateJSON: true
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.$toast({
+                type: 'success',
+                message: '编辑成功',
+                duration: 1500,
+              });
+              this.loading = false;
+            } else {
+              this.$toast({
+                type: 'fail',
+                message: msg
+              });
+              this.loading = false;
+            }
+          },
+          err => {
+            console.log('editGroupNotice 请求失败');
+          }
+        );
+      },
       // 点击返回
       goback() {
-        window.history.back(-1);
+        location.href = '/register/page/group_manage?id=' + this.groupId;
+        // window.history.back(-1);
       },
       // 点击编辑
       editNotice() {
+        if (!this.groupId) {
+          this.$toast({
+            type: 'fail',
+            message: '缺少群id'
+          });
+          return false
+        }
+        if (!this.message) {
+          this.$toast({
+            type: 'fail',
+            message: '请输入群公告'
+          });
+          return false
+        }
         this.loading = true;
         setTimeout(() => {
-          this.loading = false
-        }, 1000)
+          this.editGroupNotice({
+            token: this.token,
+            id: this.groupInfo.id,
+            annoucement: this.message
+          })
+        }, 900);
       }
     }
   })

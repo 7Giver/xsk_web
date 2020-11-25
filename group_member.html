@@ -5,21 +5,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
   <title>群成员</title>
-  <link rel="stylesheet" href="./css/common/main.css">
-  <link rel="stylesheet" href="./css/common/vant.css">
-  <link rel="stylesheet" href="./css/group_member/group_member.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css?v=1.2">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/group_member/group_member.css?v=<?php echo time(); php?>">
 </head>
 
 <body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
-    <van-search v-model="search" show-action shape="round" placeholder="输入昵称">
+    <van-nav-bar title="群成员" left-arrow @click-left="goback"></van-nav-bar>
+    <!-- <van-search v-model="search" show-action shape="round" placeholder="输入昵称">
       <template #action>
         <div @click="onSearch">搜索</div>
       </template>
-    </van-search>
-    <van-tabs v-model="active" color="#FF7E10" animated swipeable>
+    </van-search> -->
+    <van-tabs v-model="active" @change="tabChange" color="#FF7E10" animated swipeable v-if="isLoaded">
       <van-tab title="活跃成员">
-        <div class="member_list">
+        <div class="member_list" v-if="memberList.length">
           <div class="item" v-for="(item, index) in memberList" :key="index">
             <div class="left_wrap">
               <div class="message">
@@ -32,19 +33,21 @@
                 </div>
               </div>
               <div class="btn_wrap">
-                <div class="disable" @click="goDisable(item)" v-if="isAdmin">禁言</div>
-                <img class="chat_icon" src="./img/group_manage/chat_icon.png" alt="">
+                <div class="disable" @click="goDisable(item, 2)" v-if="isAdmin">禁言</div>
+                <img class="chat_icon" src="{:REGISTER_PUBLIC}img/group_manage/chat_icon.png" alt=""
+                  @click="goChat(item)">
               </div>
             </div>
-            <div class="right_wrap" @click="goFollow(item.id)">
-              {{item.is_follow ? '已关注':'+关注'}}
+            <div class="right_wrap" @click="goFollow(item)">
+              {{item.is_focus ? '已关注':'+ 关注'}}
             </div>
           </div>
         </div>
+        <van-empty description="暂无内容" v-else></van-empty>
       </van-tab>
       <van-tab title="禁言成员">
-        <div class="member_list">
-          <div class="item" v-for="(item, index) in memberList" :key="index">
+        <div class="member_list" v-if="blackList.length">
+          <div class="item" v-for="(item, index) in blackList" :key="index">
             <div class="left_wrap">
               <div class="message">
                 <div class="avatar">
@@ -56,44 +59,40 @@
                 </div>
               </div>
               <div class="btn_wrap">
-                <div class="disable" @click="goDisable(item.id)" v-if="isAdmin">已禁言</div>
-                <img class="chat_icon" src="./img/group_manage/chat_icon.png" alt="">
+                <div class="disable" @click="goDisable(item, 1)" v-if="isAdmin">已禁言</div>
+                <img class="chat_icon" src="{:REGISTER_PUBLIC}img/group_manage/chat_icon.png" alt=""
+                  @click="goChat(item)">
               </div>
             </div>
-            <div class="right_wrap" @click="goFollow(item.id)">
-              {{item.is_follow ? '已关注':'+关注'}}
+            <div class="right_wrap" @click="goFollow(item)">
+              {{item.is_focus ? '已关注':'+ 关注'}}
             </div>
           </div>
         </div>
+        <van-empty description="暂无内容" v-else></van-empty>
       </van-tab>
     </van-tabs>
   </div>
 </body>
 
-<script src="./js/common/vue.min.js"></script>
-<script src="./js/common/vant.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js?v=1.2"></script>
 
 <script>
+  const URL = "{:H5_DOMAIN}";
+
   new Vue({
     el: '#app',
     data() {
       return {
-        search: '',
-        active: 0,
-        isAdmin: true,
-        memberList: [{
-          id: 11,
-          avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/girl.jpg',
-          name: '旺仔小曼头',
-          add_time: '2020-11-03',
-          is_follow: false,
-        }, {
-          // id: 12,
-          avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/bear.jpg',
-          name: '趣多多',
-          add_time: '2020-11-03',
-          is_follow: false,
-        }]
+        groupId: '', // 群id
+        search: '', // 搜索内容
+        active: 0, // tab切换
+        isAdmin: false, // 是否管理员
+        isLoaded: false, // 是否加载完成
+        memberList: [],
+        blackList: []
       }
     },
     computed: {
@@ -102,16 +101,206 @@
       }
     },
     created() {
-
+      this.$toast.loading({
+        message: '加载中...',
+        forbidClick: true,
+        duration: 0,
+        onClose: () => {
+          this.isLoaded = true;
+        }
+      });
+      this.getUrlQuery()
     },
     methods: {
+      // 获取url参数
+      getUrlQuery() {
+        let id = getQueryString('id');
+        if (id) {
+          this.groupId = id;
+          this.getUserInfo();
+        } else {
+          this.$toast({
+            type: 'fail',
+            message: '缺少群id',
+            duration: 1500,
+          });
+        }
+        // 获取url参数
+        function getQueryString(name, url) {
+          var url = url || window.location.href;
+          var reg = new RegExp("(^|&|/?)" + name + "=([^&|/#?]*)(&|/?|$)", "i");
+          var r = url.substr(1).match(reg);
+          if (r != null) {
+            return r[2];
+          }
+          return null;
+        }
+      },
+      // 获取个人信息
+      getUserInfo() {
+        this.$http.get(URL + "/H5/Visitor/getLoginInfo").then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.token = data.token;
+              this.userInfo = data.userInfo;
+              this.getGroupInfo();
+            }
+          },
+          err => {
+            this.$toast({
+              type: 'fail',
+              message: '授权失败',
+              duration: 1500,
+            });
+          }
+        );
+      },
+      // 获取群信息
+      getGroupInfo() {
+        this.$http.get(URL + "/register/group/info", {
+          params: {
+            token: this.token,
+            id: this.groupId,
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              data.is_manager == 1 ? this.isAdmin = true : this.isAdmin = false;
+              this.getGroupMember();
+            }
+          },
+          err => {
+            console.log("getGroupInfo 请求失败");
+          }
+        );
+      },
+      // 获取群员列表
+      getGroupMember() {
+        this.$http.get(URL + "/register/group/members", {
+          params: {
+            token: this.token,
+            id: this.groupId,
+            status: Number(this.active + 1),
+            page: 1,
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              let dataList = data.list;
+              this.active == 0 ?
+                this.memberList = dataList :
+                this.blackList = dataList
+              if (!this.isLoaded) {
+                this.$toast.clear();
+              }
+            }
+          },
+          err => {
+            console.log("getGroupMember 请求失败");
+          }
+        );
+      },
+      // 禁言成员
+      postDisable(uid, status) {
+        this.$http.get(URL + "/register/group/auth", {
+          params: {
+            token: this.token,
+            id: this.groupId,
+            uid: uid,
+            status: status,
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.$toast({
+                type: 'success',
+                message: '操作成功',
+                duration: 1500,
+              });
+              this.getGroupMember()
+            } else {
+              this.$toast({
+                type: 'fail',
+                message: msg,
+              });
+            }
+          },
+          err => {
+            console.log("postDisable 请求失败");
+          }
+        );
+      },
+      // 关注/取关请求
+      postFocus(id, status) {
+        this.$http.get(URL + "/register/friend/focus", {
+          params: {
+            token: this.token,
+            focus_id: id,
+            status: status
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.$toast({
+                type: 'success',
+                message: status == 1 ? '关注成功' : '取关成功',
+                duration: 1000,
+              });
+              this.getGroupMember();
+            } else {
+              this.$toast({
+                type: 'fail',
+                message: msg,
+              });
+            }
+          },
+          err => {
+            console.log("postDisable 请求失败");
+          }
+        );
+      },
+      // 点击返回
+      goback() {
+        location.href = `/register/page/group_manage?id=${this.groupId}`;
+        // window.history.back(-1);
+      },
       // 搜索
       onSearch() {
         let result = this.memberList.filter(item => item.name == this.search)
         console.log(result);
       },
-      // 禁言成员
-      goDisable(item) {
+      // 切换tabs事件
+      tabChange(e) {
+        this.page = 1;
+        this.getGroupMember();
+      },
+      // 禁言/解禁成员
+      goDisable(item, type) {
         if (!this.isAdmin) {
           this.$toast({
             type: 'fail',
@@ -126,33 +315,85 @@
           })
           return false
         }
-        this.$dialog.alert({
-            title: '提示',
-            message: `您确定要禁言${item.name}吗？`,
-            // confirmButtonText: '去开通',
-            confirmButtonColor: '#FF730C',
-            showCancelButton: true,
-          })
-          .then(() => {
-            this.postDisable(item.id)
-          })
-          .catch(() => {
-            // console.log(222);
-          });
+        switch (type) {
+          case 2:
+            if (item.id == this.userInfo.mid) {
+              this.$toast({
+                type: 'fail',
+                message: '不能禁言自己'
+              })
+              return false
+            }
+            this.$dialog.alert({
+                title: '提示',
+                message: `您确定要禁言${item.name}吗？`,
+                confirmButtonColor: '#FF730C',
+                showCancelButton: true,
+              })
+              .then(() => {
+                this.postDisable(item.id, 2)
+              })
+              .catch(() => {
+                // console.log(222);
+              });
+            break;
+          case 1:
+            this.$dialog.alert({
+                title: '提示',
+                message: `您确定要解禁${item.name}吗？`,
+                confirmButtonColor: '#FF730C',
+                showCancelButton: true,
+              })
+              .then(() => {
+                this.postDisable(item.id, 1)
+              })
+              .catch(() => {
+                // console.log(222);
+              });
+            break;
+          default:
+            break;
+        }
       },
-      // 关注成员
-      goFollow(id) {
-        if (!id) {
+      // 关注/取关成员
+      goFollow(item) {
+        if (!item.id) {
           this.$toast({
             type: 'fail',
             message: '缺少ID，关注失败'
           })
           return false
         }
+        if (item.id == this.userInfo.mid) {
+          this.$toast({
+            type: 'fail',
+            message: '不能关注自己'
+          })
+          return false
+        }
+        if (item.is_focus) {
+          this.postFocus(item.id, 2);
+        } else {
+          this.postFocus(item.id, 1);
+        }
       },
-      // 请求禁言
-      postDisable(id) {
-
+      // 跳转单聊
+      goChat(item) {
+        if (!item.id || !item.sid) {
+          this.$toast({
+            type: 'fail',
+            message: '缺少ID'
+          })
+          return false
+        }
+        if (item.id == this.userInfo.mid) {
+          this.$toast({
+            type: 'fail',
+            message: '不能与自己聊天'
+          })
+          return false
+        }
+        location.href = `/register/page/chat?id=${item.id}&sid=${item.sid}`;
       }
     }
   })

@@ -1,5 +1,17 @@
+.van-toast--fail {
+  width: 29%;
+}
+
 #app {
   background: #fff;
+}
+
+#app .van-nav-bar {
+  line-height: 46px;
+}
+
+#app .van-nav-bar .van-icon {
+  color: #ff7e10;
 }
 
 #app .manage_wrap .header {
@@ -51,6 +63,7 @@
 }
 
 #app .manage_wrap .header .detail_wrap > p {
+  flex: 1;
   font-size: 0.92rem;
   font-weight: bold;
 }

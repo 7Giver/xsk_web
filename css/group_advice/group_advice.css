@@ -20,6 +20,12 @@
   margin-bottom: 0.8rem;
 }
 
+#app .container h3 span {
+  color: #ff7e10;
+  font-size: 0.9rem;
+  font-weight: normal;
+}
+
 #app .container .text_area {
   margin-bottom: 1rem;
   border-radius: 0.3rem;
@@ -31,18 +37,16 @@
   background-color: transparent;
 }
 
-#app .submit_btn {
+#app .van-button {
   position: fixed;
   left: 50%;
   bottom: 10%;
   transform: translate(-50%, -50%);
   width: 80%;
+  margin: 0 auto;
   color: #fff;
-  margin: 1.2rem auto;
-  font-size: 1.1rem;
+  font-size: 1rem;
   line-height: 2.8;
-  text-align: center;
   letter-spacing: 1px;
-  border-radius: 6rem;
   background: linear-gradient(to right, #ff8e16, #ff720c);
 }

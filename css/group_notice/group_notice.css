@@ -1,3 +1,7 @@
+.van-toast--fail {
+  width: 29%;
+}
+
 #app {
   background: #fff;
 }

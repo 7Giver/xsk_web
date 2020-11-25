@@ -2,6 +2,15 @@
   background: #fff;
 }
 
+#app .van-nav-bar {
+  width: 100%;
+  line-height: 46px;
+}
+
+#app .van-nav-bar .van-icon {
+  color: #ff7e10;
+}
+
 #app .member_list {
   padding: 0 0.8rem;
 }
@@ -66,10 +75,11 @@
 }
 
 #app .member_list .item .right_wrap {
+  width: 4.2rem;
   color: #FF7E10;
   font-size: 0.9rem;
   line-height: 1.8;
-  padding: 0 0.6rem;
+  text-align: center;
   border-radius: 3rem;
   border: 1px solid #FF7E10;
 }

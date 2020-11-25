@@ -47,15 +47,15 @@
             </div>
           </div>
           <div class="audio" v-if="item.data.typ == 101">
-            <div class="audio_content" @click="goPlayAudio(item)">
+            <div class="audio_content" @click="goPlayAudio(item.data.content, index)">
               <div class="sound_icon">
-                <img src="{:REGISTER_PUBLIC}img/chat/sound.png" alt="" v-if="!isAudioPlay">
+                <img src="{:REGISTER_PUBLIC}img/chat/sound.png" alt="" v-if="item.data.content.isAudioPlay == 0">
                 <img src="{:REGISTER_PUBLIC}img/chat/sound_on.gif" alt="" v-else>
               </div>
               <p class="audio_length">{{Math.round(item.data.content.duration)}}"</p>
             </div>
             <div class="noread" v-if="!item.data.content.is_listen"></div>
-            <!-- <audio :src="item.data.content.audio" ref="audio" controls style="display: none;"></audio> -->
+            <audio :src="item.data.content.audio" ref="audio" controls style="display: none;"></audio>
           </div>
         </div>
       </div>
@@ -76,28 +76,37 @@
         <div class="submit" @click="sendText">发送</div>
       </div>
       <div class="content_wrap" v-show="showContent">
-        <div class="apply_wrap" v-if="!faceShow">
+        <div class="apply_wrap" v-if="panelStatus == 0">
           <div class="item" v-for="(item, index) in applyList" :key="index" @click="applyItem(item.type)">
             <van-uploader :after-read="afterRead" v-if="index === 0">
               <img :src="item.icon" alt="" />
               <p>{{ item.title }}</p>
             </van-uploader>
-            <template v-else-if="index === 3">
-              <img :src="item.icon" alt="" />
-              <p>{{isStartRecord ? '停止录音' : item.title }}</p>
-            </template>
             <template v-else>
               <img :src="item.icon" alt="" />
               <p>{{ item.title }}</p>
             </template>
           </div>
         </div>
-        <div class="emoji_wrap" v-if="faceShow">
+        <div class="emoji_wrap" v-if="panelStatus == 1">
           <ul>
             <li v-for="(item, index) in faceList" :key="index" @click="getBrow(index)">
               {{ item }}
             </li>
           </ul>
+        </div>
+        <div class="record_wrap" v-if="panelStatus == 3">
+          <div class="waveform">
+            <img src="{:REGISTER_PUBLIC}img/chat/wave.png" alt="" v-if="!isStartRecord">
+            <img src="{:REGISTER_PUBLIC}img/chat/wave_on.gif" alt="" v-else>
+          </div>
+          <div class="btn_wrap">
+            <div class="record_btn" @click="startRecord" v-if="!isStartRecord">点击录音</div>
+            <div class="handle_wrap" v-else>
+              <div class="btn cancel" @click="cancelRecord">取消</div>
+              <div class="btn send" @click="submitRecord">确认发送</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -153,11 +162,10 @@
         minus: '{:REGISTER_PUBLIC}img/chat/minus.png',
         plus: '{:REGISTER_PUBLIC}img/chat/plus.png',
         smile: '{:REGISTER_PUBLIC}img/chat/smile.png',
+        panelStatus: 0, // 聊天面板控制 0默认 1表情 2语音
         showContent: false, //显示面板
-        faceShow: false, //显示表情
         showNews: false, // 显示资讯列表
         isStartRecord: false, // 是否正在录音
-        isAudioPlay: false, // 是否在播放语音
         typingText: "",
         faceString: "", //选中表情
         faceData: {}, //表情json
@@ -195,6 +203,10 @@
     updated() {
       // console.log('updated!!');
       // window.scrollTo(0, document.body.scrollHeight)
+    },
+    beforeDestroy() {
+      let myAudio = this.$refs.audio;
+      myAudio.remove();
     },
     methods: {
       // 获取url参数 判断单聊群聊
@@ -353,6 +365,9 @@
                 return false
               }
               result.forEach(item => {
+                if (item.data.typ == 101) {
+                  this.$set(item.data.content, 'isAudioPlay', 0);
+                }
                 this.messageList.unshift(item);
               })
               if (result.length < this.pageSize) {
@@ -382,9 +397,12 @@
             } = res.body;
             if (errCode === 0) {
               this.showContent = false;
-              this.faceShow = false;
-              this.ws.send(4 + JSON.stringify(data))
-              this.messageList.push(data)
+              this.panelStatus = 0;
+              this.ws.send(4 + JSON.stringify(data));
+              if (data.data.typ == 101) {
+                this.$set(data.data.content, 'isAudioPlay', 0);
+              }
+              this.messageList.push(data);
             }
           },
           err => {
@@ -528,7 +546,7 @@
       // 切换显示面板
       toggleContent() {
         this.showContent = !this.showContent;
-        this.faceShow = false;
+        this.panelStatus = 0;
       },
       // 点击面板选项
       applyItem(type) {
@@ -561,11 +579,7 @@
             break;
           case "voice":
             console.log("voice");
-            if (!this.isStartRecord) {
-              this.startRecord()
-            } else {
-              this.stopRecord()
-            }
+            this.panelStatus = 3;
             break;
           default:
             break;
@@ -576,7 +590,11 @@
         if (!this.showContent) {
           this.toggleContent();
         }
-        this.faceShow = !this.faceShow;
+        if (this.panelStatus == 1) {
+          this.panelStatus = 0;
+          return false
+        }
+        this.panelStatus = 1;
       },
       // 获取用户点击之后的标签 ，存放到输入框内
       getBrow(index) {
@@ -620,7 +638,7 @@
         this.sendChatMessage(obj)
         this.typingText = null;
         this.showContent = false;
-        this.faceShow = false;
+        this.panelStatus = 0;
       },
       // 点击发送选中文章
       sendNews(item) {
@@ -680,67 +698,115 @@
           }
         })
       },
+      // 取消录音
+      cancelRecord() {
+        this.isStartRecord = false;
+        this.stopRecord();
+      },
       // 点击停止录音
-      stopRecord() {
-        console.log('>>>>>>>>>>停止语音');
+      stopRecord(type) {
         let self = this;
-        wx.stopRecord({
-          success: function (res) {
-            let voiceId = res.localId;
-            self.isStartRecord = false;
-            self.upLoadRecord(voiceId);
-            console.log('stopRecord', res);
-          },
-          fail: function (res) {
-            alert(JSON.stringify(res));
-          }
+        return new Promise((resolve, reject) => {
+          wx.stopRecord({
+            success: function (res) {
+              let voiceId = res.localId;
+              self.isStartRecord = false;
+              if (type == 'send') {
+                self.upLoadRecord(voiceId).then((res) => {
+                  resolve(res);
+                });
+              } else {
+                console.log('上传取消');
+              }
+            },
+            fail: function (err) {
+              console.log(JSON.stringify(err));
+              reject(err);
+            }
+          });
         });
       },
       // 上传语音
       upLoadRecord(id) {
         let self = this;
-        wx.uploadVoice({
-          localId: id,
-          isShowProgressTips: 1, // 默认为1，显示进度提示
-          success: function (res) {
-            let obj = {
-              token: self.token,
-              class: 1001,
-              type: 101,
-              toid: self.option.id,
-              file: res.serverId
+        return new Promise((resolve, reject) => {
+          wx.uploadVoice({
+            localId: id,
+            isShowProgressTips: 0, // 默认为1，显示进度提示
+            success: function (res) {
+              resolve(res.serverId);
+            },
+            fail: function (err) {
+              console.log(JSON.stringify(res));
+              reject(err);
             }
-            self.$dialog.alert({
-                title: '消息提示',
-                message: '确认发送语音吗？',
-                confirmButtonColor: '#FF730C',
-                showCancelButton: true,
-              })
-              .then(() => {
-                self.sendChatMessage(obj)
-              })
-              .catch(() => {
-                // ...
-              });
-          }
+          });
         });
       },
+      // 语音发送
+      submitRecord() {
+        this.$toast.loading({
+          message: '处理中...',
+          forbidClick: true,
+          duration: 0,
+        });
+        this.stopRecord('send').then(res => {
+          this.$toast.clear();
+          console.log(res);
+          let obj = {
+            token: this.token,
+            class: 1001,
+            type: 101,
+            toid: this.option.id,
+            file: res
+          }
+          this.$dialog.alert({
+              title: '消息提示',
+              message: '确认发送语音吗？',
+              confirmButtonColor: '#FF730C',
+              showCancelButton: true,
+            })
+            .then(() => {
+              this.sendChatMessage(obj)
+            })
+            .catch(() => {
+              // ...
+            });
+        }).catch(err => {
+          this.$toast.clear();
+          this.$toast({
+            type: 'fail',
+            message: '上传失败，无法发送',
+          });
+        })
+      },
       // 播放/暂停音频
-      goPlayAudio(item) {
-        let mpeg = item.data.content.audio;
-        let myAudio = new Audio(mpeg);
-        this.isAudioPlay = !this.isAudioPlay;
+      goPlayAudio(item, index) {
+        let mpeg = item.audio;
+        let audioDom = this.$refs.audio;
+        console.log(audioDom);
+        let result = audioDom.filter(item => item.currentSrc == mpeg);
+        let myAudio = result[0];
+        console.log(myAudio);
         if (myAudio) {
           myAudio.addEventListener('ended', () => {
             console.log('stop');
-            this.isAudioPlay = false;
+            item.isAudioPlay = 0;
           })
-          if (!this.isAudioPlay) {
-            console.log('pause');
-            myAudio.pause();
-          } else {
+          if (item.isAudioPlay == 0) {
+            console.log(111);
+            // this.messageList.forEach(v => {
+            //   if (v.data.typ == 101) {
+            //     v.data.content.isAudioPlay = 0;
+            //   }
+            // })
+            item.isAudioPlay = 1;
             console.log('play');
             myAudio.play();
+          } else if (item.isAudioPlay == 1) {
+            item.isAudioPlay = 0;
+            console.log('pause');
+            myAudio.pause();
           }
         }
       }

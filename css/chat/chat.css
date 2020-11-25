@@ -185,7 +185,7 @@
   width: 0.54rem;
   height: 0.54rem;
   margin: 0 0.8rem;
-  background: #FF4222;
+  background: #ff4222;
   border-radius: 50%;
 }
 
@@ -275,15 +275,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.7rem 0.6rem;
+  padding: 0.8rem 0.6rem 1.8rem;
 }
 
 #app #chat-footer .input_wrap .left_wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.76rem;
-  height: 1.76rem;
+  width: 1.8rem;
+  height: 1.8rem;
   padding: 0.36rem;
   border-radius: 50%;
   background: linear-gradient(30deg, #ff8e16, #ff720c);
@@ -302,7 +302,7 @@
   justify-content: space-between;
   margin: 0 0.6rem;
   font-size: 0.9rem;
-  padding: 0.45rem 0.8rem;
+  padding: 0.5rem 0.8rem;
   border-radius: 0.3rem;
   background: #fff;
 }
@@ -326,9 +326,9 @@
 
 #app #chat-footer .input_wrap .submit {
   color: #fff;
-  height: 2.2rem;
+  height: 2.4rem;
   font-size: 0.8rem;
-  line-height: 2.2rem;
+  line-height: 3.1;
   letter-spacing: 1px;
   white-space: nowrap;
   padding: 0 0.65rem;
@@ -376,6 +376,61 @@
   font-size: 26px;
   list-style: none;
   text-align: center;
+}
+
+#app #chat-footer .content_wrap .record_wrap {
+  padding: 1rem 0;
+  background: #f4f4f4;
+}
+
+#app #chat-footer .content_wrap .record_wrap .waveform {
+  padding: 0rem 2.5rem;
+}
+
+#app #chat-footer .content_wrap .record_wrap .waveform img {
+  display: block;
+  width: 100%;
+}
+
+#app #chat-footer .content_wrap .record_wrap .btn_wrap {
+  width: 70%;
+  margin: 0 auto;
+  padding: 1rem 0;
+}
+
+#app #chat-footer .content_wrap .record_wrap .btn_wrap .record_btn {
+  width: 9.5rem;
+  margin: 0 auto;
+  color: #ff730c;
+  font-size: 0.9rem;
+  line-height: 2.5;
+  text-align: center;
+  border-radius: 0.6rem;
+  border: 1px solid #ff730c;
+}
+
+#app #chat-footer .content_wrap .record_wrap .btn_wrap .handle_wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#app #chat-footer .content_wrap .record_wrap .btn_wrap .handle_wrap .btn {
+  width: 45%;
+  font-size: 0.9rem;
+  line-height: 2.5;
+  text-align: center;
+  border-radius: 0.6rem;
+}
+
+#app #chat-footer .content_wrap .record_wrap .btn_wrap .handle_wrap .cancel {
+  color: #999999;
+  border: 1px solid #999999;
+}
+
+#app #chat-footer .content_wrap .record_wrap .btn_wrap .handle_wrap .send {
+  color: #ff730c;
+  border: 1px solid #ff730c;
 }
 
 #app .van-popup {
