@@ -12,8 +12,16 @@ $arrowLeft: -0.7rem;
   .message_wrap {
     padding: 0rem 1.4rem 7rem;
     .item {
-      display: flex;
       padding: 1.4rem 0 0;
+      .message_time {
+        text-align: center;
+        color: #969799;
+        font-size: 0.9rem;
+        margin-bottom: 0.6rem;
+      }
+      .message_content {
+        display: flex;
+      }
       .avatar {
         width: 2.8rem;
         height: 2.8rem;
@@ -195,7 +203,9 @@ $arrowLeft: -0.7rem;
       }
     }
     .reverse {
-      flex-direction: row-reverse;
+      .message_content {
+        flex-direction: row-reverse;
+      }
       .avatar {
         margin-left: 1.4rem;
       }
@@ -204,14 +214,14 @@ $arrowLeft: -0.7rem;
         justify-content: flex-end;
         .text {
           color: #fff;
-          background: #FF770E;
+          background: #ff770e;
           &::before {
             content: "";
             position: absolute;
             right: $arrowLeft;
             top: 0.9rem;
             border-top: 0.5rem solid transparent;
-            border-left: 0.72rem solid #FF770E;
+            border-left: 0.72rem solid #ff770e;
             border-bottom: 0.5rem solid transparent;
           }
         }
@@ -220,7 +230,7 @@ $arrowLeft: -0.7rem;
           .audio_content {
             color: #fff;
             flex-direction: row-reverse;
-            background: #FF770E;
+            background: #ff770e;
             .sound_icon {
               img {
                 transform: rotateY(180deg);
@@ -233,7 +243,7 @@ $arrowLeft: -0.7rem;
             right: $arrowLeft;
             top: 0.9rem;
             border-top: 0.5rem solid transparent;
-            border-left: 0.72rem solid #FF770E;
+            border-left: 0.72rem solid #ff770e;
             border-bottom: 0.5rem solid transparent;
           }
         }

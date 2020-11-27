@@ -16,8 +16,18 @@
 }
 
 #app .message_wrap .item {
-  display: flex;
   padding: 1.4rem 0 0;
+}
+
+#app .message_wrap .item .message_time {
+  text-align: center;
+  color: #969799;
+  font-size: 0.9rem;
+  margin-bottom: 0.6rem;
+}
+
+#app .message_wrap .item .message_content {
+  display: flex;
 }
 
 #app .message_wrap .item .avatar {
@@ -216,7 +226,7 @@
   border-bottom: 0.5rem solid transparent;
 }
 
-#app .message_wrap .reverse {
+#app .message_wrap .reverse .message_content {
   flex-direction: row-reverse;
 }
 
@@ -231,7 +241,7 @@
 
 #app .message_wrap .reverse .content .text {
   color: #fff;
-  background: #FF770E;
+  background: #ff770e;
 }
 
 #app .message_wrap .reverse .content .text::before {
@@ -240,7 +250,7 @@
   right: -0.7rem;
   top: 0.9rem;
   border-top: 0.5rem solid transparent;
-  border-left: 0.72rem solid #FF770E;
+  border-left: 0.72rem solid #ff770e;
   border-bottom: 0.5rem solid transparent;
 }
 
@@ -251,7 +261,7 @@
 #app .message_wrap .reverse .content .audio .audio_content {
   color: #fff;
   flex-direction: row-reverse;
-  background: #FF770E;
+  background: #ff770e;
 }
 
 #app .message_wrap .reverse .content .audio .audio_content .sound_icon img {
@@ -264,7 +274,7 @@
   right: -0.7rem;
   top: 0.9rem;
   border-top: 0.5rem solid transparent;
-  border-left: 0.72rem solid #FF770E;
+  border-left: 0.72rem solid #ff770e;
   border-bottom: 0.5rem solid transparent;
 }
 

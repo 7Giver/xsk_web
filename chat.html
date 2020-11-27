@@ -16,52 +16,57 @@
     <van-list class="message_wrap" v-model="loading" :finished="finished" finished-text="没有更多了" :immediate-check="false"
       direction="up" @load="onLoadList">
       <div :class="[item.from == sid ? 'item reverse' : 'item row']" v-for="(item, index) in messageList" :key="index">
-        <div class="avatar">
-          <img :src="item.data.from.avatar || default_avatar" alt="">
+        <div class="message_time" v-if="isShowTimes[index]">
+          {{ item.data.from.time | accordingToNow }}
         </div>
-        <div class="content">
-          <div class="text" v-if="item.data.typ == 100">{{item.data.content.txt}}</div>
-          <div class="img" v-if="item.data.typ == 104">
-            <img :src="item.data.content.img" alt="">
+        <div class="message_content">
+          <div class="avatar">
+            <img :src="item.data.from.avatar || default_avatar" alt="">
           </div>
-          <div class="card" v-if="item.data.typ == 102" @click="goUserCard(item.data.content.card_id)">
-            <div class="title">{{item.data.content.card_name}}的{{item.data.content.card_brand}}的微名片请惠存！</div>
-            <div class="inner_wrap">
-              <div class="img_wrap">
-                <img :src="item.data.content.card_avatar" alt="">
+          <div class="content">
+            <div class="text" v-if="item.data.typ == 100">{{item.data.content.txt}}</div>
+            <div class="img" v-if="item.data.typ == 104">
+              <img :src="item.data.content.img" alt="">
+            </div>
+            <div class="card" v-if="item.data.typ == 102" @click="goUserCard(item.data.content.card_id)">
+              <div class="title">{{item.data.content.card_name}}的{{item.data.content.card_brand}}的微名片请惠存！</div>
+              <div class="inner_wrap">
+                <div class="img_wrap">
+                  <img :src="item.data.content.card_avatar" alt="">
+                </div>
+                <div class="right">
+                  <p>姓名：{{item.data.content.card_name}}</p>
+                  <p>品牌：{{item.data.content.card_brand}}</p>
+                </div>
               </div>
-              <div class="right">
-                <p>姓名：{{item.data.content.card_name}}</p>
-                <p>品牌：{{item.data.content.card_brand}}</p>
+              <div class="footer">
+                <p>名片</p>
               </div>
             </div>
-            <div class="footer">
-              <p>名片</p>
-            </div>
-          </div>
-          <div class="news" @click="_gOtherNews(item.data.content)" v-if="item.data.typ == 103">
-            <div class="title van-multi-ellipsis--l2">{{item.data.content.article_title}}</div>
-            <div class="bottom">
-              <p class="van-multi-ellipsis--l2">{{item.data.content.article_desc}}</p>
-              <img :src="item.data.content.article_pic" alt="">
-            </div>
-          </div>
-          <div class="audio" v-if="item.data.typ == 101">
-            <div class="audio_content" @click="goPlayAudio(item.data.content, index)">
-              <div class="sound_icon">
-                <template v-if="item.from == sid">
-                  <img src="{:REGISTER_PUBLIC}img/chat/mysound.png" alt="" v-if="item.data.content.isAudioPlay == 0">
-                  <img src="{:REGISTER_PUBLIC}img/chat/mysound_on.gif" alt="" v-else>
-                </template>
-                <template v-else>
-                  <img src="{:REGISTER_PUBLIC}img/chat/sound.png" alt="" v-if="item.data.content.isAudioPlay == 0">
-                  <img src="{:REGISTER_PUBLIC}img/chat/sound_on.gif" alt="" v-else>
-                </template>
+            <div class="news" @click="_gOtherNews(item.data.content)" v-if="item.data.typ == 103">
+              <div class="title van-multi-ellipsis--l2">{{item.data.content.article_title}}</div>
+              <div class="bottom">
+                <p class="van-multi-ellipsis--l2">{{item.data.content.article_desc}}</p>
+                <img :src="item.data.content.article_pic" alt="">
               </div>
-              <p class="audio_length">{{Math.round(item.data.content.duration)}}"</p>
             </div>
-            <div class="noread" v-if="!item.data.content.is_listen"></div>
-            <audio :src="item.data.content.audio" ref="audio" controls style="display: none;"></audio>
+            <div class="audio" v-if="item.data.typ == 101">
+              <div class="audio_content" @click="goPlayAudio(item.data.content, index)">
+                <div class="sound_icon">
+                  <template v-if="item.from == sid">
+                    <img src="{:REGISTER_PUBLIC}img/chat/mysound.png" alt="" v-if="item.data.content.isAudioPlay == 0">
+                    <img src="{:REGISTER_PUBLIC}img/chat/mysound_on.gif" alt="" v-else>
+                  </template>
+                  <template v-else>
+                    <img src="{:REGISTER_PUBLIC}img/chat/sound.png" alt="" v-if="item.data.content.isAudioPlay == 0">
+                    <img src="{:REGISTER_PUBLIC}img/chat/sound_on.gif" alt="" v-else>
+                  </template>
+                </div>
+                <p class="audio_length">{{Math.round(item.data.content.duration)}}"</p>
+              </div>
+              <div class="noread" v-if="!item.data.content.is_listen"></div>
+              <audio :src="item.data.content.audio" ref="audio" controls style="display: none;"></audio>
+            </div>
           </div>
         </div>
       </div>
@@ -136,6 +141,8 @@
 <script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
 <script src="{:REGISTER_PUBLIC}js/vant.min.js?v=1.2"></script>
 <script src="{:REGISTER_PUBLIC}js/jweixin-1.1.0.js"></script>
+<script src="{:REGISTER_PUBLIC}js/moment.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/moment-with-locales.min.js"></script>
 <script src="{:REGISTER_PUBLIC}js/vconsole.min.js"></script>
 
 <script>
@@ -143,6 +150,7 @@
   const URL = "{:H5_DOMAIN}";
   const API_URL = "{:API_DOMAIN}";
   const ROUTE_DETAIL_DOMAIN = "{:ROUTE_DETAIL_DOMAIN}"; //文章详情授权
+  moment.locale('zh-cn'); // moment.js语言环境
 
   new Vue({
     el: '#app',
@@ -199,6 +207,37 @@
     computed: {
       innerPage() {
         return window.innerHeight + 'px'
+      },
+      isShowTimes() {
+        let lastTime = moment(0);
+        return this.messageList.map(message => {
+          const messageTime = moment(message.data.from.time);
+          let diffTime = messageTime.diff(lastTime, 'minutes');
+
+          if (diffTime >= 5) {
+            lastTime = messageTime
+            return true
+          } else {
+            return false
+          }
+        })
+      }
+    },
+    filters: {
+      accordingToNow(date) {
+        const time = moment(date);
+        const now = moment();
+        let diffMinutes = now.diff(time, 'minutes');
+        let diffDays = now.diff(time, 'days');
+        let diffYears = now.diff(time, 'years');
+
+        if (diffDays < 1) {
+          return time.format("a hh:mm");
+        } else if (diffYears < 1) {
+          return time.format("MoDo a hh:mm");
+        } else {
+          return time.format("LL a hh:mm");
+        }
       }
     },
     mounted() {
