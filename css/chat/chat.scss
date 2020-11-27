@@ -131,11 +131,10 @@ $arrowLeft: -0.7rem;
           position: relative;
           display: flex;
           align-items: center;
-          width: 100%;
           .audio_content {
             display: flex;
             align-items: center;
-            width: 70%;
+            width: 10rem;
             padding: 0.4rem 0.3rem;
             border-radius: 0.3rem;
             background: #fff;
@@ -204,20 +203,24 @@ $arrowLeft: -0.7rem;
         display: flex;
         justify-content: flex-end;
         .text {
+          color: #fff;
+          background: #FF770E;
           &::before {
             content: "";
             position: absolute;
             right: $arrowLeft;
             top: 0.9rem;
             border-top: 0.5rem solid transparent;
-            border-left: 0.72rem solid #fff;
+            border-left: 0.72rem solid #FF770E;
             border-bottom: 0.5rem solid transparent;
           }
         }
         .audio {
           flex-direction: row-reverse;
           .audio_content {
+            color: #fff;
             flex-direction: row-reverse;
+            background: #FF770E;
             .sound_icon {
               img {
                 transform: rotateY(180deg);
@@ -230,7 +233,7 @@ $arrowLeft: -0.7rem;
             right: $arrowLeft;
             top: 0.9rem;
             border-top: 0.5rem solid transparent;
-            border-left: 0.72rem solid #fff;
+            border-left: 0.72rem solid #FF770E;
             border-bottom: 0.5rem solid transparent;
           }
         }

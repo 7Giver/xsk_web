@@ -154,13 +154,12 @@
   position: relative;
   display: flex;
   align-items: center;
-  width: 100%;
 }
 
 #app .message_wrap .item .content .audio .audio_content {
   display: flex;
   align-items: center;
-  width: 70%;
+  width: 10rem;
   padding: 0.4rem 0.3rem;
   border-radius: 0.3rem;
   background: #fff;
@@ -230,13 +229,18 @@
   justify-content: flex-end;
 }
 
+#app .message_wrap .reverse .content .text {
+  color: #fff;
+  background: #FF770E;
+}
+
 #app .message_wrap .reverse .content .text::before {
   content: "";
   position: absolute;
   right: -0.7rem;
   top: 0.9rem;
   border-top: 0.5rem solid transparent;
-  border-left: 0.72rem solid #fff;
+  border-left: 0.72rem solid #FF770E;
   border-bottom: 0.5rem solid transparent;
 }
 
@@ -245,7 +249,9 @@
 }
 
 #app .message_wrap .reverse .content .audio .audio_content {
+  color: #fff;
   flex-direction: row-reverse;
+  background: #FF770E;
 }
 
 #app .message_wrap .reverse .content .audio .audio_content .sound_icon img {
@@ -258,7 +264,7 @@
   right: -0.7rem;
   top: 0.9rem;
   border-top: 0.5rem solid transparent;
-  border-left: 0.72rem solid #fff;
+  border-left: 0.72rem solid #FF770E;
   border-bottom: 0.5rem solid transparent;
 }
 

@@ -49,8 +49,14 @@
           <div class="audio" v-if="item.data.typ == 101">
             <div class="audio_content" @click="goPlayAudio(item.data.content, index)">
               <div class="sound_icon">
-                <img src="{:REGISTER_PUBLIC}img/chat/sound.png" alt="" v-if="item.data.content.isAudioPlay == 0">
-                <img src="{:REGISTER_PUBLIC}img/chat/sound_on.gif" alt="" v-else>
+                <template v-if="item.from == sid">
+                  <img src="{:REGISTER_PUBLIC}img/chat/mysound.png" alt="" v-if="item.data.content.isAudioPlay == 0">
+                  <img src="{:REGISTER_PUBLIC}img/chat/mysound_on.gif" alt="" v-else>
+                </template>
+                <template v-else>
+                  <img src="{:REGISTER_PUBLIC}img/chat/sound.png" alt="" v-if="item.data.content.isAudioPlay == 0">
+                  <img src="{:REGISTER_PUBLIC}img/chat/sound_on.gif" alt="" v-else>
+                </template>
               </div>
               <p class="audio_length">{{Math.round(item.data.content.duration)}}"</p>
             </div>
@@ -211,13 +217,14 @@
     methods: {
       // 获取url参数 判断单聊群聊
       getUrlQuery() {
-        this.option.id = getQueryString('id')
-        this.option.sid = getQueryString('sid')
+        this.option.id = getQueryString('id');
+        this.option.sid = getQueryString('sid');
         if (this.option.sid) {
-          this.isGroup = false
-          this.getChatDetail(0, this.option.id, 1001)
+          this.isGroup = false;
+          this.getChatDetail(0, this.option.id, 1001);
         } else {
-          this.isGroup = true
+          this.isGroup = true;
+          this.getChatDetail(0, this.option.id, 1002);
         }
 
         // 获取url参数
@@ -560,7 +567,7 @@
             console.log("card");
             let obj = {
               token: this.token,
-              class: 1001,
+              class: this.isGroup ? 1002 : 1001,
               type: 102,
               toid: this.option.id
             }
@@ -615,7 +622,7 @@
         // console.log(file);
         let obj = {
           token: this.token,
-          class: 1001,
+          class: this.isGroup ? 1002 : 1001,
           type: 104,
           toid: this.option.id,
           file: file.content
@@ -630,7 +637,7 @@
       sendText() {
         let obj = {
           token: this.token,
-          class: 1001,
+          class: this.isGroup ? 1002 : 1001,
           type: 100,
           toid: this.option.id,
           content: this.typingText
@@ -644,7 +651,7 @@
       sendNews(item) {
         let obj = {
           token: this.token,
-          class: 1001,
+          class: this.isGroup ? 1002 : 1001,
           type: 103,
           toid: this.option.id,
           cid: item.cid,
@@ -755,7 +762,7 @@
           console.log(res);
           let obj = {
             token: this.token,
-            class: 1001,
+            class: this.isGroup ? 1002 : 1001,
             type: 101,
             toid: this.option.id,
             file: res
