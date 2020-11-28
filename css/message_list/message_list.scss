@@ -44,6 +44,7 @@
           justify-content: space-between;
           margin-bottom: 0.3rem;
           .name {
+            flex: 1;
             display: flex;
             align-items: center;
             color: #333537;
@@ -62,7 +63,7 @@
           }
           .time {
             color: #a2a2a2;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
           }
         }
         .sign {
@@ -148,6 +149,7 @@
           }
           .bottom {
             display: flex;
+            align-items: center;
             > p {
               flex: 1;
               color: #999999;

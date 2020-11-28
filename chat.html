@@ -546,10 +546,9 @@
       // 载入websocket
       initWebSocket() {
         if (!"WebSocket" in window) {
-          this.$tost({
+          this.$toast({
             type: 'fail',
             message: '您的浏览器不支持WebSocket!',
-            duration: 2000,
           })
           return false
         }
@@ -571,11 +570,21 @@
         };
         ws.onerror = function (e) {
           console.log('onerror>>', e);
+          self.$toast({
+            type: 'fail',
+            message: '连接错误',
+            duration: 1500,
+          });
         };
         ws.onclose = function (e) {
           console.log('onclose>>', e);
+          self.$toast({
+            type: 'fail',
+            message: '连接关闭',
+            duration: 1500,
+          });
         };
-        this.ws = ws
+        self.ws = ws;
       },
       // 上拉加载请求方法
       onLoadList() {

@@ -298,8 +298,16 @@
           });
           return false
         }
+        if (!this.guest.id || !this.guest.sid) {
+          this.$toast({
+            type: 'fail',
+            message: '缺少id',
+            duration: 1500,
+          });
+          return false
+        }
         if (this.guest.id) {
-          location.href = `/register/page/chat?id=${this.guest.id}`
+          location.href = `/register/page/chat?id=${this.guest.id}&sid=${this.guest.sid}`
         } else {
           this.$toast({
             type: 'fail',

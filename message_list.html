@@ -8,49 +8,46 @@
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/message_list/message_list.css?v=<?php echo time(); php?>">
-
-  <!-- <link rel="stylesheet" href="./css/common/main.css">
-  <link rel="stylesheet" href="./css/common/vant.css">
-  <link rel="stylesheet" href="./css/message_list/message_list.css"> -->
 </head>
 
 <body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
     <div class="data_list">
-      <div class="item" v-for="(item, index) in dataList" :key="index">
+      <div class="item" v-for="(item, index) in dataList" :key="index" @click="goChat(item)">
         <div class="avatar">
           <img :src="item.avatar" alt="">
-          <div class="tips" v-if="item.news">{{item.news}}</div>
+          <div class="tips" v-if="item.unread > 0">{{item.unread}}</div>
         </div>
         <div class="content">
           <div class="top_wrap">
             <div class="name">
-              <span v-if="item.type == 2">群聊</span>
-              <p>{{item.name}}</p>
+              <span v-if="item.class == 1002">群聊</span>
+              <p>{{item.group_name}}</p>
             </div>
-            <p class="time">{{item.time}}</p>
+            <p class="time">{{item.add_time | accordingToNow}}</p>
           </div>
-          <div class="sign" v-if="item.type < 3">{{item.sign}}</div>
-          <div class="card" v-if="item.type == 3">
-            <div class="title">{{item.name}}的{{item.brand}}的微名片请惠存！</div>
+          <div class="sign" v-if="item.type == 100">{{item.content}}</div>
+          <div class="sign" v-if="item.type == 104">[图片]</div>
+          <div class="card" v-if="item.type == 102">
+            <div class="title">{{item.card_name}}的{{item.card_brand}}的微名片请惠存！</div>
             <div class="inner_wrap">
               <div class="img_wrap">
-                <img :src="item.img" alt="">
+                <img :src="item.card_avatar" alt="">
               </div>
               <div class="right">
-                <p>姓名：{{item.name}}</p>
-                <p>品牌：{{item.brand}}</p>
+                <p>姓名：{{item.card_name}}</p>
+                <p>品牌：{{item.card_brand}}</p>
               </div>
             </div>
             <div class="footer">
               <p>名片</p>
             </div>
           </div>
-          <div class="news" v-if="item.type == 4">
-            <div class="title">{{item.title}}</div>
+          <div class="news" v-if="item.type == 103">
+            <div class="title">{{item.article_title}}</div>
             <div class="bottom">
-              <p>{{item.desc}}</p>
-              <img :src="item.img" alt="">
+              <p class="van-multi-ellipsis--l2">{{item.article_desc}}</p>
+              <img :src="item.article_pic" alt="">
             </div>
           </div>
         </div>
@@ -62,62 +59,44 @@
 <script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
 <script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
 <script src="{:REGISTER_PUBLIC}js/vant.min.js?v=1.2"></script>
-
-<!-- <script src="./js/vue.min.js"></script>
-<script src="./js/vue-resource.min.js"></script>
-<script src="./js/vant.min.js?v=1.2"></script> -->
+<script src="{:REGISTER_PUBLIC}js/moment.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/moment-with-locales.min.js"></script>
 
 <script>
   const URL = "{:H5_DOMAIN}";
+  moment.locale('zh-cn'); // moment.js语言环境
 
   new Vue({
     el: '#app',
     data() {
       return {
         token: '',
+        sid: '',
+        connectKey: '',
+        webSocket: null, //websocket对象
+        authUrl: "http://123.206.118.205:10800/auth?timestamp=" + new Date().valueOf(),
+        wsServer: "ws://123.206.118.205:10800/io?timestamp=" + new Date().valueOf(), //ws请求地址
         page: 1, // 页码
         pageSize: 20, // 每页条数
         loading: false, // 分页加载
         finished: false, // 结束分页加载
-        dataList: [
-          {
-            avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/girl.jpg',
-            name: '王冰冰',
-            time: '下午13:08',
-            sign: '谁能帮我设计免费个性签名,我叫蒙广福',
-            news: 2,
-            type: 1,
-          },
-          {
-            avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/bear.jpg',
-            name: '小熊宝',
-            time: '上午13:08',
-            sign: '坚强并不只是在大是大非中不屈服四大皆空房价大幅是大家看法上岛咖啡',
-            type: 2,
-            news: 10,
-          },
-          {
-            avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/girl.jpg',
-            name: '王冰冰',
-            time: '昨天13:08',
-            sign: '坚强并不只是在大是大非中不屈服四大皆空房价大幅是大家看法上岛咖啡',
-            type: 3,
-            news: 2,
-            brand: '中国平安',
-            img: 'https://gitee.com/run27017/assets/raw/master/avatars/girl.jpg'
-          },
-          {
-            avatar: 'https://gitee.com/run27017/assets/raw/master/avatars/bear.jpg',
-            name: '小熊宝',
-            time: '下午13:08',
-            sign: '谁能帮我设计免费个性签名,我叫蒙广福',
-            news: 11,
-            type: 4,
-            title: '为什么跟某些人说话总会充满戾气？你可能想错了',
-            desc: '我正在读书，邀您一起与我攻读赶快娿来来~~',
-            img: 'https://gitee.com/run27017/assets/raw/master/avatars/bear.jpg'
-          },
-        ],
+        dataList: [],
+      }
+    },
+    filters: {
+      accordingToNow(date) {
+        const time = moment(date);
+        const now = moment();
+        let diffDays = now.diff(time, 'days');
+        let diffYears = now.diff(time, 'years');
+
+        if (diffDays < 1) {
+          return time.format("a hh:mm");
+        } else if (diffYears < 1) {
+          return time.format("MoDo a hh:mm");
+        } else {
+          return time.format("LL a hh:mm");
+        }
       }
     },
     computed: {
@@ -126,7 +105,7 @@
       }
     },
     mounted() {
-      this.getUserInfo()
+      this.getUserInfo();
     },
     methods: {
       // 获取个人信息
@@ -140,7 +119,63 @@
             } = res.body;
             if (errCode === 0) {
               this.token = data.token;
+              this.getOnlineMsg()
               this.getDataList()
+            }
+          },
+          err => {
+            this.$toast({
+              type: 'fail',
+              message: '登录失败',
+              duration: 1500,
+            });
+          }
+        );
+      },
+      // 登录获取信息
+      getOnlineMsg() {
+        this.$http.get(URL + "/register/friend/online", {
+          params: {
+            token: this.token
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.getWsAuth()
+            }
+          },
+          err => {
+            this.$toast({
+              type: 'fail',
+              message: '登录失败',
+              duration: 1500,
+            });
+          }
+        );
+      },
+      // ws授权
+      getWsAuth() {
+        let uri = this.authUrl;
+        let token = this.token;
+        if (token != null && token !== undefined) {
+          uri += "&token=" + token;
+        }
+        this.$http.get(uri).then(
+          res => {
+            const {
+              code,
+              data,
+              message
+            } = res.body;
+            if (code === 1) {
+              this.connectKey = data.key;
+              this.sid = data.sid;
+              this.initWebSocket()
             }
           },
           err => {
@@ -207,6 +242,181 @@
           }, 600)
         }
       },
+      // 点击进入聊天
+      goChat(item) {
+        location.href = `/register/page/chat?id=${item.base_id}&sid=${item.sid}`
+      },
+      // 载入websocket
+      initWebSocket() {
+        if (!"WebSocket" in window) {
+          this.$toast({
+            type: 'fail',
+            message: '您的浏览器不支持WebSocket!',
+          })
+          return false
+        }
+        let self = this;
+        let wsServer = this.wsServer + "&sid=" + this.sid + "&key=" + this.connectKey;
+        var ws = new WebSocket(wsServer);
+        initEventHandle();
+
+        // 初始化事件函数
+        function initEventHandle() {
+          ws.onopen = function (e) {
+            console.log('onopen>>', e);
+            heartCheck.start();
+          };
+          ws.onmessage = function (e) {
+            console.log('onmessage>>', e.data);
+            let res = e.data;
+            let type = res.substring(0, 1);
+            type == 4 && self.handleMessage(JSON.parse(res.substring(1)));
+            heartCheck.reset();
+          };
+          ws.onerror = function (e) {
+            console.log('onerror>>', e);
+            reconnect(wsServer);
+          };
+          ws.onclose = function (e) {
+            console.log('onclose>>', e);
+            reconnect(wsServer);
+          };
+          self.webSocket = ws;
+        }
+
+        // 重连
+        function reconnect(url) {
+          if (reconnect.lockReconnect) return;
+          reconnect.lockReconnect = true;
+          setTimeout(function () {
+            createWebSocket(url);
+            reconnect.lockReconnect = false;
+          }, 2000);
+        }
+
+        // 实例websocket
+        function createWebSocket(url) {
+          try {
+            if ('WebSocket' in window) {
+              ws = new WebSocket(url);
+            } else {
+              console.log("当前浏览器不支持websocket协议");
+            }
+            initEventHandle();
+          } catch (e) {
+            reconnect(url);
+          }
+        }
+
+        // 心跳机制
+        var heartCheck = {
+          timeout: 5000,
+          timeoutObj: null,
+          serverTimeoutObj: null,
+          reset: function () {
+            clearTimeout(this.timeoutObj);
+            clearTimeout(this.serverTimeoutObj);
+            this.start();
+          },
+          start: function () {
+            var self = this;
+            this.timeoutObj = setTimeout(function () {
+              ws.send(2 + JSON.stringify({
+                data: ""
+              }));
+              self.serverTimeoutObj = setTimeout(function () {
+                ws.close();
+              }, self.timeout)
+            }, this.timeout)
+          },
+        }
+      },
+      // 接收信息处理
+      handleMessage(obj) {
+        let type = obj.data.typ;
+        this.dataList.forEach(item => {
+          switch (type) {
+            case 100: //文本
+              if (obj.t == 1001) {
+                if (item.sid === obj.from) {
+                  item.type = type;
+                  item.content = obj.data.content.txt;
+                  item.add_time = obj.data.from.time;
+                  ++item.unread;
+                }
+              } else {
+                if (item.sid === obj.to[0]) {
+                  item.type = type;
+                  item.content = obj.data.content.txt;
+                  item.add_time = obj.data.from.time;
+                  ++item.unread;
+                }
+              }
+              break;
+            case 104: //图片
+              if (obj.t == 1001) {
+                if (item.sid === obj.from) {
+                  item.type = type;
+                  item.add_time = obj.data.from.time;
+                  ++item.unread;
+                }
+              } else {
+                if (item.sid === obj.to[0]) {
+                  item.type = type;
+                  item.add_time = obj.data.from.time;
+                  ++item.unread;
+                }
+              }
+              break;
+            case 102: //名片
+              if (obj.t == 1001) {
+                if (item.sid === obj.from) {
+                  item.type = type;
+                  item.card_name = obj.data.content.card_name;
+                  item.card_brand = obj.data.content.card_brand;
+                  item.card_avatar = obj.data.content.card_avatar;
+                  item.add_time = obj.data.from.time;
+                  ++item.unread;
+                }
+              } else {
+                if (item.sid === obj.to[0]) {
+                  item.type = type;
+                  item.card_name = obj.data.content.card_name;
+                  item.card_brand = obj.data.content.card_brand;
+                  item.card_avatar = obj.data.content.card_avatar;
+                  item.add_time = obj.data.from.time;
+                  ++item.unread;
+                }
+              }
+              break;
+            case 103: //文章
+              if (obj.t == 1001) {
+                if (item.sid === obj.from) {
+                  item.type = type;
+                  item.article_title = obj.data.content.article_title;
+                  item.article_desc = obj.data.content.article_desc;
+                  item.article_pic = obj.data.content.article_pic;
+                  item.add_time = obj.data.from.time;
+                  ++item.unread;
+                }
+              } else {
+                if (item.sid === obj.to[0]) {
+                  item.type = type;
+                  item.article_title = obj.data.content.article_title;
+                  item.article_desc = obj.data.content.article_desc;
+                  item.article_pic = obj.data.content.article_pic;
+                  item.add_time = obj.data.from.time;
+                  ++item.unread;
+                }
+              }
+              break;
+
+            default:
+              break;
+          }
+        });
+
+      }
     }
   })
 </script>
