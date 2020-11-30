@@ -1,3 +1,15 @@
+.van-dialog {
+  width: 80%;
+}
+
+.van-dialog .van-dialog__footer {
+  display: flex;
+}
+
+.delete-button {
+  height: 100%;
+}
+
 #app {
   background: #fff;
 }
@@ -69,10 +81,22 @@
   font-size: 0.7rem;
   padding: 0.1rem 0.36rem;
   font-weight: normal;
+  white-space: nowrap;
   letter-spacing: 1px;
   margin-right: 0.3rem;
   border-radius: 0.3rem;
   background: #ff8412;
+}
+
+#app .data_list .item .content .top_wrap .name > p {
+  text-overflow: -o-ellipsis-lastline;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  word-break: break-all;
 }
 
 #app .data_list .item .content .top_wrap .time {
@@ -126,8 +150,21 @@
 }
 
 #app .data_list .item .content .card .inner_wrap .right {
+  flex: 1;
   color: #999999;
   font-size: 0.8rem;
+  padding-right: 2rem;
+}
+
+#app .data_list .item .content .card .inner_wrap .right > p {
+  text-overflow: -o-ellipsis-lastline;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  word-break: break-all;
 }
 
 #app .data_list .item .content .card .inner_wrap .right > p:first-child {

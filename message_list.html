@@ -13,14 +13,61 @@
 <body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
     <div class="data_list">
-      <div class="item" v-for="(item, index) in dataList" :key="index" @click="goChat(item)">
+      <template v-for="(item, index) in dataList" :key="index">
+        <van-swipe-cell>
+          <div class="item" @click="goChat(item)">
+            <div class="avatar">
+              <img :src="item.avatar" alt="">
+              <div class="tips" v-if="item.unread > 0">{{item.unread}}</div>
+            </div>
+            <div class="content">
+              <div class="top_wrap">
+                <div class="name" @dblclick.stop="goDelete(index)">
+                  <span v-if="item.class == 1002">群聊</span>
+                  <p>{{item.group_name}}</p>
+                </div>
+                <p class="time">{{item.add_time | accordingToNow}}</p>
+              </div>
+              <div class="sign" v-if="item.type == 100">{{item.content}}</div>
+              <div class="sign" v-if="item.type == 104">[图片]</div>
+              <div class="card" v-if="item.type == 102">
+                <div class="title van-multi-ellipsis--l2">{{item.card_name}}的{{item.card_brand}}的微名片请惠存！</div>
+                <div class="inner_wrap">
+                  <div class="img_wrap">
+                    <img :src="item.card_avatar" alt="">
+                  </div>
+                  <div class="right">
+                    <p>姓名：{{item.card_name}}</p>
+                    <p>品牌：{{item.card_brand}}</p>
+                  </div>
+                </div>
+                <div class="footer">
+                  <p>名片</p>
+                </div>
+              </div>
+              <div class="news" v-if="item.type == 103">
+                <div class="title">{{item.article_title}}</div>
+                <div class="bottom">
+                  <p class="van-multi-ellipsis--l2">{{item.article_desc}}</p>
+                  <img :src="item.article_pic" alt="">
+                </div>
+              </div>
+            </div>
+          </div>
+          <template #right>
+            <van-button square type="danger" text="删除" class="delete-button" @click="goDelete(index)" />
+          </template>
+        </van-swipe-cell>
+      </template>
+
+      <!-- <div class="item" v-for="(item, index) in dataList" :key="index" @click="goChat(item)">
         <div class="avatar">
           <img :src="item.avatar" alt="">
           <div class="tips" v-if="item.unread > 0">{{item.unread}}</div>
         </div>
         <div class="content">
           <div class="top_wrap">
-            <div class="name">
+            <div class="name" @dblclick.stop="goDelete(index)">
               <span v-if="item.class == 1002">群聊</span>
               <p>{{item.group_name}}</p>
             </div>
@@ -29,7 +76,7 @@
           <div class="sign" v-if="item.type == 100">{{item.content}}</div>
           <div class="sign" v-if="item.type == 104">[图片]</div>
           <div class="card" v-if="item.type == 102">
-            <div class="title">{{item.card_name}}的{{item.card_brand}}的微名片请惠存！</div>
+            <div class="title van-multi-ellipsis--l2">{{item.card_name}}的{{item.card_brand}}的微名片请惠存！</div>
             <div class="inner_wrap">
               <div class="img_wrap">
                 <img :src="item.card_avatar" alt="">
@@ -51,7 +98,8 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
+
     </div>
   </div>
 </body>
@@ -267,7 +315,7 @@
             heartCheck.start();
           };
           ws.onmessage = function (e) {
-            console.log('onmessage>>', e.data);
+            // console.log('onmessage>>', e.data);
             let res = e.data;
             let type = res.substring(0, 1);
             type == 4 && self.handleMessage(JSON.parse(res.substring(1)));
@@ -333,19 +381,24 @@
       },
       // 接收信息处理
       handleMessage(obj) {
+        let result = this.dataList.some(item => item.sid == obj.from)
+        result ? this.hasMessage(obj) : this.hasNoMessage(obj);
+      },
+      // 列表中有消息
+      hasMessage(obj) {
         let type = obj.data.typ;
         this.dataList.forEach(item => {
           switch (type) {
             case 100: //文本
               if (obj.t == 1001) {
-                if (item.sid === obj.from) {
+                if (item.sid == obj.from) {
                   item.type = type;
                   item.content = obj.data.content.txt;
                   item.add_time = obj.data.from.time;
                   ++item.unread;
                 }
               } else {
-                if (item.sid === obj.to[0]) {
+                if (item.sid == obj.to[0]) {
                   item.type = type;
                   item.content = obj.data.content.txt;
                   item.add_time = obj.data.from.time;
@@ -355,13 +408,13 @@
               break;
             case 104: //图片
               if (obj.t == 1001) {
-                if (item.sid === obj.from) {
+                if (item.sid == obj.from) {
                   item.type = type;
                   item.add_time = obj.data.from.time;
                   ++item.unread;
                 }
               } else {
-                if (item.sid === obj.to[0]) {
+                if (item.sid == obj.to[0]) {
                   item.type = type;
                   item.add_time = obj.data.from.time;
                   ++item.unread;
@@ -370,7 +423,7 @@
               break;
             case 102: //名片
               if (obj.t == 1001) {
-                if (item.sid === obj.from) {
+                if (item.sid == obj.from) {
                   item.type = type;
                   item.card_name = obj.data.content.card_name;
                   item.card_brand = obj.data.content.card_brand;
@@ -379,7 +432,7 @@
                   ++item.unread;
                 }
               } else {
-                if (item.sid === obj.to[0]) {
+                if (item.sid == obj.to[0]) {
                   item.type = type;
                   item.card_name = obj.data.content.card_name;
                   item.card_brand = obj.data.content.card_brand;
@@ -391,7 +444,7 @@
               break;
             case 103: //文章
               if (obj.t == 1001) {
-                if (item.sid === obj.from) {
+                if (item.sid == obj.from) {
                   item.type = type;
                   item.article_title = obj.data.content.article_title;
                   item.article_desc = obj.data.content.article_desc;
@@ -400,7 +453,7 @@
                   ++item.unread;
                 }
               } else {
-                if (item.sid === obj.to[0]) {
+                if (item.sid == obj.to[0]) {
                   item.type = type;
                   item.article_title = obj.data.content.article_title;
                   item.article_desc = obj.data.content.article_desc;
@@ -415,7 +468,62 @@
               break;
           }
         });
-
+      },
+      // 列表中没有消息
+      hasNoMessage(obj) {
+        let type = obj.data.typ;
+        let newData = {
+          add_time: obj.data.from.time,
+          avatar: obj.data.from.avatar,
+          group_name: obj.data.from.name,
+          base_id: obj.data.from.id,
+          class: obj.t,
+          sid: obj.from,
+          type: obj.data.typ,
+          unread: 1,
+          content: '',
+          card_name: '',
+          card_brand: '',
+          card_avatar: '',
+          article_title: '',
+          article_desc: '',
+          article_pic: '',
+        };
+        switch (type) {
+          case 100: //文本
+            newData.content = obj.data.content.txt;
+            break;
+          case 104: //图片
+            newData.content = '[图片]';
+            break;
+          case 102: //名片
+            newData.card_name = obj.data.content.card_name;
+            newData.card_brand = obj.data.content.card_brand;
+            newData.card_avatar = obj.data.content.card_avatar;
+            break;
+          case 103: //文章
+            newData.article_title = obj.data.content.article_title;
+            newData.article_desc = obj.data.content.article_desc;
+            newData.article_pic = obj.data.content.article_pic;
+            break;
+          default:
+            break;
+        }
+        this.dataList.unshift(newData);
+      },
+      // 删除消息
+      goDelete(index) {
+        this.$dialog.alert({
+            message: '删除该条消息？',
+            confirmButtonColor: '#FF730C',
+            showCancelButton: true,
+          })
+          .then(() => {
+            this.dataList.splice(index, 1);
+          })
+          .catch(() => {
+            // ...
+          });
       }
     }
   })
