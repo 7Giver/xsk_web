@@ -6,11 +6,26 @@ $arrowLeft: -0.7rem;
     display: flex;
   }
 }
+.van-nav-bar {
+  width: 100%;
+  line-height: 46px;
+  .van-icon {
+    color: #ff7e10;
+  }
+  .van-nav-bar__text {
+    color: #ff7e10;
+  }
+}
 #app {
   width: 100%;
+  height: 100%;
   background: #f4f4f4;
   .message_wrap {
-    padding: 0rem 1.4rem 7rem;
+    height: 100vh;
+    overflow: scroll;
+    .message_list {
+      padding: 3rem 1.4rem 7rem;
+    }
     .item {
       padding: 1.4rem 0 0;
       .message_time {
@@ -257,6 +272,15 @@ $arrowLeft: -0.7rem;
     width: 100%;
     background: #f4f4f4;
     border-top: 1px solid #e2e2e2;
+    .delayTip {
+      position: absolute;
+      right: 3%;
+      top: -1.8rem;
+      z-index: 99;
+      font-size: 0.9rem;
+      color: #999;
+      opacity: 0.7;
+    }
     .input_wrap {
       display: flex;
       align-items: center;

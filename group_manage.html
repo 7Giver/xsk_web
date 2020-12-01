@@ -160,7 +160,7 @@
         this.$http.get(URL + "/register/group/info", {
           params: {
             token: this.token,
-            id: 1,
+            id: this.groupId,
           }
         }).then(
           res => {

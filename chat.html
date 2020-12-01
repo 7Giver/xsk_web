@@ -10,69 +10,85 @@
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/chat/chat.css?v=<?php echo time(); php?>">
 </head>
 
+<style>
+  #target {
+    height: 2px;
+  }
+</style>
+
 <body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <van-nav-bar :title="navTitle" :fixed="true" left-arrow :right-text="isGroup ? '群管理' : null" @click-left="goback"
+      @click-right="goGroupManage">
+    </van-nav-bar>
     <!-- 聊天消息区 -->
-    <van-list class="message_wrap" v-model="loading" :finished="finished" finished-text="没有更多了" :immediate-check="false"
-      direction="up" @load="onLoadList">
-      <div :class="[item.from == sid ? 'item reverse' : 'item row']" v-for="(item, index) in messageList" :key="index">
-        <div class="message_time" v-if="isShowTimes[index]">
-          {{ item.data.from.time | accordingToNow }}
-        </div>
-        <div class="message_content">
-          <div class="avatar">
-            <img :src="item.data.from.avatar || default_avatar" alt="">
+    <div class="message_wrap">
+      <van-list class="message_list" v-model="loading" :finished="finished" finished-text="没有更多了"
+        :immediate-check="false" direction="up" @load="onLoadList">
+        <div :class="[item.from == sid ? 'item reverse' : 'item row']" v-for="(item, index) in messageList"
+          :key="index">
+          <div class="message_time" v-if="isShowTimes[index]">
+            {{ item.data.from.time | accordingToNow }}
           </div>
-          <div class="content">
-            <div class="text" v-if="item.data.typ == 100">{{item.data.content.txt}}</div>
-            <div class="img" v-if="item.data.typ == 104">
-              <img :src="item.data.content.img" alt="">
+          <div class="message_content">
+            <div class="avatar">
+              <img :src="item.data.from.avatar || default_avatar" alt="">
             </div>
-            <div class="card" v-if="item.data.typ == 102" @click="goUserCard(item.data.content.card_id)">
-              <div class="title">{{item.data.content.card_name}}的{{item.data.content.card_brand}}的微名片请惠存！</div>
-              <div class="inner_wrap">
-                <div class="img_wrap">
-                  <img :src="item.data.content.card_avatar" alt="">
+            <div class="content">
+              <div class="text" v-if="item.data.typ == 100">{{item.data.content.txt}}</div>
+              <div class="img" v-if="item.data.typ == 104">
+                <img :src="item.data.content.img" alt="">
+              </div>
+              <div class="card" v-if="item.data.typ == 102" @click="goUserCard(item.data.content.card_id)">
+                <div class="title">{{item.data.content.card_name}}的{{item.data.content.card_brand}}的微名片请惠存！</div>
+                <div class="inner_wrap">
+                  <div class="img_wrap">
+                    <img :src="item.data.content.card_avatar" alt="">
+                  </div>
+                  <div class="right">
+                    <p>姓名：{{item.data.content.card_name}}</p>
+                    <p>品牌：{{item.data.content.card_brand}}</p>
+                  </div>
                 </div>
-                <div class="right">
-                  <p>姓名：{{item.data.content.card_name}}</p>
-                  <p>品牌：{{item.data.content.card_brand}}</p>
+                <div class="footer">
+                  <p>名片</p>
                 </div>
               </div>
-              <div class="footer">
-                <p>名片</p>
-              </div>
-            </div>
-            <div class="news" @click="_gOtherNews(item.data.content)" v-if="item.data.typ == 103">
-              <div class="title van-multi-ellipsis--l2">{{item.data.content.article_title}}</div>
-              <div class="bottom">
-                <p class="van-multi-ellipsis--l2">{{item.data.content.article_desc}}</p>
-                <img :src="item.data.content.article_pic" alt="">
-              </div>
-            </div>
-            <div class="audio" v-if="item.data.typ == 101">
-              <div class="audio_content" @click="goPlayAudio(item.data.content, index)">
-                <div class="sound_icon">
-                  <template v-if="item.from == sid">
-                    <img src="{:REGISTER_PUBLIC}img/chat/mysound.png" alt="" v-if="item.data.content.isAudioPlay == 0">
-                    <img src="{:REGISTER_PUBLIC}img/chat/mysound_on.gif" alt="" v-else>
-                  </template>
-                  <template v-else>
-                    <img src="{:REGISTER_PUBLIC}img/chat/sound.png" alt="" v-if="item.data.content.isAudioPlay == 0">
-                    <img src="{:REGISTER_PUBLIC}img/chat/sound_on.gif" alt="" v-else>
-                  </template>
+              <div class="news" @click="_gOtherNews(item.data.content)" v-if="item.data.typ == 103">
+                <div class="title van-multi-ellipsis--l2">{{item.data.content.article_title}}</div>
+                <div class="bottom">
+                  <p class="van-multi-ellipsis--l2">{{item.data.content.article_desc}}</p>
+                  <img :src="item.data.content.article_pic" alt="">
                 </div>
-                <p class="audio_length">{{Math.round(item.data.content.duration)}}"</p>
               </div>
-              <div class="noread" v-if="!item.data.content.is_listen"></div>
-              <audio :src="item.data.content.audio" ref="audio" controls style="display: none;"></audio>
+              <div class="audio" v-if="item.data.typ == 101">
+                <div class="audio_content" @click="goPlayAudio(item.data.content, index)">
+                  <div class="sound_icon">
+                    <template v-if="item.from == sid">
+                      <img src="{:REGISTER_PUBLIC}img/chat/mysound.png" alt=""
+                        v-if="item.data.content.isAudioPlay == 0">
+                      <img src="{:REGISTER_PUBLIC}img/chat/mysound_on.gif" alt="" v-else>
+                    </template>
+                    <template v-else>
+                      <img src="{:REGISTER_PUBLIC}img/chat/sound.png" alt="" v-if="item.data.content.isAudioPlay == 0">
+                      <img src="{:REGISTER_PUBLIC}img/chat/sound_on.gif" alt="" v-else>
+                    </template>
+                  </div>
+                  <p class="audio_length">{{Math.round(item.data.content.duration)}}"</p>
+                </div>
+                <div class="noread" v-if="!item.data.content.is_listen"></div>
+                <audio :src="item.data.content.audio" ref="audio" controls style="display: none;"></audio>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </van-list>
+      </van-list>
+      <div id="target" ref="target"></div>
+    </div>
+
     <!-- 聊天输入区 -->
     <div id="chat-footer">
+      <div class="delayTip" v-if="delayTip">延迟: {{delayTip + 'ms'|| '...'}}</div>
       <div class="input_wrap">
         <div class="left_wrap" @click="toggleContent">
           <img :src="minus" alt="" v-if="showContent">
@@ -146,7 +162,7 @@
 <script src="{:REGISTER_PUBLIC}js/vconsole.min.js"></script>
 
 <script>
-  new VConsole();
+  // new VConsole();
   const URL = "{:H5_DOMAIN}";
   const API_URL = "{:API_DOMAIN}";
   const ROUTE_DETAIL_DOMAIN = "{:ROUTE_DETAIL_DOMAIN}"; //文章详情授权
@@ -157,12 +173,16 @@
     data() {
       return {
         option: {}, // 页面url参数
-        userInfo: {},
+        userInfo: {}, //用户信息对象
+        groupInfo: {}, //群信息对象
         token: '',
         sid: '',
         connectKey: '',
+        navTitle: '', //导航标题
+        delayTip: '', //服务器延迟
         ws: null, //websocket对象
         isGroup: false, // 是否群聊
+        isAdmin: false, // 是否管理员
         default_avatar: '{:REGISTER_PUBLIC}img/avatar/default_avatar.jpg',
         authUrl: "http://123.206.118.205:10800/auth?timestamp=" + new Date().valueOf(),
         wsServer: "ws://123.206.118.205:10800/io?timestamp=" + new Date().valueOf(), //ws请求地址
@@ -252,18 +272,21 @@
     beforeDestroy() {
       let myAudio = this.$refs.audio;
       myAudio.remove();
+      this.ws.close();
     },
     methods: {
       // 获取url参数 判断单聊群聊
       getUrlQuery() {
         this.option.id = getQueryString('id');
         this.option.sid = getQueryString('sid');
-        if (this.option.sid) {
-          this.isGroup = false;
-          this.getChatDetail(0, this.option.id, 1001);
-        } else {
+        let type = getQueryString('type');
+        if (type) {
           this.isGroup = true;
           this.getChatDetail(0, this.option.id, 1002);
+          this.getGroupMsg();
+        } else {
+          this.isGroup = false;
+          this.getChatDetail(0, this.option.id, 1001);
         }
 
         // 获取url参数
@@ -404,6 +427,7 @@
               let self = this;
               let result = data.list;
               this.lastid = data.lastid;
+              this.navTitle = data.info.name || '聊天';
               if (data == null || result.length == 0) {
                 // 加载结束
                 this.loading = false;
@@ -423,6 +447,9 @@
               } else {
                 this.loading = false;
               }
+              this.$nextTick(() => {
+                this.scrollToBottom()
+              })
             }
           },
           err => {
@@ -444,7 +471,7 @@
             if (errCode === 0) {
               this.showContent = false;
               this.panelStatus = 0;
-              this.ws.send(4 + JSON.stringify(data));
+              // this.ws.send(4 + JSON.stringify(data));
               if (data.data.typ == 101) {
                 this.$set(data.data.content, 'isAudioPlay', 0);
               }
@@ -506,6 +533,41 @@
             }
           );
       },
+      // 获得群信息
+      getGroupMsg() {
+        this.$http.get(URL + "/register/group/info", {
+          params: {
+            token: this.token,
+            id: this.option.id,
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              data.is_manager == 1 ? this.isAdmin = true : this.isAdmin = false;
+              this.groupInfo = data;
+              if (!data.annoucement) return
+              this.$dialog.alert({
+                  title: '群公告',
+                  message: data.annoucement,
+                })
+                .then(() => {
+                  // on confirm
+                })
+                .catch(() => {
+                  // on cancel
+                });
+            }
+          },
+          err => {
+            console.log("getGroupInfo 请求失败");
+          }
+        );
+      },
       // 载入微信sdk
       initWxSDK() {
         this.$http.get(`${URL}/H5/Share/getSign`, {
@@ -555,39 +617,108 @@
         let self = this;
         let wsServer = this.wsServer + "&sid=" + this.sid + "&key=" + this.connectKey;
         var ws = new WebSocket(wsServer);
-        ws.onopen = function (e) {
-          console.log('onopen>>', e);
-        };
-        ws.onmessage = function (e) {
-          console.log('onmessage>>', e.data);
-          let str = e.data.substring(1);
-          self.messageList.push(JSON.parse(str))
-          if (this.isGroup) {
-            self.getChatRead(1002, self.option.id)
-          } else {
-            self.getChatRead(1001, self.option.id)
+        initEventHandle();
+
+        // 初始化事件函数
+        function initEventHandle() {
+          ws.onopen = function (e) {
+            console.log('onopen>>', e);
+            heartCheck.start();
+          };
+          ws.onmessage = function (e) {
+            // console.log('onmessage>>', e.data);
+            let res = e.data;
+            let type = res.substring(0, 1);
+            let str = e.data.substring(1);
+            if (type == 4) {
+              let obj = JSON.parse(str);
+              if (obj.from !== self.sid) self.messageList.push(obj);
+              if (this.isGroup) {
+                self.getChatRead(1002, self.option.id)
+              } else {
+                self.getChatRead(1001, self.option.id)
+              }
+            }
+            heartCheck.reset();
+          };
+          ws.onerror = function (e) {
+            console.log('onerror>>', e);
+            self.$toast({
+              type: 'fail',
+              message: '连接错误',
+              duration: 1500,
+            });
+            reconnect(wsServer);
+          };
+          ws.onclose = function (e) {
+            console.log('onclose>>', e);
+            self.$toast({
+              type: 'fail',
+              message: '连接关闭',
+              duration: 1500,
+            });
+            reconnect(wsServer);
+          };
+          self.webSocket = ws;
+        }
+
+        // 重连
+        function reconnect(url) {
+          if (reconnect.lockReconnect) return;
+          reconnect.lockReconnect = true;
+          setTimeout(function () {
+            createWebSocket(url);
+            reconnect.lockReconnect = false;
+          }, 2000);
+        }
+
+        // 实例websocket
+        function createWebSocket(url) {
+          try {
+            if ('WebSocket' in window) {
+              ws = new WebSocket(url);
+            } else {
+              console.log("当前浏览器不支持websocket协议");
+            }
+            initEventHandle();
+          } catch (e) {
+            reconnect(url);
           }
-        };
-        ws.onerror = function (e) {
-          console.log('onerror>>', e);
-          self.$toast({
-            type: 'fail',
-            message: '连接错误',
-            duration: 1500,
-          });
-        };
-        ws.onclose = function (e) {
-          console.log('onclose>>', e);
-          self.$toast({
-            type: 'fail',
-            message: '连接关闭',
-            duration: 1500,
-          });
-        };
-        self.ws = ws;
+        }
+
+        // 心跳机制
+        var heartCheck = {
+          pingStart: 0,
+          timeout: 5000,
+          timeoutObj: null,
+          serverTimeoutObj: null,
+          reset: function () {
+            let now = new Date().getTime();
+            let delayTip = now - this.pingStart;
+            self.delayTip = delayTip;
+            // console.log(`%cdelay：${delayTip}ms`, "color:#FF00FF");
+            clearTimeout(this.timeoutObj);
+            clearTimeout(this.serverTimeoutObj);
+            this.start();
+          },
+          start: function () {
+            let self = this;
+            this.timeoutObj = setTimeout(function () {
+              self.pingStart = new Date().getTime();
+              ws.send(2 + JSON.stringify({
+                data: ""
+              }));
+              self.serverTimeoutObj = setTimeout(function () {
+                ws.close();
+                reconnect(wsServer);
+              }, self.timeout)
+            }, this.timeout)
+          },
+        }
       },
       // 上拉加载请求方法
       onLoadList() {
+        console.log('scroll!');
         if (this.messageList.length >= this.pageSize) {
           setTimeout(() => {
             if (this.isGroup) {
@@ -672,7 +803,8 @@
           token: this.token,
           class: this.isGroup ? 1002 : 1001,
           type: 104,
-          toid: this.option.id,
+          toid: this.isGroup ? '' : this.option.id,
+          group_id: this.isGroup ? this.option.id : '',
           file: file.content
         }
         this.sendChatMessage(obj)
@@ -681,13 +813,30 @@
       goUserCard(id) {
         location.href = `/register/page/user_card?mid=${id}`
       },
+      // 点击返回
+      goback() {
+        window.history.back(-1);
+      },
+      // 跳转群管理
+      goGroupManage() {
+        if (!this.option.id) {
+          this.$toast({
+            type: 'fail',
+            message: '缺少群id',
+            duration: 1500,
+          });
+          return false
+        }
+        location.href = `/register/page/group_manage?id=${this.option.id}`
+      },
       // 发送文本消息
       sendText() {
         let obj = {
           token: this.token,
           class: this.isGroup ? 1002 : 1001,
           type: 100,
-          toid: this.option.id,
+          toid: this.isGroup ? '' : this.option.id,
+          group_id: this.isGroup ? this.option.id : '',
           content: this.typingText
         }
         this.sendChatMessage(obj)
@@ -701,7 +850,8 @@
           token: this.token,
           class: this.isGroup ? 1002 : 1001,
           type: 103,
-          toid: this.option.id,
+          toid: this.isGroup ? '' : this.option.id,
+          group_id: this.isGroup ? this.option.id : '',
           cid: item.cid,
           article_id: item.id,
           article_title: item.title,
@@ -812,7 +962,8 @@
             token: this.token,
             class: this.isGroup ? 1002 : 1001,
             type: 101,
-            toid: this.option.id,
+            toid: this.isGroup ? '' : this.option.id,
+            group_id: this.isGroup ? this.option.id : '',
             file: res
           }
           this.$dialog.alert({
@@ -864,6 +1015,21 @@
             myAudio.pause();
           }
         }
+      },
+      // 滚动到底部
+      scrollToBottom() {
+        let scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+        let clientHeight = document.documentElement.clientHeight || document.body.clientHeighp;
+        let scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+        let goTop = scrollHeight + 400;
+        // console.log(goTop);
+        // window.scrollTo({
+        //   top: goTop,
+        //   // behavior: "smooth"
+        // });
+        let target = this.$refs.target;
+        console.log(target);
+        target.scrollIntoView({block: "end"});
       }
     }
   })

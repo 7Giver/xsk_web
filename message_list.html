@@ -292,7 +292,11 @@
       },
       // 点击进入聊天
       goChat(item) {
-        location.href = `/register/page/chat?id=${item.base_id}&sid=${item.sid}`
+        if (item.class == 1002) {
+          location.href = `/register/page/chat?id=${item.base_id}&sid=${item.sid}&type=1`
+        } else {
+          location.href = `/register/page/chat?id=${item.base_id}&sid=${item.sid}`
+        }
       },
       // 载入websocket
       initWebSocket() {
@@ -374,6 +378,7 @@
               }));
               self.serverTimeoutObj = setTimeout(function () {
                 ws.close();
+                reconnect(wsServer);
               }, self.timeout)
             }, this.timeout)
           },
