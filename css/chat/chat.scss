@@ -23,6 +23,7 @@ $arrowLeft: -0.7rem;
   .message_wrap {
     height: 100vh;
     overflow: scroll;
+    -webkit-overflow-scrolling: touch;
     .message_list {
       padding: 3rem 1.4rem 7rem;
     }

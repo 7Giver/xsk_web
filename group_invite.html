@@ -53,6 +53,7 @@
     data() {
       return {
         token: '',
+        pid: '', // 链接中上级vid
         groupId: '',
         userInfo: {},
         groupInfo: {
@@ -62,7 +63,7 @@
         qrcodeImg: '', // 生成二维码
         showWrap: 0, // 状态显示页面 0分享 1加入
         isLoaded: false, // 是否加载完毕
-        isMember: false, //当前用户是否是群员
+        isMember: false, // 当前用户是否是群员
       }
     },
     computed: {
@@ -77,6 +78,8 @@
       // 获取url参数
       getUrlQuery() {
         let id = getQueryString('id');
+        let pid = getQueryString('pid');
+        if (pid) this.pid = pid;
         if (id) {
           this.groupId = id;
           this.getUserInfo();
@@ -159,7 +162,7 @@
                     forbidClick: true,
                     duration: 1600,
                     onClose: () => {
-                      location.href = '/register/page/chat?id=' + this.groupId;
+                      this.goGroupChat();
                     }
                   });
                 }, 500)
@@ -191,7 +194,7 @@
                 message: '申请成功',
                 duration: 1500,
                 onClose: () => {
-                  this.goback();
+                  this.goGroupChat();
                 }
               });
             } else {
@@ -213,7 +216,8 @@
       //生成分享二维码
       getQRCanvasCode() {
         const vid = this.userInfo.vid;
-        const qr = `${URL}/register/page/group_invite?id=${this.groupId}&pid=${vid}`;
+        const qr =
+          `${URL}/register/page/group_invite?id=${this.groupId}&sid=${this.groupInfo.sid}&pid=${vid}&type=1`;
         const qrcode = $("#canvasCode")
           .qrcode({
             render: "canvas", //也可以替换为table
@@ -229,8 +233,12 @@
       },
       // 点击返回
       goback() {
-        location.href = '/register/page/group_manage?id=' + this.groupId;
-        // window.history.back(-1);
+        // location.href = '/register/page/group_manage?id=' + this.groupId;
+        window.history.back(-1);
+      },
+      // 跳转群聊
+      goGroupChat() {
+        location.href = `/register/page/chat?id=${this.groupId}&sid=${this.groupInfo.sid}&type=1`;
       },
       // 加载完毕
       clearToast() {
@@ -249,7 +257,8 @@
           .then(() => {
             this.goJoinGroup({
               token: this.token,
-              group_id: this.groupId
+              group_id: this.groupId,
+              pid: this.pid
             })
           })
           .catch(() => {

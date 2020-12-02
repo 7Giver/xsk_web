@@ -13,7 +13,7 @@
 <body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
     <div class="data_list">
-      <template v-for="(item, index) in dataList" :key="index">
+      <!-- <template v-for="(item, index) in dataList" :key="index">
         <van-swipe-cell>
           <div class="item" @click="goChat(item)">
             <div class="avatar">
@@ -58,9 +58,9 @@
             <van-button square type="danger" text="删除" class="delete-button" @click="goDelete(index)" />
           </template>
         </van-swipe-cell>
-      </template>
+      </template> -->
 
-      <!-- <div class="item" v-for="(item, index) in dataList" :key="index" @click="goChat(item)">
+      <div class="item" v-for="(item, index) in dataList" :key="index" @click="goChat(item)">
         <div class="avatar">
           <img :src="item.avatar" alt="">
           <div class="tips" v-if="item.unread > 0">{{item.unread}}</div>
@@ -98,7 +98,7 @@
             </div>
           </div>
         </div>
-      </div> -->
+      </div>
 
     </div>
   </div>

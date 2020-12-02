@@ -28,6 +28,7 @@
 #app .message_wrap {
   height: 100vh;
   overflow: scroll;
+  -webkit-overflow-scrolling: touch;
 }
 
 #app .message_wrap .message_list {

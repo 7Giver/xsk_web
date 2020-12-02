@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-  <title>群管理</title>
+  <title></title>
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/group_manage/group_manage.css?v=<?php echo time(); php?>">
@@ -12,6 +12,7 @@
 
 <body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <van-nav-bar :title="showWrap ? '群简介' : '群管理'" left-arrow @click-left="goback"></van-nav-bar>
     <div class="manage_wrap" v-if="showWrap == 0">
       <div class="header">
         <div class="member_wrap">
@@ -36,7 +37,6 @@
       </div>
     </div>
     <div class="detail_wrap" v-if="showWrap == 1">
-      <van-nav-bar title="群简介" left-arrow @click-left="goback"></van-nav-bar>
       <div class="content">
         <h3>群简介</h3>
         <div class="text_area">
@@ -245,7 +245,12 @@
       },
       // 点击返回
       goback() {
-        this.showWrap = 0;
+        if (this.showWrap) {
+          this.showWrap = 0;
+        } else {
+          // location.href = '/register/page/group_manage?id=' + this.groupId;
+          window.history.back(-1);
+        }
       },
     }
   })
