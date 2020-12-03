@@ -10,12 +10,6 @@
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/chat/chat.css?v=<?php echo time(); php?>">
 </head>
 
-<style>
-  #target {
-    height: 2px;
-  }
-</style>
-
 <body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
     <van-nav-bar :title="navTitle" :fixed="true" left-arrow :right-text="isGroup ? '群管理' : null" @click-left="goback"
@@ -36,8 +30,9 @@
                 <img :src="item.data.from.avatar || default_avatar" alt="">
               </div>
               <div class="content">
+                <div class="nickname" v-if="isGroup">{{item.data.from.name}}</div>
                 <div class="text" v-if="item.data.typ == 100">{{item.data.content.txt}}</div>
-                <div class="img" v-if="item.data.typ == 104">
+                <div class="img" @click="goShowImage(item)" v-if="item.data.typ == 104">
                   <img :src="item.data.content.img" alt="">
                 </div>
                 <div class="card" v-if="item.data.typ == 102" @click="goUserCard(item.data.content.card_id)">
@@ -88,7 +83,10 @@
       </div>
       <div id="target" ref="target"></div>
     </div>
-
+    <!-- 图片展示 -->
+    <van-image-preview v-model="showPreview" :images="chatImageList" :loop="false" @change="previewChange">
+      <template v-slot:index>{{ imageIndex+1 }}/{{chatImageList.length}}</template>
+    </van-image-preview>
     <!-- 聊天输入区 -->
     <div id="chat-footer">
       <div class="delayTip" v-if="delayTip">延迟: {{delayTip + 'ms'|| '...'}}</div>
@@ -195,7 +193,10 @@
         pageSize: 20, // 每页条数
         loading: false, // 分页加载
         finished: false, // 结束分页加载
+        showPreview: false, //展示图片详情
+        imageIndex: 0, // 展示图片下标
         newsList: [], //资讯列表
+        chatImageList: [], // 聊天记录图片数组
         // footer
         minus: '{:REGISTER_PUBLIC}img/chat/minus.png',
         plus: '{:REGISTER_PUBLIC}img/chat/plus.png',
@@ -441,6 +442,11 @@
               result.forEach(item => {
                 if (item.data.typ == 101) {
                   this.$set(item.data.content, 'isAudioPlay', 0);
+                }
+                if (item.data.typ == 104) {
+                  let imageIndex = -1;
+                  this.$set(item, 'imageIndex', ++imageIndex);
+                  this.chatImageList.push(item.data.content.img);
                 }
                 this.messageList.unshift(item);
               })
@@ -1039,6 +1045,15 @@
             myAudio.pause();
           }
         }
+      },
+      // 展示聊天图片
+      goShowImage(item) {
+        this.imageIndex = item.imageIndex;
+        this.showPreview = true;
+      },
+      // 图片展示监听
+      previewChange(index) {
+        this.imageIndex = index;
       },
       // 滚动到底部
       scrollToBottom() {
