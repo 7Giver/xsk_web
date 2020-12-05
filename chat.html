@@ -15,6 +15,8 @@
     <van-nav-bar :title="navTitle" :fixed="true" left-arrow :right-text="isGroup ? '群管理' : null" @click-left="goback"
       @click-right="goGroupManage">
     </van-nav-bar>
+    <van-notice-bar mode="closeable" left-icon="volume-o" :scrollable="true"  :text="groupInfo.annoucement" @close="noticeClose"
+      v-if="showNotice"></van-notice-bar>
     <!-- 聊天消息区 -->
     <div class="message_wrap">
       <div ref="chatList">
@@ -84,8 +86,9 @@
       <div id="target" ref="target"></div>
     </div>
     <!-- 图片展示 -->
-    <van-image-preview v-model="showPreview" :images="chatImageList" :loop="false" @change="previewChange">
-      <template v-slot:index>{{ imageIndex+1 }}/{{chatImageList.length}}</template>
+    <van-image-preview v-model="showPreview" :startPosition="imageIndex" :images="chatImageList" :loop="false"
+      @change="previewChange">
+      <template v-slot:imageIndex>{{ imageIndex+1 }}/{{chatImageList.length}}</template>
     </van-image-preview>
     <!-- 聊天输入区 -->
     <div id="chat-footer">
@@ -96,7 +99,8 @@
           <img :src="plus" alt="" v-else>
         </div>
         <div class="content">
-          <input type="text" v-model="typingText" @blur="onBlur">
+          <van-field v-model="typingText" rows="1" :autosize="{ maxHeight: 70 }" type="textarea" @blur="onBlur"></van-field>
+          <!-- <input type="text" v-model="typingText" @blur="onBlur"> -->
           <div class="icon">
             <img :src="smile" alt="" @click="faceContent">
           </div>
@@ -116,7 +120,7 @@
             </template>
           </div>
         </div>
-        <div class="emoji_wrap" v-if="panelStatus == 1">
+        <div class="emoji_wrap" v-show="panelStatus == 1">
           <ul>
             <li v-for="(item, index) in faceList" :key="index" @click="getBrow(index)">
               {{ item }}
@@ -194,6 +198,7 @@
         loading: false, // 分页加载
         finished: false, // 结束分页加载
         showPreview: false, //展示图片详情
+        showNotice: false, //显示滚动公告
         imageIndex: 0, // 展示图片下标
         newsList: [], //资讯列表
         chatImageList: [], // 聊天记录图片数组
@@ -318,7 +323,7 @@
               this.token = data.token;
               this.userInfo = data.userInfo
               this.getUrlQuery()
-              this.getEmoji()
+              this.getEmoji();
               this.getOnlineMsg()
               this.getNewsList()
             }
@@ -389,6 +394,14 @@
       },
       // 请求表情json
       getEmoji() {
+        let faceData = localStorage.getItem('faceData');
+        if (faceData) {
+          this.faceData = JSON.parse(faceData);
+          for (let i in this.faceData) {
+            this.faceList.push(this.faceData[i].char);
+          }
+          return
+        }
         this.$http.get(URL + "/register/friend/emoji", {
           params: {
             token: this.token
@@ -401,7 +414,8 @@
               msg
             } = res.body;
             if (errCode === 0) {
-              this.faceData = data
+              this.faceData = data;
+              localStorage.setItem('faceData', JSON.stringify(data));
               for (let i in this.faceData) {
                 this.faceList.push(this.faceData[i].char);
               }
@@ -439,12 +453,12 @@
                 this.finished = true;
                 return false
               }
+              let imageIndex = -1;
               result.forEach(item => {
                 if (item.data.typ == 101) {
                   this.$set(item.data.content, 'isAudioPlay', 0);
                 }
                 if (item.data.typ == 104) {
-                  let imageIndex = -1;
                   this.$set(item, 'imageIndex', ++imageIndex);
                   this.chatImageList.push(item.data.content.img);
                 }
@@ -565,10 +579,43 @@
             if (errCode === 0) {
               data.is_manager == 1 ? this.isAdmin = true : this.isAdmin = false;
               this.groupInfo = data;
-              if (!data.annoucement) return
+              if (data.members > 0) {
+                this.navTitle = `${data.name}(${data.members})`;
+              } else {
+                this.navTitle = `${data.name}`;
+              }
+              if (localStorage.getItem('showNotice')) {
+                this.showNotice = false
+              } else {
+                this.showNotice = true
+              };
+              if (!data.annoucement || data.nouce_read == 1) return
+              this.groupReadNotice({
+                token: this.token,
+                group_id: this.option.id
+              })
+            }
+          },
+          err => {
+            console.log("getGroupInfo 请求失败");
+          }
+        );
+      },
+      // 群公告是否查看
+      groupReadNotice(obj) {
+        this.$http.post(URL + "/register/group/read_announce", obj, {
+          emulateJSON: true
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
               this.$dialog.alert({
                   title: '群公告',
-                  message: data.annoucement,
+                  message: this.groupInfo.annoucement,
                 })
                 .then(() => {
                   // on confirm
@@ -579,7 +626,7 @@
             }
           },
           err => {
-            console.log("getGroupInfo 请求失败");
+            console.log('groupReadNotice 请求失败');
           }
         );
       },
@@ -692,6 +739,7 @@
           try {
             if ('WebSocket' in window) {
               ws = new WebSocket(url);
+              console.log('creat websocket');
             } else {
               console.log("当前浏览器不支持websocket协议");
             }
@@ -791,7 +839,9 @@
       // 输入框失焦
       onBlur(e) {
         // console.log(e);
-        window.scrollTo(0, document.body.scrollHeight)
+        // this.showContent = false;
+        // this.panelStatus = 0;
+        window.scrollTo(0, document.body.scrollHeight);
       },
       // 名片跳转
       goUserCard(id) {
@@ -1048,12 +1098,18 @@
       },
       // 展示聊天图片
       goShowImage(item) {
+        console.log(item.imageIndex);
+        console.log(this.messageList);
         this.imageIndex = item.imageIndex;
         this.showPreview = true;
       },
       // 图片展示监听
       previewChange(index) {
         this.imageIndex = index;
+      },
+      // 公告关闭事件
+      noticeClose(e) {
+        localStorage.setItem('showNotice', 1);
       },
       // 滚动到底部
       scrollToBottom() {

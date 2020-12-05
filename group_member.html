@@ -28,7 +28,7 @@
                   <img :src="item.avatar" alt="">
                 </div>
                 <div class="content">
-                  <p class="name">{{item.name}}</p>
+                  <p class="name">{{item.name}}<span v-if="item.is_leader == 1">群主</span></p>
                   <p class="add_time">{{item.add_time}} 入群</p>
                 </div>
               </div>
@@ -98,7 +98,7 @@
     computed: {
       innerPage() {
         return window.innerHeight + 'px'
-      }
+      },
     },
     created() {
       this.$toast.loading({
@@ -202,6 +202,9 @@
             } = res.body;
             if (errCode === 0) {
               let dataList = data.list;
+              dataList.forEach(item => {
+                item.name = this.resultName(item.name, 5);
+              })
               this.active == 0 ?
                 this.memberList = dataList :
                 this.blackList = dataList
@@ -394,7 +397,16 @@
           return false
         }
         location.href = `/register/page/chat?id=${item.id}&sid=${item.sid}`;
-      }
+      },
+      // 处理过长姓名
+      resultName(name, num) {
+        let str = '';
+        let arr = name.split('');
+        let newArr = arr.slice(0, num);
+        if (arr.length > num) newArr.push('...');
+        str = newArr.join('');
+        return str
+      },
     }
   })
 </script>

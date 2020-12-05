@@ -18,6 +18,12 @@ $arrowToTop: 0.5rem;
     color: #ff7e10;
   }
 }
+.van-notice-bar {
+  position: fixed;
+  top: 46px;
+  z-index: 99;
+  width: 100%;
+}
 #app {
   width: 100%;
   height: 100%;
@@ -316,12 +322,14 @@ $arrowToTop: 0.5rem;
         justify-content: space-between;
         margin: 0 0.6rem;
         font-size: 0.9rem;
-        padding: 0.5rem 0.8rem;
+        padding: 0 0.8rem;
         border-radius: 0.3rem;
         background: #fff;
-        input {
+        .van-field {
           flex: 1;
-          padding-right: 0.6rem;
+          font-size: 0.9rem;
+          line-height: 1.3;
+          padding: 0.7rem 0;
         }
         .icon {
           width: 1.5rem;
