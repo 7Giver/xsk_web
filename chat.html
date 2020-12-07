@@ -15,8 +15,8 @@
     <van-nav-bar :title="navTitle" :fixed="true" left-arrow :right-text="isGroup ? '群管理' : null" @click-left="goback"
       @click-right="goGroupManage">
     </van-nav-bar>
-    <van-notice-bar mode="closeable" left-icon="volume-o" :scrollable="true"  :text="groupInfo.annoucement" @close="noticeClose"
-      v-if="showNotice"></van-notice-bar>
+    <van-notice-bar mode="closeable" left-icon="volume-o" :scrollable="true" :text="groupInfo.annoucement"
+      @close="noticeClose" v-if="showNotice"></van-notice-bar>
     <!-- 聊天消息区 -->
     <div class="message_wrap">
       <div ref="chatList">
@@ -27,7 +27,8 @@
             <div class="message_time" v-if="isShowTimes[index]">
               {{ item.data.from.time | accordingToNow }}
             </div>
-            <div class="message_content">
+            <div class="notice_wrap" v-if="item.data.typ == 110">{{item.data.content.content.txt}}</div>
+            <div class="message_content" v-if="item.data.typ != 110">
               <div class="avatar">
                 <img :src="item.data.from.avatar || default_avatar" alt="">
               </div>
@@ -99,7 +100,8 @@
           <img :src="plus" alt="" v-else>
         </div>
         <div class="content">
-          <van-field v-model="typingText" rows="1" :autosize="{ maxHeight: 70 }" type="textarea" @blur="onBlur"></van-field>
+          <van-field v-model="typingText" rows="1" :autosize="{ maxHeight: 70 }" type="textarea" @blur="onBlur">
+          </van-field>
           <!-- <input type="text" v-model="typingText" @blur="onBlur"> -->
           <div class="icon">
             <img :src="smile" alt="" @click="faceContent">
@@ -185,7 +187,7 @@
         connectKey: '',
         navTitle: '', //导航标题
         delayTip: '', //服务器延迟
-        ws: null, //websocket对象
+        websocket: null, //websocket对象
         isGroup: false, // 是否群聊
         isAdmin: false, // 是否管理员
         isLoadList: false, // 是否加载列表
@@ -251,7 +253,33 @@
             return false
           }
         })
-      }
+      },
+      isShowNotice() {
+        // console.log(obj);
+        let lastTime = moment(0);
+        let hasNotice = this.messageList.filter(letsome);
+        // console.log(hasNotice);
+        return this.messageList.map(message => {
+          const messageTime = moment(message.data.from.time);
+          let diffTime = messageTime.diff(lastTime, 'minutes');
+
+          if (!hasNotice) {
+            return true
+          } else if (hasNotice && diffTime >= 1) {
+            return true
+          } else {
+            return false
+          }
+        })
+
+        function letsome(item) {
+          let result = false;
+          if (item.data.typ == 110) {
+            item.from == obj.from ? result = true : result = false
+          }
+          return result
+        }
+      },
     },
     filters: {
       accordingToNow(date) {
@@ -282,7 +310,7 @@
     beforeDestroy() {
       let myAudio = this.$refs.audio;
       myAudio.remove();
-      this.ws.close();
+      this.websocket.close();
     },
     methods: {
       // 获取url参数 判断单聊群聊
@@ -601,6 +629,26 @@
           }
         );
       },
+      // 用户进入群聊
+      postGroupInchat(obj) {
+        this.$http.post(URL + "/register/friend/inchat", obj, {
+          emulateJSON: true
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              // console.log(this.webSocket);
+            }
+          },
+          err => {
+            console.log('postGroupInchat 请求失败');
+          }
+        );
+      },
       // 群公告是否查看
       groupReadNotice(obj) {
         this.$http.post(URL + "/register/group/read_announce", obj, {
@@ -680,6 +728,10 @@
         let wsServer = this.wsServer + "&sid=" + this.sid + "&key=" + this.connectKey;
         var ws = new WebSocket(wsServer);
         initEventHandle();
+        this.postGroupInchat({
+          token: this.token,
+          group_id: this.option.id
+        });
 
         // 初始化事件函数
         function initEventHandle() {
@@ -694,7 +746,11 @@
             let str = e.data.substring(1);
             if (type == 4) {
               let obj = JSON.parse(str);
-              if (obj.from !== self.sid) self.messageList.push(obj);
+              if (obj.data.typ == 110) {
+                self.messageList.push(obj);
+              } else if (obj.from !== self.sid) {
+                self.messageList.push(obj);
+              }
               if (this.isGroup) {
                 self.getChatRead(1002, self.option.id)
               } else {
@@ -721,7 +777,7 @@
             });
             reconnect(wsServer);
           };
-          self.webSocket = ws;
+          self.websocket = ws;
         }
 
         // 重连
@@ -739,6 +795,7 @@
           try {
             if ('WebSocket' in window) {
               ws = new WebSocket(url);
+              self.getWsAuth();
               console.log('creat websocket');
             } else {
               console.log("当前浏览器不支持websocket协议");

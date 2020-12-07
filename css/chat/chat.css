@@ -53,6 +53,12 @@
   margin-bottom: 0.6rem;
 }
 
+#app .message_wrap .item .notice_wrap {
+  color: #666;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
 #app .message_wrap .item .message_content {
   display: flex;
 }
