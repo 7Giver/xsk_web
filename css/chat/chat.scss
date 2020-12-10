@@ -28,6 +28,9 @@ $arrowToTop: 0.5rem;
   width: 100%;
   height: 100%;
   background: #f4f4f4;
+  .show {
+    padding-bottom: 10rem;
+  }
   .message_wrap {
     height: 100vh;
     overflow: scroll;
@@ -142,29 +145,34 @@ $arrowToTop: 0.5rem;
             }
           }
         }
-        .news {
-          padding: 0.6rem 0.6rem;
-          border-radius: 0.5rem;
-          border: 1px solid #e9e9e9;
-          background: #fff;
-          .title {
-            color: #333537;
-            font-size: 0.92rem;
-            margin-bottom: 0.6rem;
-          }
-          .bottom {
-            display: flex;
-            align-items: center;
-            > p {
-              flex: 1;
-              color: #999999;
-              font-size: 0.8rem;
-              padding-right: 0.9rem;
+        .news_wrap {
+          .news {
+            padding: 0.6rem 0.6rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e9e9e9;
+            background: #fff;
+            &:not(:last-child) {
+              margin-bottom: 0.5rem;
             }
-            img {
-              width: 3rem;
-              height: 3rem;
-              border-radius: 0.4rem;
+            .title {
+              color: #333537;
+              font-size: 0.92rem;
+              margin-bottom: 0.6rem;
+            }
+            .bottom {
+              display: flex;
+              align-items: center;
+              > p {
+                flex: 1;
+                color: #999999;
+                font-size: 0.8rem;
+                padding-right: 0.9rem;
+              }
+              img {
+                width: 3rem;
+                height: 3rem;
+                border-radius: 0.4rem;
+              }
             }
           }
         }
@@ -285,7 +293,7 @@ $arrowToTop: 0.5rem;
     }
   }
   #chat-footer {
-    position: fixed;
+    position: absolute;
     bottom: 0;
     z-index: 99;
     width: 100%;
@@ -378,13 +386,13 @@ $arrowToTop: 0.5rem;
       }
       .emoji_wrap {
         width: 100%;
-        height: 14rem;
+        height: 10rem;
         overflow: scroll;
         -webkit-overflow-scrolling: touch;
         ul {
           display: flex;
           flex-wrap: wrap;
-          padding: 10px;
+          padding: 0 10px;
           li {
             width: 14%;
             font-size: 26px;
@@ -477,6 +485,30 @@ $arrowToTop: 0.5rem;
         flex: 1;
         font-size: 0.9rem;
       }
+    }
+    .on {
+      color: #fff;
+      background: #ff7a1bd2;
+    }
+  }
+  .btn_wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 1.5rem;
+    > div {
+      width: 46%;
+      text-align: center;
+      line-height: 2.4;
+      border-radius: 3rem;
+    }
+    .cancel {
+      color: #ff730c;
+      background: #fff;
+    }
+    .submit {
+      color: #fff;
+      background: #ff730c;
     }
   }
 }

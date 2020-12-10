@@ -91,10 +91,10 @@
             </div>
           </div>
           <div class="news" v-if="item.type == 103">
-            <div class="title">{{item.article_title}}</div>
+            <div class="title">{{item.content[0].article_title}}</div>
             <div class="bottom">
-              <p class="van-multi-ellipsis--l2">{{item.article_desc}}</p>
-              <img :src="item.article_pic" alt="">
+              <p class="van-multi-ellipsis--l2">{{item.content[0].article_desc}}</p>
+              <img :src="item.content[0].article_pic" alt="">
             </div>
           </div>
         </div>
