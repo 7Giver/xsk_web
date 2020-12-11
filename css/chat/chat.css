@@ -454,7 +454,7 @@
 }
 
 #app #chat-footer .content_wrap .record_wrap {
-  padding: 1rem 0;
+  padding: 0 0 1rem;
   background: #f4f4f4;
 }
 
@@ -465,6 +465,13 @@
 #app #chat-footer .content_wrap .record_wrap .waveform img {
   display: block;
   width: 100%;
+}
+
+#app #chat-footer .content_wrap .record_wrap .time_clock {
+  color: #ff8e16;
+  font-size: 1.1rem;
+  line-height: 2.2;
+  text-align: center;
 }
 
 #app #chat-footer .content_wrap .record_wrap .btn_wrap {
@@ -506,6 +513,10 @@
 #app #chat-footer .content_wrap .record_wrap .btn_wrap .handle_wrap .send {
   color: #ff730c;
   border: 1px solid #ff730c;
+}
+
+#app #chat-footer .content_wrap .record_wrap .start {
+  padding: 0 0 1rem;
 }
 
 #app .van-popup {
@@ -558,26 +569,26 @@
   background: #ff7a1bd2;
 }
 
-#app .btn_wrap {
+#app .news_btn_wrap {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding-top: 1.5rem;
 }
 
-#app .btn_wrap > div {
+#app .news_btn_wrap > div {
   width: 46%;
   text-align: center;
   line-height: 2.4;
   border-radius: 3rem;
 }
 
-#app .btn_wrap .cancel {
+#app .news_btn_wrap .cancel {
   color: #ff730c;
   background: #fff;
 }
 
-#app .btn_wrap .submit {
+#app .news_btn_wrap .submit {
   color: #fff;
   background: #ff730c;
 }

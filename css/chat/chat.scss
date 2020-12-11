@@ -402,7 +402,7 @@ $arrowToTop: 0.5rem;
         }
       }
       .record_wrap {
-        padding: 1rem 0;
+        padding: 0 0 1rem;
         background: #f4f4f4;
         .waveform {
           padding: 0rem 2.5rem;
@@ -410,6 +410,12 @@ $arrowToTop: 0.5rem;
             display: block;
             width: 100%;
           }
+        }
+        .time_clock {
+          color: #ff8e16;
+          font-size: 1.1rem;
+          line-height: 2.2;
+          text-align: center;
         }
         .btn_wrap {
           width: 70%;
@@ -445,6 +451,9 @@ $arrowToTop: 0.5rem;
               border: 1px solid #ff730c;
             }
           }
+        }
+        .start {
+          padding: 0 0 1rem;
         }
       }
     }
@@ -491,7 +500,7 @@ $arrowToTop: 0.5rem;
       background: #ff7a1bd2;
     }
   }
-  .btn_wrap {
+  .news_btn_wrap {
     display: flex;
     align-items: center;
     justify-content: space-between;
