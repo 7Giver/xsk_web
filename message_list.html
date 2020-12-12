@@ -74,6 +74,7 @@
             <p class="time">{{item.add_time | accordingToNow}}</p>
           </div>
           <div class="sign" v-if="item.type == 100">{{item.content}}</div>
+          <div class="sign" v-if="item.type == 101">[语音]</div>
           <div class="sign" v-if="item.type == 104">[图片]</div>
           <div class="card" v-if="item.type == 102">
             <div class="title van-multi-ellipsis--l2">{{item.card_name}}的{{item.card_brand}}的微名片请惠存！</div>
@@ -410,6 +411,21 @@
                 }
               }
               break;
+            case 101: //语音
+              if (obj.t == 1001) {
+                if (item.sid == obj.from) {
+                  item.type = type;
+                  item.add_time = obj.data.from.time;
+                  ++item.unread;
+                }
+              } else {
+                if (item.sid == obj.to[0]) {
+                  item.type = type;
+                  item.add_time = obj.data.from.time;
+                  ++item.unread;
+                }
+              }
+              break;
             case 104: //图片
               if (obj.t == 1001) {
                 if (item.sid == obj.from) {
@@ -496,6 +512,9 @@
         switch (type) {
           case 100: //文本
             newData.content = obj.data.content.txt;
+            break;
+          case 101: //图片
+            newData.content = '[语音]';
             break;
           case 104: //图片
             newData.content = '[图片]';

@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/chat/chat.css?v=<?php echo time(); php?>">
 </head>
 
-<body style="touch-action: none;">
+<body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
     <van-nav-bar :title="navTitle" :fixed="true" left-arrow :right-text="isGroup ? '群管理' : null" @click-left="goback"
       @click-right="goGroupManage">
@@ -71,7 +71,7 @@
                 </template>
               </div>
               <div class="audio" v-if="item.data.typ == 101">
-                <div class="audio_content" @click="goPlayAudio(item.data.content, index)">
+                <div class="audio_content" @click="goPlayAudio(item, index)">
                   <div class="sound_icon">
                     <template v-if="item.from == sid">
                       <img src="{:REGISTER_PUBLIC}img/chat/mysound.png" alt=""
@@ -86,13 +86,13 @@
                   <p class="audio_length">{{Math.round(item.data.content.duration)}}"</p>
                 </div>
                 <div class="noread" v-if="!item.data.content.is_listen"></div>
-                <audio :src="item.data.content.audio" ref="audio" controls style="display: none;"></audio>
+                <audio ref="audio" :data-id="index" :src="item.data.content.audio" controls
+                  style="display: none;"></audio>
               </div>
             </div>
           </div>
         </div>
       </van-list>
-      <!-- <div id="target" ref="target"></div> -->
     </div>
     <!-- 图片展示 -->
     <van-image-preview v-model="showPreview" :startPosition="imageIndex" :images="chatImageList" :loop="false"
@@ -101,7 +101,7 @@
     </van-image-preview>
     <!-- 聊天输入区 -->
     <div id="chat-footer">
-      <div class="delayTip" v-if="delayTip">延迟: {{delayTip + 'ms'|| '...'}}</div>
+      <div class="delayTip" v-if="delayTip&&delayTip<1000">延迟: {{delayTip + 'ms'|| '...'}}</div>
       <div class="input_wrap">
         <div class="left_wrap" @click="toggleContent">
           <img :src="minus" alt="" v-if="showContent">
@@ -183,7 +183,7 @@
 <script src="{:REGISTER_PUBLIC}js/vconsole.min.js"></script>
 
 <script>
-  new VConsole();
+  // new VConsole();
   const URL = "{:H5_DOMAIN}";
   const API_URL = "{:API_DOMAIN}";
   const ROUTE_DETAIL_DOMAIN = "{:ROUTE_DETAIL_DOMAIN}"; //文章详情授权
@@ -699,6 +699,26 @@
           }
         );
       },
+      // 语音置为已读
+      audioIsListen(obj) {
+        this.$http.post(URL + "/register/friend/listen_audio", obj, {
+          emulateJSON: true
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              // console.log('listen_audio', data);
+            }
+          },
+          err => {
+            console.log('audioIsListen 请求失败');
+          }
+        );
+      },
       // 载入微信sdk
       initWxSDK() {
         this.$http.get(`${URL}/H5/Share/getSign`, {
@@ -749,11 +769,12 @@
         let wsServer = this.wsServer + "&sid=" + this.sid + "&key=" + this.connectKey;
         let ws = new WebSocket(wsServer);
         initEventHandle();
-        this.postGroupInchat({
-          token: this.token,
-          group_id: this.option.id
-        });
-
+        if (this.isGroup) {
+          this.postGroupInchat({
+            token: this.token,
+            group_id: this.option.id
+          });
+        }
         // 初始化事件函数
         function initEventHandle() {
           ws.onopen = function (e) {
@@ -802,7 +823,6 @@
           };
           self.websocket = ws;
         }
-
         // 重连
         function reconnect(url) {
           if (reconnect.lockReconnect) return;
@@ -812,7 +832,6 @@
             reconnect.lockReconnect = false;
           }, 2000);
         }
-
         // 实例websocket
         function createWebSocket(url) {
           try {
@@ -828,7 +847,6 @@
             reconnect(url);
           }
         }
-
         // 心跳机制
         let heartCheck = {
           pingStart: 0,
@@ -1183,36 +1201,6 @@
         this.isStartRecord = false;
         this.finishRecord = false;
       },
-      // 播放/暂停音频
-      goPlayAudio(item, index) {
-        let mpeg = item.audio;
-        let audioDom = this.$refs.audio;
-        console.log(audioDom);
-        let result = audioDom.filter(item => item.currentSrc == mpeg);
-        let myAudio = result[0];
-        console.log(myAudio);
-        if (myAudio) {
-          myAudio.addEventListener('ended', () => {
-            console.log('stop');
-            item.isAudioPlay = 0;
-          })
-          if (item.isAudioPlay == 0) {
-            console.log(111);
-            // this.messageList.forEach(v => {
-            //   if (v.data.typ == 101) {
-            //     v.data.content.isAudioPlay = 0;
-            //   }
-            // })
-            item.isAudioPlay = 1;
-            console.log('play');
-            myAudio.play();
-          } else if (item.isAudioPlay == 1) {
-            item.isAudioPlay = 0;
-            console.log('pause');
-            myAudio.pause();
-          }
-        }
-      },
       // 展示聊天图片
       goShowImage(item) {
         console.log(item.imageIndex);
@@ -1242,6 +1230,64 @@
         this.$refs.chatList.scrollTop = newSetHeight - this.oldSetHeight;
         this.oldSetHeight = newSetHeight;
         console.log(this.oldSetHeight);
+      },
+      // 播放/暂停音频
+      goPlayAudio(data, index) {
+        let self = this;
+        let item = data.data.content;
+        let audioDom = this.$refs.audio;
+        let result = audioDom.filter(item => item.dataset.id == index);
+        let myAudio = result[0];
+        // console.log(myAudio);
+        if (myAudio) {
+          myAudio.addEventListener('ended', () => {
+            console.log('stop');
+            item.isAudioPlay = 0;
+          })
+          if (item.isAudioPlay == 0) {
+            otherRadioStop();
+            item.is_listen = 1;
+            item.isAudioPlay = 1;
+            console.log('play');
+            myAudio.play();
+            this.audioIsListen({
+              token: this.token,
+              tagid: data.tag
+            })
+          } else if (item.isAudioPlay == 1) {
+            item.isAudioPlay = 0;
+            console.log('pause');
+            myAudio.pause();
+          }
+        }
+        // 停止其他音频
+        function otherRadioStop() {
+          self.messageList.forEach(item => {
+            item.data.content.isAudioPlay = 0;
+          })
+          audioDom.forEach(item => item.pause());
+        }
+      },
+      // 录音计时器
+      recordCount() {
+        let count = 0,
+          minute = 0,
+          second = 0;
+        this.recordTimer = setInterval(() => {
+          ++count;
+          second = showNum(count % 60);
+          minute = showNum(parseInt(count / 60) % 60);
+          this.recordTime = `${minute}:${second}`;
+        }, 1000);
+
+        function showNum(num) {
+          return num < 10 ? "0" + num : num;
+        }
+      },
+      // 清除定时器
+      clearRecordCount() {
+        clearInterval(this.recordTimer);
+        this.recordTimer = null;
       },
       // 载入touch
       initAudioTouch() {
@@ -1297,27 +1343,6 @@
         };
         initEvent();
       },
-      // 录音计时
-      recordCount() {
-        let count = 0,
-          minute = 0,
-          second = 0;
-        this.recordTimer = setInterval(() => {
-          ++count;
-          second = showNum(count % 60);
-          minute = showNum(parseInt(count / 60) % 60);
-          this.recordTime = `${minute}:${second}`;
-        }, 1000);
-
-        function showNum(num) {
-          return num < 10 ? "0" + num : num;
-        }
-      },
-      // 清除定时器
-      clearRecordCount() {
-        clearInterval(this.recordTimer);
-        this.recordTimer = null;
-      }
     }
   })
 </script>
