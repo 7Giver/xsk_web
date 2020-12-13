@@ -101,6 +101,7 @@
         </div>
       </div>
     </div>
+    <audio ref="bell" :src="bell" controls style="display: none;"></audio>
   </div>
 </body>
 
@@ -109,8 +110,10 @@
 <script src="{:REGISTER_PUBLIC}js/vant.min.js?v=1.2"></script>
 <script src="{:REGISTER_PUBLIC}js/moment.min.js"></script>
 <script src="{:REGISTER_PUBLIC}js/moment-with-locales.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vconsole.min.js"></script>
 
 <script>
+  // new VConsole();
   const URL = "{:H5_DOMAIN}";
   moment.locale('zh-cn'); // moment.js语言环境
 
@@ -129,6 +132,7 @@
         loading: false, // 分页加载
         finished: false, // 结束分页加载
         dataList: [],
+        bell: '{:REGISTER_PUBLIC}img/chat/bell.mp3',
       }
     },
     filters: {
@@ -322,7 +326,11 @@
             // console.log('onmessage>>', e.data);
             let res = e.data;
             let type = res.substring(0, 1);
-            type == 4 && self.handleMessage(JSON.parse(res.substring(1)));
+            if (type == 4) {
+              self.playbell();
+              self.handleMessage(JSON.parse(res.substring(1)));
+              // self.debounce(self.playbell(), 800);
+            }
             heartCheck.reset();
           };
           ws.onerror = function (e) {
@@ -350,7 +358,8 @@
         function createWebSocket(url) {
           try {
             if ('WebSocket' in window) {
-              ws = new WebSocket(url);
+              // ws = new WebSocket(url);
+              self.getUserInfo();
             } else {
               console.log("当前浏览器不支持websocket协议");
             }
@@ -547,7 +556,23 @@
           .catch(() => {
             // ...
           });
-      }
+      },
+      // 播放铃声
+      playbell() {
+        console.log('bell!');
+        let bell = this.$refs.bell;
+        bell.play();
+      },
+      // 防抖方法
+      debounce(fn, delay) {
+        let timer = null;
+        return function () {
+          if (timer) {
+            clearTimeout(timer);
+          }
+          timer = setTimeout(fn, delay)
+        }
+      },
     }
   })
 </script>

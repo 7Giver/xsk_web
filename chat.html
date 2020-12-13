@@ -171,6 +171,8 @@
         <div class="submit" @click="sendNews">发送</div>
       </div>
     </van-popup>
+    <!-- 消息铃声 -->
+    <audio ref="bell" :src="bell" controls style="display: none;"></audio>
   </div>
 </body>
 
@@ -183,7 +185,7 @@
 <script src="{:REGISTER_PUBLIC}js/vconsole.min.js"></script>
 
 <script>
-  // new VConsole();
+  new VConsole();
   const URL = "{:H5_DOMAIN}";
   const API_URL = "{:API_DOMAIN}";
   const ROUTE_DETAIL_DOMAIN = "{:ROUTE_DETAIL_DOMAIN}"; //文章详情授权
@@ -225,6 +227,7 @@
         minus: '{:REGISTER_PUBLIC}img/chat/minus.png',
         plus: '{:REGISTER_PUBLIC}img/chat/plus.png',
         smile: '{:REGISTER_PUBLIC}img/chat/smile.png',
+        bell: '{:REGISTER_PUBLIC}img/chat/bell.mp3',
         panelStatus: 0, // 聊天面板控制 0默认 1表情 2语音
         showContent: false, //显示面板
         showNews: false, // 显示资讯列表
@@ -628,10 +631,11 @@
             if (errCode === 0) {
               data.is_manager == 1 ? this.isAdmin = true : this.isAdmin = false;
               this.groupInfo = data;
+              this.isGroup && this.getChatOnlines();
               if (data.members > 0) {
-                this.navTitle = `${data.name}(${data.members})`;
+                this.navTitle = `${this.groupInfo.name}(${this.groupInfo.members})`;
               } else {
-                this.navTitle = `${data.name}`;
+                this.navTitle = `${this.groupInfo.name}`;
               }
               if (localStorage.getItem('showNotice')) {
                 this.showNotice = false
@@ -719,6 +723,34 @@
           }
         );
       },
+      // 获取群在线人数
+      getChatOnlines() {
+        this.$http.get(URL + "/register/group/onlines", {
+          params: {
+            token: this.token,
+            sid: this.option.sid,
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              // console.log(data);
+              if (data.numbers > 0) {
+                this.navTitle = `${this.groupInfo.name}(${data.numbers})`;
+              } else {
+                this.navTitle = `${this.groupInfo.name}`;
+              }
+            }
+          },
+          err => {
+            console.log("getChatOnlines 请求失败");
+          }
+        );
+      },
       // 载入微信sdk
       initWxSDK() {
         this.$http.get(`${URL}/H5/Share/getSign`, {
@@ -787,14 +819,14 @@
             let type = res.substring(0, 1);
             let str = e.data.substring(1);
             if (type == 4) {
+              self.playbell();
               let obj = JSON.parse(str);
               if (obj.data.typ == 110) {
                 self.messageList.push(obj);
-                self.$nextTick(self.scrollToBottom);
               } else if (obj.from !== self.sid) {
                 self.messageList.push(obj);
-                self.$nextTick(self.scrollToBottom);
               }
+              self.$nextTick(self.scrollToBottom);
               if (this.isGroup) {
                 self.getChatRead(1002, self.option.id)
               } else {
@@ -836,8 +868,8 @@
         function createWebSocket(url) {
           try {
             if ('WebSocket' in window) {
-              ws = new WebSocket(url);
-              self.getWsAuth();
+              // ws = new WebSocket(url);
+              self.getUserInfo();
               console.log('creat websocket');
             } else {
               console.log("当前浏览器不支持websocket协议");
@@ -863,16 +895,17 @@
             this.start();
           },
           start: function () {
-            let self = this;
+            let _this = this;
             this.timeoutObj = setTimeout(function () {
-              self.pingStart = new Date().getTime();
+              _this.pingStart = new Date().getTime();
               ws.send(2 + JSON.stringify({
                 data: ""
               }));
-              self.serverTimeoutObj = setTimeout(function () {
+              self.isGroup && self.getChatOnlines();
+              _this.serverTimeoutObj = setTimeout(function () {
                 ws.close();
                 reconnect(wsServer);
-              }, self.timeout)
+              }, _this.timeout)
             }, this.timeout)
           },
         }
@@ -1342,6 +1375,11 @@
           });
         };
         initEvent();
+      },
+      // 播放铃声
+      playbell() {
+        let bell = this.$refs.bell;
+        bell.play();
       },
     }
   })
