@@ -33,61 +33,68 @@
             </div>
             <div class="content">
               <div class="nickname" v-if="isGroup">{{item.data.from.name}}</div>
-              <div class="text" v-if="item.data.typ == 100">{{item.data.content.txt}}</div>
-              <div class="img" @click="goShowImage(item)" v-if="item.data.typ == 104">
-                <img :src="item.data.content.img" alt="">
-              </div>
-              <div class="card" v-if="item.data.typ == 102" @click="goUserCard(item.data.content.card_id)">
-                <div class="title">{{item.data.content.card_name}}的{{item.data.content.card_brand}}的微名片请惠存！</div>
-                <div class="inner_wrap">
-                  <div class="img_wrap">
-                    <img :src="item.data.content.card_avatar" alt="">
-                  </div>
-                  <div class="right">
-                    <p>姓名：{{item.data.content.card_name}}</p>
-                    <p>品牌：{{item.data.content.card_brand}}</p>
-                  </div>
+              <div class="bottom_wrap">
+                <template v-if="item.from == sid">
+                  <van-loading color="#ff770e" size="17" v-if="item.sendType == 0"></van-loading>
+                  <img class="error_icon" :src="error" alt="" v-if="item.sendType == 2">
+                </template>
+                <div class="text" v-if="item.data.typ == 100">{{item.data.content.txt}}</div>
+                <div class="img" @click="goShowImage(item)" v-if="item.data.typ == 104">
+                  <img :src="item.data.content.img" alt="">
                 </div>
-                <div class="footer">
-                  <p>名片</p>
-                </div>
-              </div>
-              <div class="news_wrap" @click="_gOtherNews(item.data.content)" v-if="item.data.typ == 103">
-                <div class="news" v-if="item.data.content.length == 1">
-                  <div class="title van-multi-ellipsis--l2">{{item.data.content[0].article_title}}</div>
-                  <div class="bottom">
-                    <p class="van-multi-ellipsis--l2">{{item.data.content[0].article_desc}}</p>
-                    <img :src="item.data.content[0].article_pic" alt="">
-                  </div>
-                </div>
-                <template v-else-if="item.data.content.length > 1">
-                  <div class="news" v-for="(ite, idx) in item.data.content" :key="idx">
-                    <div class="title van-multi-ellipsis--l2">{{ite.article_title}}</div>
-                    <div class="bottom">
-                      <p class="van-multi-ellipsis--l2">{{ite.article_desc}}</p>
-                      <img :src="ite.article_pic" alt="">
+                <div class="card" v-if="item.data.typ == 102" @click="goUserCard(item.data.content.card_id)">
+                  <div class="title">{{item.data.content.card_name}}的{{item.data.content.card_brand}}的微名片请惠存！</div>
+                  <div class="inner_wrap">
+                    <div class="img_wrap">
+                      <img :src="item.data.content.card_avatar" alt="">
+                    </div>
+                    <div class="right">
+                      <p>姓名：{{item.data.content.card_name}}</p>
+                      <p>品牌：{{item.data.content.card_brand}}</p>
                     </div>
                   </div>
-                </template>
-              </div>
-              <div class="audio" v-if="item.data.typ == 101">
-                <div class="audio_content" @click="goPlayAudio(item, index)">
-                  <div class="sound_icon">
-                    <template v-if="item.from == sid">
-                      <img src="{:REGISTER_PUBLIC}img/chat/mysound.png" alt=""
-                        v-if="item.data.content.isAudioPlay == 0">
-                      <img src="{:REGISTER_PUBLIC}img/chat/mysound_on.gif" alt="" v-else>
-                    </template>
-                    <template v-else>
-                      <img src="{:REGISTER_PUBLIC}img/chat/sound.png" alt="" v-if="item.data.content.isAudioPlay == 0">
-                      <img src="{:REGISTER_PUBLIC}img/chat/sound_on.gif" alt="" v-else>
-                    </template>
+                  <div class="footer">
+                    <p>名片</p>
                   </div>
-                  <p class="audio_length">{{Math.round(item.data.content.duration)}}"</p>
                 </div>
-                <div class="noread" v-if="!item.data.content.is_listen"></div>
-                <audio ref="audio" :data-id="index" :src="item.data.content.audio" controls
-                  style="display: none;"></audio>
+                <div class="news_wrap" @click="_gOtherNews(item.data.content)" v-if="item.data.typ == 103">
+                  <div class="news" v-if="item.data.content.length == 1">
+                    <div class="title van-multi-ellipsis--l2">{{item.data.content[0].article_title}}</div>
+                    <div class="bottom">
+                      <p class="van-multi-ellipsis--l2">{{item.data.content[0].article_desc}}</p>
+                      <img :src="item.data.content[0].article_pic" alt="">
+                    </div>
+                  </div>
+                  <template v-else-if="item.data.content.length > 1">
+                    <div class="news" v-for="(ite, idx) in item.data.content" :key="idx">
+                      <div class="title van-multi-ellipsis--l2">{{ite.article_title}}</div>
+                      <div class="bottom">
+                        <p class="van-multi-ellipsis--l2">{{ite.article_desc}}</p>
+                        <img :src="ite.article_pic" alt="">
+                      </div>
+                    </div>
+                  </template>
+                </div>
+                <div class="audio" v-if="item.data.typ == 101">
+                  <div class="audio_content" @click="goPlayAudio(item, index)">
+                    <div class="sound_icon">
+                      <template v-if="item.from == sid">
+                        <img src="{:REGISTER_PUBLIC}img/chat/mysound.png" alt=""
+                          v-if="item.data.content.isAudioPlay == 0">
+                        <img src="{:REGISTER_PUBLIC}img/chat/mysound_on.gif" alt="" v-else>
+                      </template>
+                      <template v-else>
+                        <img src="{:REGISTER_PUBLIC}img/chat/sound.png" alt=""
+                          v-if="item.data.content.isAudioPlay == 0">
+                        <img src="{:REGISTER_PUBLIC}img/chat/sound_on.gif" alt="" v-else>
+                      </template>
+                    </div>
+                    <p class="audio_length">{{Math.round(item.data.content.duration)}}"</p>
+                  </div>
+                  <div class="noread" v-if="!item.data.content.is_listen"></div>
+                  <audio ref="audio" :data-id="index" :src="item.data.content.audio" controls
+                    style="display: none;"></audio>
+                </div>
               </div>
             </div>
           </div>
@@ -95,7 +102,7 @@
       </van-list>
     </div>
     <!-- 图片展示 -->
-    <van-image-preview v-model="showPreview" :startPosition="imageIndex" :images="chatImageList" :loop="false"
+    <van-image-preview v-model="showPreview" :start-position="imageIndex" :images="chatImageList" :loop="false"
       @change="previewChange">
       <template v-slot:imageIndex>{{ imageIndex+1 }}/{{chatImageList.length}}</template>
     </van-image-preview>
@@ -199,7 +206,7 @@
         userInfo: {}, //用户信息对象
         groupInfo: {}, //群信息对象
         token: '',
-        sid: '',
+        sid: '', //当前用户sid
         connectKey: '',
         navTitle: '', //导航标题
         delayTip: '', //服务器延迟
@@ -217,7 +224,7 @@
         finished: false, // 结束分页加载
         showPreview: false, //展示图片详情
         showNotice: false, //显示滚动公告
-        imageIndex: 0, // 展示图片下标
+        imageIndex: -1, // 展示图片下标
         recordTime: '00:00', // 录音时长计时
         recordTimer: null, // 录音定时器
         newsList: [], //资讯列表
@@ -227,6 +234,7 @@
         minus: '{:REGISTER_PUBLIC}img/chat/minus.png',
         plus: '{:REGISTER_PUBLIC}img/chat/plus.png',
         smile: '{:REGISTER_PUBLIC}img/chat/smile.png',
+        error: '{:REGISTER_PUBLIC}img/chat/error_icon.png',
         bell: '{:REGISTER_PUBLIC}img/chat/bell.mp3',
         panelStatus: 0, // 聊天面板控制 0默认 1表情 2语音
         showContent: false, //显示面板
@@ -337,6 +345,7 @@
     methods: {
       // 获取url参数 判断单聊群聊
       getUrlQuery() {
+        this.resetChatList();
         this.option.id = getQueryString('id');
         this.option.sid = getQueryString('sid');
         let type = getQueryString('type');
@@ -348,7 +357,6 @@
           this.isGroup = false;
           this.getChatDetail(0, this.option.id, 1001);
         }
-
         // 获取url参数
         function getQueryString(name, url) {
           var url = url || window.location.href;
@@ -371,7 +379,7 @@
             } = res.body;
             if (errCode === 0) {
               this.token = data.token;
-              this.userInfo = data.userInfo
+              this.userInfo = data.userInfo;
               this.getUrlQuery()
               this.getEmoji();
               this.getOnlineMsg()
@@ -503,13 +511,12 @@
                 this.finished = true;
                 return false
               }
-              let imageIndex = -1;
               result.forEach(item => {
                 if (item.data.typ == 101) {
                   this.$set(item.data.content, 'isAudioPlay', 0);
                 }
                 if (item.data.typ == 104) {
-                  this.$set(item, 'imageIndex', ++imageIndex);
+                  this.$set(item, 'imageIndex', ++this.imageIndex);
                   this.chatImageList.push(item.data.content.img);
                 }
                 this.messageList.unshift(item);
@@ -528,8 +535,6 @@
                   this.loading = false;
                 })
               }
-              // 页面滚动判断
-
             }
           },
           err => {
@@ -549,17 +554,28 @@
               msg
             } = res.body;
             if (errCode === 0) {
+              // console.log(data);
               this.showContent = false;
               this.panelStatus = 0;
               // this.ws.send(4 + JSON.stringify(data));
-              if (data.data.typ == 101) {
-                this.$set(data.data.content, 'isAudioPlay', 0);
-              }
-              this.messageList.push(data);
-              this.$nextTick(this.scrollToBottom);
+              // if (data.notice.data.typ == 101) {
+              //   this.$set(data.notice.data.content, 'isAudioPlay', 0);
+              // }
+              // this.messageList.push(data.notice);
+              // this.$nextTick(this.scrollToBottom);
+              this.messageList.forEach(item => {
+                if (item.send_id == data.send_id) {
+                  item.sendType = 1
+                }
+              })
             }
           },
           err => {
+            this.$toast({
+              type: 'fail',
+              message: '发送失败',
+              duration: 1500,
+            });
             console.log('sendChatMessage 请求失败');
           }
         );
@@ -869,14 +885,14 @@
           try {
             if ('WebSocket' in window) {
               // ws = new WebSocket(url);
+              console.log('creat');
               self.getUserInfo();
-              console.log('creat websocket');
+              // console.log('creat websocket');
             } else {
               console.log("当前浏览器不支持websocket协议");
             }
-            initEventHandle();
           } catch (e) {
-            reconnect(url);
+            // reconnect(url);
           }
         }
         // 心跳机制
@@ -902,10 +918,11 @@
                 data: ""
               }));
               self.isGroup && self.getChatOnlines();
-              _this.serverTimeoutObj = setTimeout(function () {
-                ws.close();
-                reconnect(wsServer);
-              }, _this.timeout)
+              // _this.serverTimeoutObj = setTimeout(function () {
+              //   console.log('timeout');
+              //   ws.close();
+              //   reconnect(wsServer);
+              // }, _this.timeout)
             }, this.timeout)
           },
         }
@@ -1001,15 +1018,35 @@
       },
       // 发送文本消息
       sendText() {
+        let msgId = this.randomCode();
         let obj = {
           token: this.token,
           class: this.isGroup ? 1002 : 1001,
           type: 100,
           toid: this.isGroup ? '' : this.option.id,
           group_id: this.isGroup ? this.option.id : '',
-          content: this.typingText
+          content: this.typingText,
+          send_id: msgId
         }
-        this.sendChatMessage(obj)
+        this.messageList.push({
+          data: {
+            content: {
+              txt: this.typingText
+            },
+            from: {
+              avatar: this.userInfo.upic,
+              id: this.option.id,
+              name: this.userInfo.name,
+              time: new Date(),
+            },
+            typ: 100
+          },
+          from: this.sid,
+          send_id: msgId,
+          sendType: 0,
+        })
+        this.$nextTick(this.scrollToBottom);
+        this.sendChatMessage(obj);
         this.typingText = null;
         this.showContent = false;
         this.panelStatus = 0;
@@ -1017,13 +1054,32 @@
       // 图片上传
       afterRead(file) {
         // console.log(file);
+        let msgId = this.randomCode();
         let obj = {
           token: this.token,
           class: this.isGroup ? 1002 : 1001,
           type: 104,
           toid: this.isGroup ? '' : this.option.id,
           group_id: this.isGroup ? this.option.id : '',
-          file: file.content
+          file: file.content,
+          send_id: msgId
+        }
+        let msgObj = {
+          data: {
+            content: {
+              img: file.content
+            },
+            from: {
+              avatar: this.userInfo.upic,
+              id: this.option.id,
+              name: this.userInfo.name,
+              time: new Date(),
+            },
+            typ: 104
+          },
+          from: this.sid,
+          send_id: msgId,
+          sendType: 0,
         }
         this.$dialog.alert({
             title: '消息提示',
@@ -1032,7 +1088,8 @@
             showCancelButton: true,
           })
           .then(() => {
-            this.sendChatMessage(obj)
+            this.messageList.push(msgObj);
+            this.sendChatMessage(obj);
           })
           .catch(() => {
             // ...
@@ -1040,12 +1097,34 @@
       },
       // 发送名片
       sendUserCard() {
+        let msgId = this.randomCode();
         let obj = {
           token: this.token,
           class: this.isGroup ? 1002 : 1001,
           type: 102,
           toid: this.isGroup ? '' : this.option.id,
           group_id: this.isGroup ? this.option.id : '',
+          send_id: msgId
+        }
+        let msgObj = {
+          data: {
+            content: {
+              card_avatar: this.userInfo.upic,
+              card_brand: this.userInfo.brand,
+              card_id: this.userInfo.mid,
+              card_name: this.userInfo.name
+            },
+            from: {
+              avatar: this.userInfo.upic,
+              id: this.option.id,
+              name: this.userInfo.name,
+              time: new Date(),
+            },
+            typ: 102
+          },
+          from: this.sid,
+          send_id: msgId,
+          sendType: 0,
         }
         this.$dialog.alert({
             title: '消息提示',
@@ -1054,6 +1133,7 @@
             showCancelButton: true,
           })
           .then(() => {
+            this.messageList.push(msgObj);
             this.sendChatMessage(obj);
           })
           .catch(() => {
@@ -1067,6 +1147,7 @@
       },
       // 点击发送选中文章
       sendNews() {
+        let msgId = this.randomCode();
         let result = this.newsList.filter(item => item.checked);
         let newArr = [];
         result.forEach(item => {
@@ -1091,8 +1172,24 @@
               type: 103,
               toid: this.isGroup ? '' : this.option.id,
               group_id: this.isGroup ? this.option.id : '',
-              article: JSON.stringify(newArr)
+              article: JSON.stringify(newArr),
+              send_id: msgId
             });
+            this.messageList.push({
+              data: {
+                content: newArr,
+                from: {
+                  avatar: this.userInfo.upic,
+                  id: this.option.id,
+                  name: this.userInfo.name,
+                  time: new Date(),
+                },
+                typ: 103
+              },
+              from: this.sid,
+              send_id: msgId,
+              sendType: 0,
+            })
             this.showNews = false;
           })
           .catch(() => {
@@ -1236,8 +1333,9 @@
       },
       // 展示聊天图片
       goShowImage(item) {
-        console.log(item.imageIndex);
-        console.log(this.messageList);
+        // console.log(item.imageIndex);
+        // let result = this.messageList.filter(item => item.data.typ == 104);
+        // console.log(result);
         this.imageIndex = item.imageIndex;
         this.showPreview = true;
       },
@@ -1381,6 +1479,37 @@
         let bell = this.$refs.bell;
         bell.play();
       },
+      // 消息随机id
+      randomCode() {
+        let codeStr = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let str = '';
+        for (var i = 0; i < 8; i++) {
+          let ran = getRandom(0, 62);
+          str += codeStr.charAt(ran);
+        }
+        return str;
+        // 生成随机整数
+        function getRandom(n, m) {
+          n = Number(n);
+          m = Number(m);
+          // 确保 m 始终大于 n
+          if (n > m) {
+            var temp = n;
+            n = m;
+            m = temp;
+          }
+          return Math.floor(Math.random() * (m - n) + n);
+        }
+      },
+      // 重置聊天
+      resetChatList() {
+        this.messageList = [];
+        this.lastid = 0;
+        this.pageSize = 20;
+        this.isGroup = false;
+        this.loading = false;
+        this.finished = false;
+      }
     }
   })
 </script>

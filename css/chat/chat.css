@@ -26,6 +26,10 @@
   width: 100%;
 }
 
+.van-loading {
+  margin-right: 0.5rem;
+}
+
 #app {
   width: 100%;
   height: 100%;
@@ -90,7 +94,12 @@
   margin-bottom: 0.3rem;
 }
 
-#app .message_wrap .item .content .text {
+#app .message_wrap .item .content .bottom_wrap {
+  display: flex;
+  align-items: center;
+}
+
+#app .message_wrap .item .content .bottom_wrap .text {
   position: relative;
   display: inline-block;
   font-size: 0.9rem;
@@ -99,19 +108,19 @@
   background: #fff;
 }
 
-#app .message_wrap .item .content .img {
+#app .message_wrap .item .content .bottom_wrap .img {
   width: 7rem;
   border-radius: 0.5rem;
   overflow: hidden;
 }
 
-#app .message_wrap .item .content .img img {
+#app .message_wrap .item .content .bottom_wrap .img img {
   display: block;
   width: 100%;
   height: 100%;
 }
 
-#app .message_wrap .item .content .card {
+#app .message_wrap .item .content .bottom_wrap .card {
   position: relative;
   flex: 1;
   padding: 0.6rem 0.6rem;
@@ -121,18 +130,18 @@
   overflow: hidden;
 }
 
-#app .message_wrap .item .content .card .title {
+#app .message_wrap .item .content .bottom_wrap .card .title {
   color: #333537;
   font-size: 0.92rem;
   margin-bottom: 0.6rem;
 }
 
-#app .message_wrap .item .content .card .inner_wrap {
+#app .message_wrap .item .content .bottom_wrap .card .inner_wrap {
   display: flex;
   align-items: center;
 }
 
-#app .message_wrap .item .content .card .inner_wrap .img_wrap {
+#app .message_wrap .item .content .bottom_wrap .card .inner_wrap .img_wrap {
   width: 3rem;
   height: 3rem;
   border-radius: 0.3rem;
@@ -140,29 +149,29 @@
   overflow: hidden;
 }
 
-#app .message_wrap .item .content .card .inner_wrap .img_wrap img {
+#app .message_wrap .item .content .bottom_wrap .card .inner_wrap .img_wrap img {
   display: block;
   width: 100%;
   height: 100%;
 }
 
-#app .message_wrap .item .content .card .inner_wrap .right {
+#app .message_wrap .item .content .bottom_wrap .card .inner_wrap .right {
   color: #999999;
   font-size: 0.8rem;
 }
 
-#app .message_wrap .item .content .card .inner_wrap .right > p:first-child {
+#app .message_wrap .item .content .bottom_wrap .card .inner_wrap .right > p:first-child {
   margin-bottom: 0.3rem;
 }
 
-#app .message_wrap .item .content .card .footer {
+#app .message_wrap .item .content .bottom_wrap .card .footer {
   position: absolute;
   bottom: 11px;
   right: -24px;
   transform: rotate(-45deg);
 }
 
-#app .message_wrap .item .content .card .footer > p {
+#app .message_wrap .item .content .bottom_wrap .card .footer > p {
   color: #ff770e;
   width: 6rem;
   font-size: 1rem;
@@ -171,48 +180,48 @@
   background: linear-gradient(30deg, rgba(232, 0, 0, 0.12), rgba(255, 114, 12, 0.12));
 }
 
-#app .message_wrap .item .content .news_wrap .news {
+#app .message_wrap .item .content .bottom_wrap .news_wrap .news {
   padding: 0.6rem 0.6rem;
   border-radius: 0.5rem;
   border: 1px solid #e9e9e9;
   background: #fff;
 }
 
-#app .message_wrap .item .content .news_wrap .news:not(:last-child) {
+#app .message_wrap .item .content .bottom_wrap .news_wrap .news:not(:last-child) {
   margin-bottom: 0.5rem;
 }
 
-#app .message_wrap .item .content .news_wrap .news .title {
+#app .message_wrap .item .content .bottom_wrap .news_wrap .news .title {
   color: #333537;
   font-size: 0.92rem;
   margin-bottom: 0.6rem;
 }
 
-#app .message_wrap .item .content .news_wrap .news .bottom {
+#app .message_wrap .item .content .bottom_wrap .news_wrap .news .bottom {
   display: flex;
   align-items: center;
 }
 
-#app .message_wrap .item .content .news_wrap .news .bottom > p {
+#app .message_wrap .item .content .bottom_wrap .news_wrap .news .bottom > p {
   flex: 1;
   color: #999999;
   font-size: 0.8rem;
   padding-right: 0.9rem;
 }
 
-#app .message_wrap .item .content .news_wrap .news .bottom img {
+#app .message_wrap .item .content .bottom_wrap .news_wrap .news .bottom img {
   width: 3rem;
   height: 3rem;
   border-radius: 0.4rem;
 }
 
-#app .message_wrap .item .content .audio {
+#app .message_wrap .item .content .bottom_wrap .audio {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-#app .message_wrap .item .content .audio .audio_content {
+#app .message_wrap .item .content .bottom_wrap .audio .audio_content {
   display: flex;
   align-items: center;
   width: 10rem;
@@ -221,27 +230,32 @@
   background: #fff;
 }
 
-#app .message_wrap .item .content .audio .audio_content .sound_icon {
+#app .message_wrap .item .content .bottom_wrap .audio .audio_content .sound_icon {
   width: 2rem;
   margin-right: 0.2rem;
 }
 
-#app .message_wrap .item .content .audio .audio_content .sound_icon img {
+#app .message_wrap .item .content .bottom_wrap .audio .audio_content .sound_icon img {
   display: block;
   width: 100%;
   height: 100%;
 }
 
-#app .message_wrap .item .content .audio .audio_content .audio_length {
+#app .message_wrap .item .content .bottom_wrap .audio .audio_content .audio_length {
   font-size: 0.92rem;
 }
 
-#app .message_wrap .item .content .audio .noread {
+#app .message_wrap .item .content .bottom_wrap .audio .noread {
   width: 0.54rem;
   height: 0.54rem;
   margin: 0 0.8rem;
   background: #ff4222;
   border-radius: 50%;
+}
+
+#app .message_wrap .item .content .bottom_wrap .error_icon {
+  display: block;
+  width: 1.2rem;
 }
 
 #app .message_wrap .row .avatar {
@@ -280,18 +294,20 @@
   margin-left: 0.9rem;
 }
 
-#app .message_wrap .reverse .content {
-  display: flex;
-  align-items: flex-end;
-  flex-direction: column;
+#app .message_wrap .reverse .content .nickname {
+  text-align: right;
 }
 
-#app .message_wrap .reverse .content .text {
+#app .message_wrap .reverse .content .bottom_wrap {
+  justify-content: flex-end;
+}
+
+#app .message_wrap .reverse .content .bottom_wrap .text {
   color: #fff;
   background: #ff770e;
 }
 
-#app .message_wrap .reverse .content .text::before {
+#app .message_wrap .reverse .content .bottom_wrap .text::before {
   content: "";
   position: absolute;
   right: -0.4rem;
@@ -301,21 +317,21 @@
   border-bottom: 0.5rem solid transparent;
 }
 
-#app .message_wrap .reverse .content .audio {
+#app .message_wrap .reverse .content .bottom_wrap .audio {
   flex-direction: row-reverse;
 }
 
-#app .message_wrap .reverse .content .audio .audio_content {
+#app .message_wrap .reverse .content .bottom_wrap .audio .audio_content {
   color: #fff;
   flex-direction: row-reverse;
   background: #ff770e;
 }
 
-#app .message_wrap .reverse .content .audio .audio_content .sound_icon img {
+#app .message_wrap .reverse .content .bottom_wrap .audio .audio_content .sound_icon img {
   transform: rotateY(180deg);
 }
 
-#app .message_wrap .reverse .content .audio::before {
+#app .message_wrap .reverse .content .bottom_wrap .audio::before {
   content: "";
   position: absolute;
   right: -0.4rem;
