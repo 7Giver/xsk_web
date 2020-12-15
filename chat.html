@@ -79,13 +79,12 @@
                   <div class="audio_content" @click="goPlayAudio(item, index)">
                     <div class="sound_icon">
                       <template v-if="item.from == sid">
-                        <img src="{:REGISTER_PUBLIC}img/chat/mysound.png" alt=""
-                          v-if="item.data.content.isAudioPlay == 0">
+                        <img src="{:REGISTER_PUBLIC}img/chat/mysound.png" alt="" v-if="!item.data.content.isAudioPlay">
                         <img src="{:REGISTER_PUBLIC}img/chat/mysound_on.gif" alt="" v-else>
                       </template>
                       <template v-else>
                         <img src="{:REGISTER_PUBLIC}img/chat/sound.png" alt=""
-                          v-if="item.data.content.isAudioPlay == 0">
+                          v-if="!item.data.content.isAudioPlay">
                         <img src="{:REGISTER_PUBLIC}img/chat/sound_on.gif" alt="" v-else>
                       </template>
                     </div>
@@ -146,11 +145,11 @@
         </div>
         <div class="record_wrap" v-show="panelStatus == 3">
           <div class="waveform">
-            <img src="{:REGISTER_PUBLIC}img/chat/wave.png" alt="" v-if="!isStartRecord&&!finishRecord">
-            <img src="{:REGISTER_PUBLIC}img/chat/wave_on.gif" alt="" v-else>
+            <img src="{:REGISTER_PUBLIC}img/chat/wave_on.gif" alt="" v-if="showRecordTime">
+            <img src="{:REGISTER_PUBLIC}img/chat/wave.png" alt="" v-else>
           </div>
-          <div class="time_clock" v-show="isStartRecord || finishRecord">{{recordTime}}</div>
-          <div :class="isStartRecord || finishRecord ? 'btn_wrap start' : 'btn_wrap'">
+          <div class="time_clock" v-show="showRecordTime">{{recordTime}}</div>
+          <div :class="showRecordTime ? 'btn_wrap start' : 'btn_wrap'">
             <div class="record_btn" ref="recordBtn" v-show="!finishRecord">摁住说话</div>
             <div class="handle_wrap" v-show="finishRecord">
               <div class="btn cancel" @click="resetRecord">取消</div>
@@ -224,8 +223,10 @@
         finished: false, // 结束分页加载
         showPreview: false, //展示图片详情
         showNotice: false, //显示滚动公告
+        showRecordTime: false, //显示时长
         imageIndex: -1, // 展示图片下标
-        recordTime: '00:00', // 录音时长计时
+        recordTimes: 0, // 录音时长计时
+        recordTime: '00:00', // 录音时长
         recordTimer: null, // 录音定时器
         newsList: [], //资讯列表
         chatImageList: [], // 聊天记录图片数组
@@ -544,41 +545,48 @@
       },
       // 发送消息请求
       sendChatMessage(obj) {
-        this.$http.post(URL + "/register/friend/send_notice", obj, {
-          emulateJSON: true
-        }).then(
-          res => {
-            const {
-              errCode,
-              data,
-              msg
-            } = res.body;
-            if (errCode === 0) {
-              // console.log(data);
-              this.showContent = false;
-              this.panelStatus = 0;
-              // this.ws.send(4 + JSON.stringify(data));
-              // if (data.notice.data.typ == 101) {
-              //   this.$set(data.notice.data.content, 'isAudioPlay', 0);
-              // }
-              // this.messageList.push(data.notice);
-              // this.$nextTick(this.scrollToBottom);
-              this.messageList.forEach(item => {
-                if (item.send_id == data.send_id) {
-                  item.sendType = 1
-                }
-              })
+        return new Promise(resolve => {
+          this.$http.post(URL + "/register/friend/send_notice", obj, {
+            emulateJSON: true
+          }).then(
+            res => {
+              const {
+                errCode,
+                data,
+                msg
+              } = res.body;
+              if (errCode === 0) {
+                resolve('complate');
+                // console.log(data);
+                this.showContent = false;
+                this.panelStatus = 0;
+                // this.ws.send(4 + JSON.stringify(data));
+                // if (data.notice.data.typ == 101) {
+                //   this.$set(data.notice.data.content, 'isAudioPlay', 0);
+                //   this.messageList.push(data.notice);
+                // }
+                // this.$nextTick(this.scrollToBottom);
+                this.messageList.forEach(item => {
+                  if (item.send_id == data.send_id) {
+                    item.sendType = 1;
+                    if (item.data.typ == 101) {
+                      item.data.content.audio = data.notice.data.content.audio;
+                      item.data.content.duration = data.notice.data.content.duration;
+                    }
+                  }
+                })
+              }
+            },
+            err => {
+              this.$toast({
+                type: 'fail',
+                message: '发送失败',
+                duration: 1500,
+              });
+              console.log('sendChatMessage 请求失败');
             }
-          },
-          err => {
-            this.$toast({
-              type: 'fail',
-              message: '发送失败',
-              duration: 1500,
-            });
-            console.log('sendChatMessage 请求失败');
-          }
-        );
+          );
+        });
       },
       // 请求设置已读消息
       getChatRead(type, id) {
@@ -1017,7 +1025,7 @@
         location.href = `/register/page/group_manage?id=${this.option.id}`
       },
       // 发送文本消息
-      sendText() {
+      async sendText() {
         let msgId = this.randomCode();
         let obj = {
           token: this.token,
@@ -1046,10 +1054,11 @@
           sendType: 0,
         })
         this.$nextTick(this.scrollToBottom);
-        this.sendChatMessage(obj);
         this.typingText = null;
         this.showContent = false;
         this.panelStatus = 0;
+        let result = await this.sendChatMessage(obj);
+        console.log(result);
       },
       // 图片上传
       afterRead(file) {
@@ -1211,11 +1220,64 @@
           "&otherBid=" +
           this.userInfo.bid;
       },
+      // 载入touch
+      initAudioTouch() {
+        let self = this;
+        let btnElem = this.$refs.recordBtn; //获取ID
+        let posStartX = 0; //初始化起点X坐标
+        let posEndX = 0; //初始化终点X坐标
+        let posMoveX = 0; //初始化滑动X坐标
+        let posStartY = 0; //初始化起点Y坐标
+        let posEndY = 0; //初始化终点Y坐标
+        let posMoveY = 0; //初始化滑动Y坐标
+        function initEvent() {
+          btnElem.addEventListener("touchstart", function (event) {
+            event.preventDefault();
+            posStartX = 0;
+            posStartY = 0;
+            posStartX = event.touches[0].pageX;
+            posStartY = event.touches[0].pageY;
+            btnElem.innerHTML = '松开发送';
+            self.recordCount();
+            console.log("start");
+          });
+          btnElem.addEventListener("touchmove", function (event) {
+            event.preventDefault();
+            posMoveX = 0;
+            posMoveY = 0;
+            posMoveX = event.targetTouches[0].pageX;
+            posMoveY = event.targetTouches[0].pageY;
+            if (posStartY - posMoveY < 40) {
+              btnElem.innerHTML = '松开完成录音';
+            } else {
+              btnElem.innerHTML = '松开取消';
+            }
+          });
+          btnElem.addEventListener("touchend", function (event) {
+            event.preventDefault();
+            posEndX = 0;
+            posEndY = 0;
+            posEndX = event.changedTouches[0].pageX;
+            posEndY = event.changedTouches[0].pageY;
+            btnElem.innerHTML = '按住说话';
+            if (posStartY - posEndY < 40) {
+              self.doneRecord();
+              console.log("finish");
+            } else {
+              self.cancelRecord();
+              console.log("cancel");
+            };
+          });
+        };
+        initEvent();
+      },
       // 点击录音
       startRecord() {
         let self = this;
+        if (this.isStartRecord) return false;
         wx.startRecord({
           success: function (res) {
+            self.showRecordTime = true;
             self.isStartRecord = true;
           },
           cancel: function () {
@@ -1226,14 +1288,6 @@
             console.log('fail', res);
           }
         })
-      },
-      // 取消录音
-      cancelRecord() {
-        this.isStartRecord = false;
-        this.finishRecord = false;
-        this.recordTime = 0;
-        this.stopRecord();
-        this.clearRecordCount();
       },
       // 点击停止录音
       stopRecord(type) {
@@ -1282,16 +1336,13 @@
           forbidClick: true,
           duration: 0,
         });
-        if (this.recordTime < 2) {
+        if (this.recordTimes < 2 || !this.recordTimes) {
           this.$toast.clear();
-          this.$toast({
-            type: 'fail',
-            message: '录制时间过短',
-          });
           this.cancelRecord();
           this.resetRecord();
           return false
         }
+        this.clearRecordCount();
         this.stopRecord('send').then(res => {
           this.$toast.clear();
           this.finishRecord = true;
@@ -1313,23 +1364,80 @@
           });
           return false
         }
+        let msgId = this.randomCode();
         let obj = {
           token: this.token,
           class: this.isGroup ? 1002 : 1001,
           type: 101,
           toid: this.isGroup ? '' : this.option.id,
           group_id: this.isGroup ? this.option.id : '',
-          file: this.recordId
+          file: this.recordId,
+          send_id: msgId
         }
+        this.messageList.push({
+          data: {
+            content: {
+              audio: '',
+              duration: '...',
+              isAudioPlay: 0
+            },
+            from: {
+              avatar: this.userInfo.upic,
+              id: this.option.id,
+              name: this.userInfo.name,
+              time: new Date(),
+            },
+            typ: 101
+          },
+          from: this.sid,
+          send_id: msgId,
+          sendType: 0,
+        })
         this.sendChatMessage(obj);
         this.resetRecord();
       },
-      // 重置录音状态
-      resetRecord() {
-        this.recordTime = 0;
-        this.recordId = null;
+      // 录音计时器
+      recordCount() {
+        let self = this;
+        let count = 0,
+          minute = 0,
+          second = 0;
+        this.recordTimer = setInterval(() => {
+          ++count;
+          second = showNum(count % 60);
+          minute = showNum(parseInt(count / 60) % 60);
+          this.recordTime = `${minute}:${second}`;
+          this.recordTimes = count;
+          count > 0 && self.startRecord();
+        }, 1000);
+
+        function showNum(num) {
+          return num < 10 ? "0" + num : num;
+        }
+      },
+      // 清除定时器
+      clearRecordCount() {
+        clearInterval(this.recordTimer);
+        this.recordTimer = null;
+        this.recordTimes = 0;
+      },
+      // 取消录音
+      cancelRecord() {
+        this.clearRecordCount();
+        this.showRecordTime = false;
         this.isStartRecord = false;
         this.finishRecord = false;
+        this.recordTime = '00:00';
+        this.stopRecord();
+      },
+      // 重置录音状态
+      resetRecord() {
+        this.clearRecordCount();
+        this.recordId = null;
+        this.showRecordTime = false;
+        this.isStartRecord = false;
+        this.finishRecord = false;
+        this.recordTime = '00:00';
       },
       // 展示聊天图片
       goShowImage(item) {
@@ -1398,81 +1506,6 @@
           })
           audioDom.forEach(item => item.pause());
         }
-      },
-      // 录音计时器
-      recordCount() {
-        let count = 0,
-          minute = 0,
-          second = 0;
-        this.recordTimer = setInterval(() => {
-          ++count;
-          second = showNum(count % 60);
-          minute = showNum(parseInt(count / 60) % 60);
-          this.recordTime = `${minute}:${second}`;
-        }, 1000);
-
-        function showNum(num) {
-          return num < 10 ? "0" + num : num;
-        }
-      },
-      // 清除定时器
-      clearRecordCount() {
-        clearInterval(this.recordTimer);
-        this.recordTimer = null;
-      },
-      // 载入touch
-      initAudioTouch() {
-        let self = this;
-        let btnElem = this.$refs.recordBtn; //获取ID
-        let posStartX = 0; //初始化起点X坐标
-        let posEndX = 0; //初始化终点X坐标
-        let posMoveX = 0; //初始化滑动X坐标
-        let posStartY = 0; //初始化起点Y坐标
-        let posEndY = 0; //初始化终点Y坐标
-        let posMoveY = 0; //初始化滑动Y坐标
-        function initEvent() {
-          btnElem.addEventListener("touchstart", function (event) {
-            event.preventDefault();
-            posStartX = 0;
-            posStartY = 0;
-            posStartX = event.touches[0].pageX;
-            posStartY = event.touches[0].pageY;
-            btnElem.innerHTML = '松开发送';
-            self.startRecord();
-            self.recordCount();
-            console.log("start");
-          });
-          btnElem.addEventListener("touchmove", function (event) {
-            event.preventDefault();
-            posMoveX = 0;
-            posMoveY = 0;
-            posMoveX = event.targetTouches[0].pageX;
-            posMoveY = event.targetTouches[0].pageY;
-            if (posStartY - posMoveY < 40) {
-              btnElem.innerHTML = '松开完成录音';
-            } else {
-              btnElem.innerHTML = '松开取消';
-            }
-          });
-          btnElem.addEventListener("touchend", function (event) {
-            event.preventDefault();
-            posEndX = 0;
-            posEndY = 0;
-            posEndX = event.changedTouches[0].pageX;
-            posEndY = event.changedTouches[0].pageY;
-            btnElem.innerHTML = '按住说话';
-            if (posStartY - posEndY < 40) {
-              self.doneRecord();
-              self.clearRecordCount();
-              console.log("finish");
-            } else {
-              self.cancelRecord();
-              self.clearRecordCount();
-              console.log("cancel");
-            };
-          });
-        };
-        initEvent();
       },
       // 播放铃声
       playbell() {

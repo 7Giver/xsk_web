@@ -232,6 +232,7 @@
 
 #app .message_wrap .item .content .bottom_wrap .audio .audio_content .sound_icon {
   width: 2rem;
+  height: 2rem;
   margin-right: 0.2rem;
 }
 
@@ -327,8 +328,17 @@
   background: #ff770e;
 }
 
+#app .message_wrap .reverse .content .bottom_wrap .audio .audio_content .sound_icon {
+  perspective: 1000;
+  margin-right: 0rem;
+}
+
 #app .message_wrap .reverse .content .bottom_wrap .audio .audio_content .sound_icon img {
   transform: rotateY(180deg);
+  -ms-transform: rotateY(180deg);
+  -moz-transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+  -o-transform: rotateY(180deg);
 }
 
 #app .message_wrap .reverse .content .bottom_wrap .audio::before {

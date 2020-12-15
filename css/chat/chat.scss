@@ -195,6 +195,7 @@ $arrowToTop: 0.5rem;
               background: #fff;
               .sound_icon {
                 width: 2rem;
+                height: 2rem;
                 margin-right: 0.2rem;
                 img {
                   display: block;
@@ -287,8 +288,14 @@ $arrowToTop: 0.5rem;
               flex-direction: row-reverse;
               background: #ff770e;
               .sound_icon {
+                perspective: 1000;
+                margin-right: 0rem;
                 img {
                   transform: rotateY(180deg);
+                  -ms-transform: rotateY(180deg);
+                  -moz-transform: rotateY(180deg);
+                  -webkit-transform: rotateY(180deg);
+                  -o-transform: rotateY(180deg);
                 }
               }
             }
