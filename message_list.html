@@ -297,7 +297,7 @@
       // 点击进入聊天
       goChat(item) {
         if (item.class == 1002) {
-          location.href = `/register/page/chat?id=${item.base_id}&sid=${item.sid}&type=1`
+          location.href = `/register/page/chat?id=${item.base_id}&sid=${item.sid}&group=1`
         } else {
           location.href = `/register/page/chat?id=${item.base_id}&sid=${item.sid}`
         }
@@ -475,18 +475,18 @@
               if (obj.t == 1001) {
                 if (item.sid == obj.from) {
                   item.type = type;
-                  item.article_title = obj.data.content.article_title;
-                  item.article_desc = obj.data.content.article_desc;
-                  item.article_pic = obj.data.content.article_pic;
+                  item.article_title = obj.data.content[0].article_title;
+                  item.article_desc = obj.data.content[0].article_desc;
+                  item.article_pic = obj.data.content[0].article_pic;
                   item.add_time = obj.data.from.time;
                   ++item.unread;
                 }
               } else {
                 if (item.sid == obj.to[0]) {
                   item.type = type;
-                  item.article_title = obj.data.content.article_title;
-                  item.article_desc = obj.data.content.article_desc;
-                  item.article_pic = obj.data.content.article_pic;
+                  item.article_title = obj.data.content[0].article_title;
+                  item.article_desc = obj.data.content[0].article_desc;
+                  item.article_pic = obj.data.content[0].article_pic;
                   item.add_time = obj.data.from.time;
                   ++item.unread;
                 }
@@ -534,9 +534,9 @@
             newData.card_avatar = obj.data.content.card_avatar;
             break;
           case 103: //文章
-            newData.article_title = obj.data.content.article_title;
-            newData.article_desc = obj.data.content.article_desc;
-            newData.article_pic = obj.data.content.article_pic;
+            newData.article_title = obj.data.content[0].article_title;
+            newData.article_desc = obj.data.content[0].article_desc;
+            newData.article_pic = obj.data.content[0].article_pic;
             break;
           default:
             break;

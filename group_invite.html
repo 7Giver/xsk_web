@@ -72,7 +72,8 @@
       }
     },
     mounted() {
-      this.getUrlQuery()
+      this.getUrlQuery();
+      this.getUserInfo();
     },
     methods: {
       // 获取url参数
@@ -82,7 +83,6 @@
         if (pid) this.pid = pid;
         if (id) {
           this.groupId = id;
-          this.getUserInfo();
           if (getQueryString('pid')) {
             this.showWrap = 1;
           }
@@ -215,9 +215,9 @@
       },
       //生成分享二维码
       getQRCanvasCode() {
-        const vid = this.userInfo.vid;
+        const vid = this.userInfo.mid;
         const qr =
-          `${URL}/register/page/group_invite?id=${this.groupId}&sid=${this.groupInfo.sid}&pid=${vid}&type=1`;
+          `${URL}/register/page/group_invite?id=${this.groupId}&sid=${this.groupInfo.sid}&pid=${vid}`;
         const qrcode = $("#canvasCode")
           .qrcode({
             render: "canvas", //也可以替换为table
@@ -238,7 +238,7 @@
       },
       // 跳转群聊
       goGroupChat() {
-        location.href = `/register/page/chat?id=${this.groupId}&sid=${this.groupInfo.sid}&type=1`;
+        location.href = `/register/page/chat?id=${this.groupId}&sid=${this.groupInfo.sid}&group=1`;
       },
       // 加载完毕
       clearToast() {

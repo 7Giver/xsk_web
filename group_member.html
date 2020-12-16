@@ -203,7 +203,7 @@
             if (errCode === 0) {
               let dataList = data.list;
               dataList.forEach(item => {
-                item.name = this.resultName(item.name, 5);
+                if (item.name) item.name = this.resultName(item.name, 5);
               })
               this.active == 0 ?
                 this.memberList = dataList :

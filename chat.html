@@ -191,7 +191,7 @@
 <script src="{:REGISTER_PUBLIC}js/vconsole.min.js"></script>
 
 <script>
-  new VConsole();
+  // new VConsole();
   const URL = "{:H5_DOMAIN}";
   const API_URL = "{:API_DOMAIN}";
   const ROUTE_DETAIL_DOMAIN = "{:ROUTE_DETAIL_DOMAIN}"; //文章详情授权
@@ -349,7 +349,7 @@
         this.resetChatList();
         this.option.id = getQueryString('id');
         this.option.sid = getQueryString('sid');
-        let type = getQueryString('type');
+        let type = getQueryString('group');
         if (type) {
           this.isGroup = true;
           this.getChatDetail(0, this.option.id, 1002);
@@ -843,7 +843,7 @@
             let type = res.substring(0, 1);
             let str = e.data.substring(1);
             if (type == 4) {
-              self.playbell();
+              if (obj.from !== self.sid) self.playbell();
               let obj = JSON.parse(str);
               if (obj.data.typ == 110) {
                 self.messageList.push(obj);
