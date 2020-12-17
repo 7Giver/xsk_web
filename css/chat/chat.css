@@ -19,6 +19,12 @@
   color: #ff7e10;
 }
 
+.van-nav-bar .title .off {
+  font-size: 0.7rem;
+  margin-top: -1.8rem;
+  margin-bottom: -0.65rem;
+}
+
 .van-notice-bar {
   position: fixed;
   top: 46px;

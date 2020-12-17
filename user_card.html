@@ -19,11 +19,25 @@
         <div class="avatar">
           <img :src="guest.avatar" alt="">
         </div>
-        <div class="uid">UID:{{guest.id}}</div>
         <div class="bottom">
           <p>{{guest.name || '尚未完善'}}</p>
           <span>丨</span>
           <p>{{guest.brand || '尚未完善'}}</p>
+        </div>
+        <div class="uid">UID:{{guest.id}}</div>
+      </div>
+      <div class="inner_wrap">
+        <div class="item">
+          <p>{{guest.focus}}</p>
+          <p>关注</p>
+        </div>
+        <div class="item">
+          <p>{{guest.fans}}</p>
+          <p>粉丝</p>
+        </div>
+        <div class="item">
+          <p>{{guest.friends}}</p>
+          <p>好友</p>
         </div>
       </div>
       <div class="btn_wrap">
@@ -33,13 +47,13 @@
         </div>
         <div @click="getFocus">{{guest.is_focus ? '已关注' : '+关注'}}</div>
       </div>
-      <div class="sign_wrap" @click="goEditMsg('sign')">
-        <img class="sign_icon" src="{:REGISTER_PUBLIC}img/user_card/tips_icon.png" alt="">
-        <div class="sign">
-          <p>{{guest.sign || '这个家伙很懒，什么都没有留下...'}}</p>
-          <div class="edit_tip" v-if="isSelf">
-            <img src="{:REGISTER_PUBLIC}/img/user_card/edit_icon.png" alt="">
-          </div>
+    </div>
+    <div class="sign_wrap" @click="goEditMsg('sign')">
+      <img class="sign_icon" src="{:REGISTER_PUBLIC}img/user_card/tips_icon.png" alt="">
+      <div class="sign">
+        <p>{{guest.sign || '这个家伙很懒，什么都没有留下...'}}</p>
+        <div class="edit_tip" v-if="isSelf">
+          <img src="{:REGISTER_PUBLIC}/img/user_card/edit_icon.png" alt="">
         </div>
       </div>
     </div>

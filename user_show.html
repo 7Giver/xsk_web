@@ -12,17 +12,31 @@
 
 <body>
   <div id="app" :style="{'height': innerPage}" v-cloak>
-    <van-nav-bar title="我的风采" left-arrow @click-left="onClickLeft"></van-nav-bar>
+    <van-nav-bar title="我的风采" :fixed="true" left-arrow @click-left="onClickLeft"></van-nav-bar>
     <div class="header">
       <div class="top_wrap">
         <div class="avatar">
           <img :src="guest.avatar" alt="">
         </div>
-        <div class="uid">UID:{{guest.id}}</div>
         <div class="bottom">
           <p>{{guest.name}}</p>
           <span>丨</span>
           <p>{{guest.brand}}</p>
+        </div>
+        <div class="uid">UID:{{guest.id}}</div>
+      </div>
+      <div class="inner_wrap">
+        <div class="item">
+          <p>{{guest.focus}}</p>
+          <p>关注</p>
+        </div>
+        <div class="item">
+          <p>{{guest.fans}}</p>
+          <p>粉丝</p>
+        </div>
+        <div class="item">
+          <p>{{guest.friends}}</p>
+          <p>好友</p>
         </div>
       </div>
       <div class="btn_wrap">
@@ -32,13 +46,13 @@
         </div>
         <div @click="getFocus">{{guest.is_focus ? '已关注' : '+关注'}}</div>
       </div>
-      <div class="sign_wrap" @click="goEditMsg('sign')">
-        <img class="sign_icon" src="{:REGISTER_PUBLIC}img/user_card/tips_icon.png" alt="">
-        <div class="sign">
-          <p>{{guest.sign || '这个家伙很懒，什么都没有留下...'}}</p>
-          <div class="edit_tip" v-if="isSelf">
-            <img src="{:REGISTER_PUBLIC}/img/user_card/edit_icon.png" alt="">
-          </div>
+    </div>
+    <div class="sign_wrap" @click="goEditMsg('sign')">
+      <img class="sign_icon" src="{:REGISTER_PUBLIC}img/user_card/tips_icon.png" alt="">
+      <div class="sign">
+        <p>{{guest.sign || '这个家伙很懒，什么都没有留下...'}}</p>
+        <div class="edit_tip" v-if="isSelf">
+          <img src="{:REGISTER_PUBLIC}/img/user_card/edit_icon.png" alt="">
         </div>
       </div>
     </div>
@@ -46,7 +60,7 @@
       <div class="title">我的风采</div>
       <div class="show_list">
         <template v-if="show_list.length">
-          <div class="item" v-for="(item, index) in show_list" :key="index">
+          <div class="item" v-for="(item, index) in show_list" :key="index" @click="goShowImage(index)">
             <img :src="item" alt="">
           </div>
         </template>
@@ -56,6 +70,10 @@
         </div>
       </div>
     </div>
+    <!-- 展示图片详情 -->
+    <van-image-preview v-model="showImage" :images="show_list" :start-position="imageIndex" :loop="false" @change="previewChange">
+      <template v-slot:imageIndex>{{imageIndex+1}}/{{show_list.length}}</template>
+    </van-image-preview>
   </div>
 </body>
 
@@ -74,13 +92,10 @@
         token: '',
         guest: {},
         userInfo: {},
-        // show_list: ['http://cdn2.tuku689.com/cover/202006/5edf48083f62a.jpg',
-        //   'http://cdn2.yingku878.com/editor/images/20201110/1604999795879.jpg',
-        //   'http://cdn2.yingku878.com/editor/images/20201110/1604999795879.jpg',
-        //   'http://cdn2.yingku878.com/editor/images/20201110/1604999795879.jpg'
-        // ],
         isSelf: false, // 是否本人
         isMember: false, // 当前名片用户是否会员
+        showImage: false, // 展示图片详情组件
+        imageIndex: 0, // 展示图片下标
         show_list: []
       }
     },
@@ -222,6 +237,7 @@
           }
         );
       },
+      // 跳转单聊
       goChat() {
         if (this.isSelf) {
           this.$toast({
@@ -280,6 +296,15 @@
       onClickLeft() {
         // location.href = URL + '/register/page/user_card'
         window.history.back(-1);
+      },
+      // 展示图片详情
+      goShowImage(index) {
+        this.showImage = true;
+        this.imageIndex = index;
+      },
+      // 图片展示监听
+      previewChange(index) {
+        this.imageIndex = index;
       },
     }
   })

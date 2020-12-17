@@ -326,8 +326,10 @@
             // console.log('onmessage>>', e.data);
             let res = e.data;
             let type = res.substring(0, 1);
+            let str = e.data.substring(1);
+            let obj = JSON.parse(str);
             if (type == 4) {
-              self.playbell();
+              if (obj.from !== self.sid) self.playbell();
               self.handleMessage(JSON.parse(res.substring(1)));
               // self.debounce(self.playbell(), 800);
             }

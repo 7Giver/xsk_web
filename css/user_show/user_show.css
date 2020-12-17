@@ -5,23 +5,47 @@ body {
   background-size: 100% 100%;
 }
 
+.van-nav-bar {
+  width: 100%;
+  line-height: 2.6rem;
+}
+
+.van-nav-bar .van-icon {
+  color: #cc0419;
+}
+
+.van-nav-bar .van-nav-bar__title {
+  color: #cc0419;
+}
+
 #app {
   display: flex;
   flex-direction: column;
+  padding-top: 5.5rem;
   padding-bottom: 1rem;
 }
 
 #app .header {
   position: relative;
-  padding: 1.5rem 0 0.8rem;
+  width: 90%;
+  padding: 5.3rem 0 0.85rem;
+  margin: 0 auto;
+  border: 1px solid #f6ca25;
+  border-radius: 1rem;
+  background: rgba(0, 0, 0, 0.2);
 }
 
 #app .header .top_wrap {
+  position: absolute;
+  top: 13%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  position: relative;
+  width: 100%;
 }
 
 #app .header .top_wrap .avatar {
@@ -41,7 +65,7 @@ body {
 #app .header .top_wrap .uid {
   color: #fee0a6;
   font-size: 0.92rem;
-  margin: 0.5rem auto 0.2rem;
+  letter-spacing: 1px;
 }
 
 #app .header .top_wrap .bottom {
@@ -49,8 +73,10 @@ body {
   align-items: center;
   justify-content: space-between;
   width: 90%;
+  margin: 0.3rem auto;
   color: #fffd81;
   font-size: 1rem;
+  letter-spacing: 1px;
   font-weight: bold;
   overflow: hidden;
 }
@@ -64,13 +90,33 @@ body {
   text-align: right;
 }
 
+#app .header .inner_wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 0.6rem 0.6rem;
+}
+
+#app .header .inner_wrap .item {
+  color: #ffd08a;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+#app .header .inner_wrap .item > :first-child {
+  font-size: 1.2rem;
+}
+
+#app .header .inner_wrap .item > :last-child {
+  font-size: 0.7rem;
+}
+
 #app .header .btn_wrap {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 64%;
+  width: 74%;
   margin: 0 auto;
-  padding: 0.8rem 0;
 }
 
 #app .header .btn_wrap > div {
@@ -94,23 +140,23 @@ body {
   margin-right: 0.2rem;
 }
 
-#app .header .sign_wrap {
+#app .sign_wrap {
   display: flex;
   width: 85%;
-  margin: 0 auto;
+  margin: 4% auto 3%;
   padding: 0.5rem;
   border-radius: 0.3rem;
   background: rgba(255, 155, 33, 0.2);
 }
 
-#app .header .sign_wrap .sign_icon {
+#app .sign_wrap .sign_icon {
   width: 1.2rem;
   height: 1.2rem;
   margin-top: 0.2rem;
   margin-right: 0.2rem;
 }
 
-#app .header .sign_wrap .sign {
+#app .sign_wrap .sign {
   display: flex;
   align-items: center;
   position: relative;
@@ -119,7 +165,7 @@ body {
   line-height: 1.4;
 }
 
-#app .header .sign_wrap .sign p {
+#app .sign_wrap .sign p {
   flex: 1;
   display: -webkit-box;
   overflow: hidden;
@@ -128,13 +174,13 @@ body {
   -webkit-box-orient: vertical;
 }
 
-#app .header .sign_wrap .sign .edit_tip {
+#app .sign_wrap .sign .edit_tip {
   width: 1rem;
   height: 1rem;
   margin-left: 0.4rem;
 }
 
-#app .header .sign_wrap .sign .edit_tip img {
+#app .sign_wrap .sign .edit_tip img {
   display: block;
   width: 100%;
   height: 100%;
@@ -194,12 +240,4 @@ body {
 #app .show_wrap .show_list .nodata img {
   display: block;
   width: 100%;
-}
-
-#app .van-nav-bar .van-icon {
-  color: #cc0419;
-}
-
-#app .van-nav-bar .van-nav-bar__title {
-  color: #cc0419;
 }

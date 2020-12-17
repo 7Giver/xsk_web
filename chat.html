@@ -12,8 +12,14 @@
 
 <body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
-    <van-nav-bar :title="navTitle" :fixed="true" left-arrow :right-text="isGroup ? '群管理' : null" @click-left="goback"
+    <van-nav-bar :fixed="true" left-arrow :right-text="isGroup ? '群管理' : null" @click-left="goback"
       @click-right="goGroupManage">
+      <template #title>
+        <div class="title">
+          <p class="main">{{navTitle}}</p>
+          <p class="off" v-if="groupInfo.online">{{groupInfo.online}}人在线</p>
+        </div>
+      </template>
     </van-nav-bar>
     <van-notice-bar mode="closeable" left-icon="volume-o" :scrollable="true" :text="groupInfo.annoucement"
       @close="noticeClose" v-if="showNotice"></van-notice-bar>
@@ -83,8 +89,7 @@
                         <img src="{:REGISTER_PUBLIC}img/chat/mysound_on.gif" alt="" v-else>
                       </template>
                       <template v-else>
-                        <img src="{:REGISTER_PUBLIC}img/chat/sound.png" alt=""
-                          v-if="!item.data.content.isAudioPlay">
+                        <img src="{:REGISTER_PUBLIC}img/chat/sound.png" alt="" v-if="!item.data.content.isAudioPlay">
                         <img src="{:REGISTER_PUBLIC}img/chat/sound_on.gif" alt="" v-else>
                       </template>
                     </div>
@@ -653,14 +658,15 @@
               msg
             } = res.body;
             if (errCode === 0) {
-              data.is_manager == 1 ? this.isAdmin = true : this.isAdmin = false;
               this.groupInfo = data;
-              this.isGroup && this.getChatOnlines();
+              data.is_manager == 1 ? this.isAdmin = true : this.isAdmin = false;
               if (data.members > 0) {
                 this.navTitle = `${this.groupInfo.name}(${this.groupInfo.members})`;
+                this.$set(this.groupInfo, 'online', 0)
               } else {
                 this.navTitle = `${this.groupInfo.name}`;
               }
+              this.isGroup && this.getChatOnlines();
               if (localStorage.getItem('showNotice')) {
                 this.showNotice = false
               } else {
@@ -763,11 +769,7 @@
             } = res.body;
             if (errCode === 0) {
               // console.log(data);
-              if (data.numbers > 0) {
-                this.navTitle = `${this.groupInfo.name}(${data.numbers})`;
-              } else {
-                this.navTitle = `${this.groupInfo.name}`;
-              }
+              if (data.numbers > 0) this.groupInfo.online = data.numbers;
             }
           },
           err => {
@@ -842,9 +844,9 @@
             let res = e.data;
             let type = res.substring(0, 1);
             let str = e.data.substring(1);
+            let obj = JSON.parse(str);
             if (type == 4) {
               if (obj.from !== self.sid) self.playbell();
-              let obj = JSON.parse(str);
               if (obj.data.typ == 110) {
                 self.messageList.push(obj);
               } else if (obj.from !== self.sid) {
