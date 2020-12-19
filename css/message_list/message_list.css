@@ -234,3 +234,22 @@
 #app .data_list .item .message img {
   width: 1.8rem;
 }
+
+#app .data_list .item .online {
+  position: absolute;
+  right: 1px;
+  bottom: -2px;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  border: 1.8px solid #fff;
+  overflow: hidden;
+}
+
+#app .data_list .item .on {
+  background-color: #38bc00;
+}
+
+#app .data_list .item .off {
+  background-color: #a2a2a2;
+}

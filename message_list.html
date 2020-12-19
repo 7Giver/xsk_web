@@ -64,6 +64,7 @@
         <div class="avatar">
           <img :src="item.avatar" alt="">
           <div class="tips" v-if="item.unread > 0">{{item.unread}}</div>
+          <div :class="[item.is_online==1 ? 'online on' : 'online off']" v-if="item.class==1001"></div>
         </div>
         <div class="content">
           <div class="top_wrap">
@@ -285,6 +286,43 @@
             this.loading = false;
           });
       },
+      // 获取列表在线状态
+      getListOnline() {
+        let sidArr = [];
+        let sidStr = '';
+        this.dataList.forEach(item => {
+          if (item.class == 1001) sidArr.push(item.sid);
+        });
+        sidStr = sidArr.join(',');
+        let obj = {
+          token: this.token,
+          sid: sidStr
+        };
+        this.$http.post(URL + "/register/friend/friend_online", obj, {
+          emulateJSON: true
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              let arr = data.list;
+              this.dataList.forEach(item => {
+                arr.forEach(v => {
+                  if (v.sid == item.sid) {
+                    item.is_online = v.is_online;
+                  };
+                });
+              });
+            }
+          },
+          err => {
+            console.log('getListOnline 请求失败');
+          }
+        );
+      },
       // 上拉加载请求方法
       onLoadList() {
         if (this.dataList.length >= this.pageSize) {
@@ -332,6 +370,8 @@
               if (obj.from !== self.sid) self.playbell();
               self.handleMessage(JSON.parse(res.substring(1)));
               // self.debounce(self.playbell(), 800);
+            } else {
+              // console.log(res);
             }
             heartCheck.reset();
           };
@@ -382,15 +422,16 @@
             this.start();
           },
           start: function () {
-            var self = this;
+            var _this = this;
             this.timeoutObj = setTimeout(function () {
               ws.send(2 + JSON.stringify({
                 data: ""
               }));
-              self.serverTimeoutObj = setTimeout(function () {
+              self.getListOnline();
+              _this.serverTimeoutObj = setTimeout(function () {
                 ws.close();
                 reconnect(wsServer);
-              }, self.timeout)
+              }, _this.timeout)
             }, this.timeout)
           },
         }

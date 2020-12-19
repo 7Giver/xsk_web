@@ -204,6 +204,22 @@
           width: 1.8rem;
         }
       }
+      .online {
+        position: absolute;
+        right: 1px;
+        bottom: -2px;
+        width: 0.7rem;
+        height: 0.7rem;
+        border-radius: 50%;
+        border: 1.8px solid #fff;
+        overflow: hidden;
+      }
+      .on {
+        background-color: #38bc00;
+      }
+      .off {
+        background-color: #a2a2a2;
+      }
     }
   }
 }
