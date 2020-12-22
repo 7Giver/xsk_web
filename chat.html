@@ -32,7 +32,8 @@
           <div class="message_time" v-if="isShowTimes[index]">
             {{ item.data.from.time | accordingToNow }}
           </div>
-          <div class="notice_wrap" v-if="item.data.typ == 110">{{item.data.content.content.txt}}</div>
+          <div class="notice_wrap" v-if="isShowNotice[index]&&item.data.typ==110">{{item.data.content.content.txt}}
+          </div>
           <div class="message_content" v-if="item.data.typ != 110">
             <div class="avatar">
               <img :src="item.data.from.avatar || default_avatar" alt="">
@@ -229,6 +230,7 @@
         showPreview: false, //展示图片详情
         showNotice: false, //显示滚动公告
         showRecordTime: false, //显示时长
+        hasMemberIn: false, // 有成员进群
         imageIndex: -1, // 展示图片下标
         recordTimes: 0, // 录音时长计时
         recordTime: '00:00', // 录音时长
@@ -290,30 +292,22 @@
         })
       },
       isShowNotice() {
-        // console.log(obj);
         let lastTime = moment(0);
-        let hasNotice = this.messageList.filter(letsome);
-        // console.log(hasNotice);
+        let hasNotice = this.messageList.some(item => item.data.typ == 110);
         return this.messageList.map(message => {
           const messageTime = moment(message.data.from.time);
           let diffTime = messageTime.diff(lastTime, 'minutes');
 
-          if (!hasNotice) {
+          if (this.hasMemberIn && !hasNotice) {
+            lastTime = messageTime
             return true
-          } else if (hasNotice && diffTime >= 1) {
+          } else if (this.hasMemberIn && diffTime >= 1) {
+            lastTime = messageTime
             return true
           } else {
             return false
           }
         })
-
-        function letsome(item) {
-          let result = false;
-          if (item.data.typ == 110) {
-            item.from == obj.from ? result = true : result = false
-          }
-          return result
-        }
       },
     },
     filters: {
@@ -660,12 +654,14 @@
             if (errCode === 0) {
               this.groupInfo = data;
               data.is_manager == 1 ? this.isAdmin = true : this.isAdmin = false;
-              if (data.members > 0) {
-                this.navTitle = `${this.groupInfo.name}(${this.groupInfo.members})`;
-                this.$set(this.groupInfo, 'online', 0)
-              } else {
-                this.navTitle = `${this.groupInfo.name}`;
-              }
+              // if (data.members > 0) {
+              //   this.navTitle = `${this.groupInfo.name}(${this.groupInfo.members})`;
+              //   this.$set(this.groupInfo, 'online', 0)
+              // } else {
+              //   this.navTitle = `${this.groupInfo.name}`;
+              // }
+              this.navTitle = `${this.groupInfo.name}(${this.groupInfo.members})`;
+              this.$set(this.groupInfo, 'online', 0)
               this.isGroup && this.getChatOnlines();
               if (localStorage.getItem('showNotice')) {
                 this.showNotice = false
@@ -849,6 +845,7 @@
               if (obj.from !== self.sid) self.playbell();
               if (obj.data.typ == 110) {
                 self.messageList.push(obj);
+                self.hasMemberIn = true;
               } else if (obj.from !== self.sid) {
                 self.messageList.push(obj);
               }
@@ -1460,7 +1457,7 @@
       // 滚动到底部
       scrollToBottom() {
         this.oldSetHeight = this.$refs.message.$el.scrollHeight;
-        console.log(this.oldSetHeight);
+        // console.log(this.oldSetHeight);
         this.$refs.chatList.scrollTop = 99999999;
         this.isLoadList = true;
       },
@@ -1470,7 +1467,7 @@
         let newSetHeight = message.$el.scrollHeight;
         this.$refs.chatList.scrollTop = newSetHeight - this.oldSetHeight;
         this.oldSetHeight = newSetHeight;
-        console.log(this.oldSetHeight);
+        // console.log(this.oldSetHeight);
       },
       // 播放/暂停音频
       goPlayAudio(data, index) {

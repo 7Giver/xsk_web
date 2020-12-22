@@ -39,12 +39,53 @@
         </div>
         <!-- <p>长按保存新头像</p> -->
       </div>
+      <!-- <div class="inner_wrap">
+        <div class="content_wrap">
+          <div class="left" @click="goClickLike">
+            <img src="{:REGISTER_PUBLIC}img/avatar/like_on.png" alt="" v-if="!guest.is_like">
+            <img src="{:REGISTER_PUBLIC}img/avatar/like_off.png" alt="" v-else>
+            <p>{{guest.is_like == 1 ? '已点赞' : '点赞'}}</p>
+          </div>
+          <div class="right">
+            <div class="top">
+              <p>当前积分:</p>
+              <span @click="goShowPoint">{{guest.integral}}</span>
+            </div>
+            <p class="bottom">邀请好友点赞领积分</p>
+          </div>
+        </div>
+        <div class="bubble_wrap" v-if="queryMid&&sharer.avatar">
+          <div class="top">
+            <img :src="sharer.avatar" alt="">
+            <p>{{sharer.name}}</p>
+          </div>
+          <p>邀请您点赞</p>
+        </div>
+      </div> -->
+      <div class="inner_wrap">
+        <div class="content_wrap">
+          <div class="right">
+            <div class="top">
+              <p>当前积分:</p>
+              <span @click="goShowPoint">{{80}}</span>
+            </div>
+            <p class="bottom">邀请好友点赞领积分</p>
+          </div>
+        </div>
+      </div>
       <div class="mask_wrap">
-        <img class="title" src="{:REGISTER_PUBLIC}img/avatar/title.png" alt="">
+        <div class="top_wrap">
+          <img class="title" src="{:REGISTER_PUBLIC}img/avatar/title.png" alt="">
+          <div class="right">
+            <van-icon name="warning" color="#FF3A30"></van-icon>
+            <p>10积分解锁一个头像素材</p>
+          </div>
+        </div>
         <div class="scroll_wrap">
           <div :class="[maskIndex == index ? 'item on' : 'item']" v-for="(item, index) in maskList" :key="index"
-            @click="checkMask(index)">
-            <img :src="item.img" alt="">
+            @click="checkMask(index, item.id)">
+            <img class="mask_item" :src="item.img" alt="">
+            <img class="lock_icon" src="{:REGISTER_PUBLIC}img/avatar/lock_icon.png" alt="" v-if="!item.is_open">
           </div>
         </div>
       </div>
@@ -76,6 +117,48 @@
       </div>
     </div>
 
+    <!-- 资讯弹窗列表 -->
+    <van-popup v-model="showPointList">
+      <div class="point_wrap">
+        <p class="title">积分明细</p>
+        <div class="point_list">
+          <template v-if="pointList.length">
+            <div class="item" v-for="(item, index) in pointList" :key="index">
+              <div class="left_wrap">
+                <p>{{item.content}}</p>
+                <span>{{item.add_time}}</span>
+              </div>
+              <div class="right_wrap">
+                <p class="add" v-if="item.type == 1">+{{item.integral}}</p>
+                <p class="minus" v-if="item.type == 2">-{{item.integral}}</p>
+              </div>
+            </div>
+          </template>
+          <van-empty description="暂无明细" v-else></van-empty>
+        </div>
+      </div>
+    </van-popup>
+
+    <!-- 分享弹出层 -->
+    <van-popup v-model="showShareFloat">
+      <div class="share_float">
+        <div class="container">
+          <div class="bubble_wrap">
+            <div class="top">
+              <img :src="sharer.avatar" alt="">
+              <p>{{sharer.name}}</p>
+            </div>
+            <p>邀请您点赞</p>
+          </div>
+          <div class="content" @click="goClickLike">
+            <img src="{:REGISTER_PUBLIC}img/avatar/like_on.png" alt="" v-if="!guest.is_like">
+            <img src="{:REGISTER_PUBLIC}img/avatar/like_off.png" alt="" v-else>
+            <p>{{guest.is_like == 1 ? '已点赞' : '点赞'}}</p>
+          </div>
+        </div>
+      </div>
+      <img class="close_btn" src="{:REGISTER_PUBLIC}img/avatar/close.png" alt="" @click="showShareFloat=false">
+    </van-popup>
   </div>
 </body>
 
@@ -89,11 +172,6 @@
 <script src="{:REGISTER_PUBLIC}js/wx.share.js"></script>
 <!-- <script src="https://cdn.staticfile.org/vConsole/3.3.4/vconsole.min.js"></script> -->
 
-<!-- <script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
-<script src="{:REGISTER_PUBLIC}js/vant.min.js"></script>
-<script src="{:REGISTER_PUBLIC}js/html2canvas.min.js"></script>
-<script src="{:REGISTER_PUBLIC}js/cropper.min.js"></script> -->
-
 <script>
   // new VConsole();
   const URL = "{:H5_DOMAIN}";
@@ -102,18 +180,28 @@
     el: '#app',
     data() {
       return {
-        token: '111',
+        token: '',
         word: '', //输入口令
         codeKey: '', //口令密钥
         avatarSrc: '', //生成头像地址
         uploadImg: '', // 上传裁剪用地址
+        queryMid: '', //url的mid
+        integral: 0, //当前用户积分
         maskIndex: 0,
         myCropper: null, // 裁剪工具对象
         showWrap: false, // 展示有口令页面
         isUpLoad: false, // 是否上传头像
         showAvatar: false, //展示生成头像
         showCropper: false, //展示裁剪
+        showPointList: false, //展示积分列表
+        showShareFloat: false, 
         maskList: [], //素材罩数组
+        pointList: [], //积分明细数组
+        guest: {
+          integral: 0, //当前积分
+          is_like: 0, //是否点赞
+        }, //当前用户信息
+        sharer: {}, //分享者信息
         avatar: {
           bgUrl: '{:REGISTER_PUBLIC}img/avatar/default_avatar.jpg',
           maskUrl: ''
@@ -128,7 +216,6 @@
     mounted() {
       this.getUserInfo()
       this.initCropper()
-      this.initWxShare()
     },
     methods: {
       // 获取个人信息
@@ -143,8 +230,10 @@
             if (errCode === 0) {
               this.userInfo = data.userInfo;
               this.token = data.token;
+              this.getUrlQuery()
               this.getCode()
-              this.getMask()
+              this.getPointLog()
+              this.initWxShare()
             }
           },
           err => {
@@ -184,6 +273,7 @@
         this.$http.get(URL + "/register/avatar/posters", {
           params: {
             token: this.token,
+            fromid: this.queryMid
           }
         }).then(
           res => {
@@ -194,8 +284,11 @@
             } = res.body;
             if (errCode === 0) {
               this.maskList = data.pics;
-              if (this.maskList.length) {
-                this.avatar.maskUrl = this.maskList[0].img
+              this.guest.integral = data.integral;
+              this.guest.is_like = data.is_like;
+              if (data.sharer) this.sharer = data.sharer;
+              if (this.maskList[this.maskIndex].is_open == 1) {
+                this.avatar.maskUrl = this.maskList[this.maskIndex].img
                 this.$nextTick(() => {
                   this.resultAvatar()
                 })
@@ -206,6 +299,120 @@
             console.log("getCode 请求失败");
           }
         );
+      },
+      // 获取明细列表
+      getPointLog() {
+        this.$http.get(URL + "/register/avatar/log", {
+          params: {
+            token: this.token,
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.pointList = data.list;
+            }
+          },
+          err => {
+            console.log("getPointLog 请求失败");
+          }
+        );
+      },
+      // 请求解锁素材
+      getAvatarMask(obj, index) {
+        this.$http.post(URL + "/register/avatar/unlock", obj, {
+          emulateJSON: true
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.$toast({
+                type: 'success',
+                message: '解锁成功',
+                duration: 1500
+              })
+              this.setAvatarMask(index);
+              this.getMask();
+              this.getPointLog();
+            }
+          },
+          err => {
+            console.log('getAvatarMask 请求失败');
+          }
+        );
+      },
+      // 请求点赞
+      getAvatarLike(obj) {
+        this.$http.post(URL + "/register/avatar/like", obj, {
+          emulateJSON: true
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.$toast({
+                type: 'success',
+                message: '点赞成功',
+                duration: 1500
+              })
+              this.getMask();
+              this.showShareFloat = false;
+            }
+          },
+          err => {
+            console.log('getAvatarLike 请求失败');
+          }
+        );
+      },
+      // 请求绑定上下级
+      getAvatarBind(obj) {
+        this.$http.post(URL + "/register/avatar/bind", obj, {
+          emulateJSON: true
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {}
+          },
+          err => {
+            console.log('getAvatarBind 请求失败');
+          }
+        );
+      },
+      // 获取url参数 判断单聊群聊
+      getUrlQuery() {
+        let mid = getQueryString('mid');
+        if (mid) {
+          this.queryMid = mid;
+          this.getAvatarBind({
+            token: this.token,
+            fromid: mid
+          })
+        }
+        // 获取url参数
+        function getQueryString(name, url) {
+          var url = url || window.location.href;
+          var reg = new RegExp("(^|&|/?)" + name + "=([^&|/#?]*)(&|/?|$)", "i");
+          var r = url.substr(1).match(reg);
+          if (r != null) {
+            return r[2];
+          }
+          return null;
+        }
       },
       // 点击进入
       goEnter() {
@@ -233,9 +440,11 @@
               message: '验证成功！',
               duration: 1000,
             })
-            this.$nextTick(() => {
-              this.resultAvatar()
-            })
+            this.getMask();
+            // this.$nextTick(() => {
+            //   this.resultAvatar()
+            // })
+            if (this.queryMid && this.sharer.is_like == 1) this.showShareFloat = true;
           } else {
             this.$toast({
               type: 'fail',
@@ -247,12 +456,30 @@
         }
       },
       // 选择海报
-      checkMask(index) {
-        this.avatar.maskUrl = this.maskList[index].img;
-        this.maskIndex = index;
-        this.$nextTick(() => {
-          this.resultAvatar()
-        })
+      checkMask(index, id) {
+        if (this.maskList[index].is_open == 1) {
+          this.setAvatarMask(index);
+          return
+        }
+        this.$dialog.alert({
+            title: '提示',
+            message: '使用积分解锁头像素材？',
+            confirmButtonColor: '#FF730C',
+            showCancelButton: true,
+          })
+          .then(() => {
+            if (this.guest.integral >= 10) {
+              this.getAvatarMask({
+                token: this.token,
+                id: id
+              }, index)
+            } else {
+              this.$toast('积分不足,无法解锁');
+            }
+          })
+          .catch(() => {
+            // on cancel
+          });
       },
       // 重置头像
       avatarReset() {
@@ -291,6 +518,14 @@
           this.resultAvatar()
         })
       },
+      // 设置头像素材
+      setAvatarMask(index) {
+        this.avatar.maskUrl = this.maskList[index].img;
+        this.maskIndex = index;
+        this.$nextTick(() => {
+          this.resultAvatar()
+        })
+      },
       // 生成头像
       resultAvatar() {
         window.pageYoffset = 0;
@@ -310,8 +545,28 @@
         let desc = "头像制作，限时抢领";
         let imgUrl = `${URL}/{:REGISTER_PUBLIC}img/avatar/share_icon.png`;
         let url = location.href;
-        Wxshare.call(this, title, desc, imgUrl, url);
+        let share_url = `${location.href}?mid=${this.userInfo.mid}`
+        Wxshare.call(this, title, desc, imgUrl, url, share_url);
       },
+      // 展示积分明细
+      goShowPoint() {
+        this.showPointList = true;
+      },
+      // 点击点赞
+      goClickLike() {
+        if (this.guest.is_like == 1) {
+          this.$toast({
+            type: 'fail',
+            message: '已点赞',
+            duration: 1500
+          })
+          return false
+        }
+        this.getAvatarLike({
+          token: this.token,
+          fromid: this.queryMid
+        })
+      }
     }
   })
 </script>
