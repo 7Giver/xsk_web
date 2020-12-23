@@ -37,31 +37,7 @@
             <img class="mask" :src="avatar.maskUrl" alt="">
           </div>
         </div>
-        <!-- <p>长按保存新头像</p> -->
       </div>
-      <!-- <div class="inner_wrap">
-        <div class="content_wrap">
-          <div class="left" @click="goClickLike">
-            <img src="{:REGISTER_PUBLIC}img/avatar/like_on.png" alt="" v-if="!guest.is_like">
-            <img src="{:REGISTER_PUBLIC}img/avatar/like_off.png" alt="" v-else>
-            <p>{{guest.is_like == 1 ? '已点赞' : '点赞'}}</p>
-          </div>
-          <div class="right">
-            <div class="top">
-              <p>当前积分:</p>
-              <span @click="goShowPoint">{{guest.integral}}</span>
-            </div>
-            <p class="bottom">邀请好友点赞领积分</p>
-          </div>
-        </div>
-        <div class="bubble_wrap" v-if="queryMid&&sharer.avatar">
-          <div class="top">
-            <img :src="sharer.avatar" alt="">
-            <p>{{sharer.name}}</p>
-          </div>
-          <p>邀请您点赞</p>
-        </div>
-      </div> -->
       <div class="inner_wrap">
         <div class="content_wrap">
           <div class="right">
@@ -146,14 +122,17 @@
           <div class="bubble_wrap">
             <div class="top">
               <img :src="sharer.avatar" alt="">
-              <p>{{sharer.name}}</p>
+              <p>{{sharer.name}}邀请您</p>
             </div>
-            <p>邀请您点赞</p>
           </div>
-          <div class="content" @click="goClickLike">
-            <img src="{:REGISTER_PUBLIC}img/avatar/like_on.png" alt="" v-if="!guest.is_like">
-            <img src="{:REGISTER_PUBLIC}img/avatar/like_off.png" alt="" v-else>
-            <p>{{guest.is_like == 1 ? '已点赞' : '点赞'}}</p>
+          <div class="content">
+            <img class="inner_bg" src="{:REGISTER_PUBLIC}img/avatar/gys.png" alt="">
+            <div class="inner">
+              <img :class="[showAddlike ? 'like_icon rotate' : 'like_icon']"
+                src="{:REGISTER_PUBLIC}img/avatar/dz_icon.png" alt="" @click.stop="goClickLike">
+              <p class="title">为TA点个赞</p>
+              <p class="get_like" v-if="showAddlike">+1</p>
+            </div>
           </div>
         </div>
       </div>
@@ -194,7 +173,8 @@
         showAvatar: false, //展示生成头像
         showCropper: false, //展示裁剪
         showPointList: false, //展示积分列表
-        showShareFloat: false, 
+        showShareFloat: false, //展示分享点赞弹窗
+        showAddlike: false, //展示点赞动画
         maskList: [], //素材罩数组
         pointList: [], //积分明细数组
         guest: {
@@ -286,7 +266,15 @@
               this.maskList = data.pics;
               this.guest.integral = data.integral;
               this.guest.is_like = data.is_like;
-              if (data.sharer) this.sharer = data.sharer;
+              if (data.sharer) {
+                data.sharer.name = this.resultName(data.sharer.name, 4)
+                this.sharer = data.sharer
+              };
+              if (this.showWrap && this.queryMid && data.is_like == 0) {
+                this.$nextTick(() => {
+                  this.showShareFloat = true;
+                })
+              }
               if (this.maskList[this.maskIndex].is_open == 1) {
                 this.avatar.maskUrl = this.maskList[this.maskIndex].img
                 this.$nextTick(() => {
@@ -366,7 +354,9 @@
                 message: '点赞成功',
                 duration: 1500
               })
-              this.getMask();
+              // this.getMask();
+              this.showAddlike = false;
+              this.showShareFloat = false;
               this.showShareFloat = false;
             }
           },
@@ -414,6 +404,14 @@
           return null;
         }
       },
+      // 处理过长姓名
+      resultName(name, num) {
+        let arr = name.split('')
+        let newArr = arr.slice(0, num)
+        newArr.push('...')
+        let str = newArr.join('')
+        return str
+      },
       // 点击进入
       goEnter() {
         if (!this.word) {
@@ -441,10 +439,6 @@
               duration: 1000,
             })
             this.getMask();
-            // this.$nextTick(() => {
-            //   this.resultAvatar()
-            // })
-            if (this.queryMid && this.sharer.is_like == 1) this.showShareFloat = true;
           } else {
             this.$toast({
               type: 'fail',
@@ -474,7 +468,12 @@
                 id: id
               }, index)
             } else {
-              this.$toast('积分不足,无法解锁');
+              // this.$toast('积分不足,无法解锁');
+              this.$dialog.alert({
+                title: '提示',
+                message: '积分不足，赶快分享好友点赞获取积分吧',
+                confirmButtonColor: '#FF730C',
+              })
             }
           })
           .catch(() => {
@@ -558,10 +557,14 @@
           this.$toast({
             type: 'fail',
             message: '已点赞',
-            duration: 1500
+            duration: 1500,
+            onClose: () => {
+              this.showShareFloat = false;
+            }
           })
           return false
         }
+        this.showAddlike = true;
         this.getAvatarLike({
           token: this.token,
           fromid: this.queryMid
