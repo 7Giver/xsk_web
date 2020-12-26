@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=0">
+  <title>关系列表</title>
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet"
+    href="{:REGISTER_PUBLIC}css/user_relations_list/user_relations_list.css?v=<?php echo time(); php?>">
+</head>
+
+<body>
+  <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <van-tabs v-model="active" color="#ff8e16" animated swipeable @change="getRelationList">
+      <van-tab title="我的好友">
+        111
+      </van-tab>
+      <van-tab class="card_list" title="我的关注">
+        <div class="item" v-for="(item, index) in cardList" :key="index" @click="goCard(item)">
+          <div class="left_wrap">
+            <div class="avatar">
+              <img :src="item.avatar" alt="">
+            </div>
+            <div class="content">
+              <p class="name">{{item.name}}</p>
+            </div>
+          </div>
+          <div class="right_wrap">
+            <div class="left">
+              <img src="{:REGISTER_PUBLIC}img/user_card_new/tel_list.png" alt="" @click="callTel">
+              <img src="{:REGISTER_PUBLIC}img/user_card_new/wx_list.png" alt="">
+            </div>
+            <div class="right">+关注</div>
+          </div>
+        </div>
+      </van-tab>
+      <van-tab title="我的粉丝">
+        333
+      </van-tab>
+    </van-tabs>
+  </div>
+</body>
+
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js"></script>
+
+<script>
+  const URL = "{:H5_DOMAIN}";
+
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        token: '',
+        userInfo: {},
+        active: 0,
+        cardList: [{
+            add_time: '2020-11-13 13:32',
+            avatar: 'http://cdn.yingku878.com/wmp_upload_photo_8292341594621289.jpeg',
+            favor_id: '829234',
+            name: "小黑跳大",
+            tel: "13916342993",
+            type: 1,
+          },
+          {
+            add_time: '2020-11-13 13:32',
+            avatar: 'http://cdn.yingku878.com/wmp_upload_photo_8292341594621289.jpeg',
+            favor_id: '829234',
+            name: "小黑跳大",
+            tel: "13916342993",
+            type: 2,
+          },
+        ]
+      }
+    },
+    computed: {
+      innerPage() {
+        return window.innerHeight + 'px'
+      }
+    },
+    mounted() {
+      this.getUserInfo();
+    },
+    methods: {
+      // 获取个人信息
+      getUserInfo() {
+        this.$http.get(URL + "/H5/Visitor/getLoginInfo").then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.token = data.token;
+              this.userInfo = data.userInfo;
+              this.getRelationList();
+            }
+          },
+          err => {
+            this.$toast({
+              type: 'fail',
+              message: '授权失败',
+              duration: 1500,
+            });
+          }
+        );
+      },
+      // 请求关系列表
+      getRelationList() {
+        this.$http.get(URL + "/register/card/relations", {
+          params: {
+            token: this.token,
+            page: 1,
+            type: this.active*1 + 1,
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              console.log(data);
+            }
+          },
+          err => {
+            console.log("getRelationList 请求失败");
+          }
+        );
+      },
+      goCard() {
+
+      },
+      callTel() {
+        this.$dialog.alert({
+            title: '提示',
+            message: '您尚未开通此功能，请开通会员',
+            confirmButtonText: '去开通',
+            confirmButtonColor: '#FF730C',
+            showCancelButton: true,
+          })
+          .then(() => {
+            console.log('111');
+          })
+          .catch(() => {
+            console.log(222);
+          });
+      }
+    }
+  })
+</script>
+
+</html>

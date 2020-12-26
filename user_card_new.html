@@ -18,30 +18,47 @@
         <div class="brand_wrap">
           <img :src="guest.brand_logo" alt="">
         </div>
-        <div class="name_wrap">
-          <p class="name">{{guest.name}}</p>
-          <p class="brand">{{guest.brand}}</p>
+        <div class="top_right_wrap">
+          <div class="name_wrap">
+            <p class="name">{{userInfo.name}}</p>
+            <p class="brand">{{userInfo.brand}}</p>
+          </div>
+          <div class="follow_wrap" @click="getFocus">{{foucsInfo.is_focus ? '已关注' : '+关注'}}</div>
         </div>
         <div class="content_wrap">
           <div class="avatar">
             <img :src="guest.avatar" alt="">
           </div>
           <div class="right_wrap">
-            <div class="item_m">
+            <!-- <div class="item_m">
               <p>{{guest.need_hide ? encodeTel : guest.tel}}</p>
               <img src="{:REGISTER_PUBLIC}img/user_card_new/tel_mini.png" alt="">
             </div>
             <div class="item_m">
               <p>{{guest.wechat || '尚未完善'}}</p>
               <img src="{:REGISTER_PUBLIC}img/user_card_new/wx_mini.png" alt="">
+            </div> -->
+            <div class="numbers_wrap">
+              <div class="item" @click="goRelation">
+                <p>{{foucsInfo.focus || 0}}</p>
+                <span>关注</span>
+              </div>
+              <div class="item" @click="goRelation(1)">
+                <p>{{foucsInfo.fans || 0}}</p>
+                <span>粉丝</span>
+              </div>
+              <div class="item" @click="goRelation(2)">
+                <p>{{foucsInfo.friends || 0}}</p>
+                <span>好友</span>
+              </div>
             </div>
             <div class="apply_wrap">
-              <div class="item" @click="copyContentH5(guest.wechat)">
-                <img src="{:REGISTER_PUBLIC}img/user_card_new/wx_icon.png" alt="">
+              <div class="item wx" @click="copyContentH5(guest.wechat)">
+                <img src="{:REGISTER_PUBLIC}img/user_card_new/wx_mini.png" alt="">
                 <p>复制微信号</p>
               </div>
-              <div class="item" @click="callTel(guest.tel)">
-                <img src="{:REGISTER_PUBLIC}img/user_card_new/tel_icon.png" alt="">
+              <div class="item tel" @click="callTel(guest.tel)">
+                <img src="{:REGISTER_PUBLIC}img/user_card_new/tel_mini.png" alt="">
                 <p>拨打电话</p>
               </div>
             </div>
@@ -117,6 +134,9 @@
       <p>一键换成我的</p>
       <img src="{:REGISTER_PUBLIC}img/user_card_new/arrow_icon.png" alt="">
     </a>
+    <div class="contact_me" @click="goChat" v-if="!isSelf">
+      <img src="{:REGISTER_PUBLIC}img/user_card_new/chat_icon.png" alt="">
+    </div>
   </div>
 </body>
 
@@ -139,8 +159,10 @@
         token: '',
         userInfo: {},
         guest: {},
+        foucsInfo: {},
         need_hide: true,
         isSelf: false, // 是否本人
+        isMember: false, //是否会员
         mid: '', // 查看当前的mid
         encodeTel: '', // 加密号码
         articleList: [],
@@ -170,14 +192,16 @@
             } = res.body;
             if (errCode === 0) {
               this.token = data.token;
-              this.userInfo = data.userInfo
-              let id = this.getQueryString('mid')
+              this.userInfo = data.userInfo;
+              let id = this.getQueryString('mid');
               if (id) {
-                this.mid = id
+                this.mid = id;
+                this.getGuestMsg(id);
                 this.getUserCardMsg(id)
               } else {
-                this.mid = this.userInfo.mid
-                this.getUserCardMsg(this.userInfo.mid)
+                this.mid = this.userInfo.mid;
+                this.getGuestMsg(this.userInfo.mid);
+                this.getUserCardMsg(this.userInfo.mid);
               }
               this.getNewsList()
             }
@@ -222,6 +246,73 @@
           },
           err => {
             console.log('getUserCardMsg 请求失败');
+          }
+        );
+      },
+      // 获取用户信息
+      getGuestMsg(mid) {
+        this.$http.get(URL + "/register/friend/userinfo", {
+          params: {
+            token: this.token,
+            uid: mid
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.foucsInfo = data;
+              this.isMember = data.is_open;
+            }
+          },
+          err => {
+            console.log("getGuestMsg 请求失败");
+          }
+        );
+      },
+      // 关注请求
+      getFocus() {
+        if (this.isSelf) {
+          this.$toast({
+            type: 'fail',
+            message: '不能关注自己',
+            duration: 1500,
+          });
+          return false
+        }
+        this.$http.get(URL + "/register/friend/focus", {
+          params: {
+            token: this.token,
+            focus_id: this.mid,
+            status: this.foucsInfo.is_focus ? 2 : 1
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.$toast({
+                type: 'success',
+                message: data,
+                duration: 1500,
+              });
+              this.getGuestMsg(this.mid)
+            } else {
+              this.$toast({
+                type: 'fail',
+                message: msg,
+                duration: 1500,
+              });
+            }
+          },
+          err => {
+            console.log("getFocus 请求失败");
           }
         );
       },
@@ -491,6 +582,42 @@
         let share_url = `${URLShare}/register/page/user_card_new?mid=${this.mid}&pid=${this.userInfo.vid}`;
         Wxshare.call(this, title, desc, imgUrl, url, share_url);
       },
+      // 跳转聊天
+      goChat() {
+        if (this.isSelf) {
+          this.$toast({
+            type: 'fail',
+            message: '不能联系自己',
+            duration: 1500,
+          });
+          return false
+        }
+        if (!this.isMember) {
+          this.$dialog.alert({
+            title: '提示',
+            message: '当前用户尚未开通此功能，您的联系请求已收集，稍后会通知该客户',
+            confirmButtonColor: '#FF730C',
+          });
+          return false
+        }
+        if (!this.foucsInfo.id || !this.foucsInfo.sid) {
+          this.$toast({
+            type: 'fail',
+            message: '缺少id',
+            duration: 1500,
+          });
+          return false
+        }
+        location.href = `/register/page/chat?id=${this.foucsInfo.id}&sid=${this.foucsInfo.sid}`
+      },
+      // 跳转关系列表
+      goRelation(type = 0) {
+        if (type > 0) {
+          location.href = `/register/page/user_relations_list?list_type=${type}`
+        } else {
+          location.href = '/register/page/user_relations_list'
+        }
+      }
     }
   })
 </script>
