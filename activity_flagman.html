@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>我为祖国升国旗</title>
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/base.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/activity_flagman/activity_flagman.css?v=<?php echo time(); php?>">
+</head>
+
+<body>
+  <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <div class="container">
+      <img class="flag_icon" src="{:REGISTER_PUBLIC}img/activity_flagman/unnamed.gif" alt=""
+        :style="{bottom: flagBottom + 'px'}">
+      <img ref="flagpole" class="flag_pole" src="{:REGISTER_PUBLIC}img/activity_flagman/flagpole.png" alt="">
+      <div class="inner_wrap">
+        <van-swipe :autoplay="2000" :loop="true" :show-indicators="false" :touchable="false" :vertical="true"
+          :height="36">
+          <van-swipe-item v-for="(item, index) in noticeList" :key="index">
+            <div class="inner_item">
+              <img src="{:REGISTER_PUBLIC}img/activity_flagman/like_icon.png" alt="">
+              <div class="message">
+                <span
+                  :class="['name', index % 3 > 0 ? 'name_color'+(index % 3) : 'name_color']">{{item.name}}</span>为祖国升旗！</span>
+              </div>
+            </div>
+          </van-swipe-item>
+        </van-swipe>
+      </div>
+      <div class="mybtn">
+        <p @click="goStartRaise" v-if="!startRaise">点击升旗</p>
+        <p v-else>点击升旗</p>
+      </div>
+      <div class="my_toast_btn" @click="goShowFlagWrap">查看荣誉证书</div>
+    </div>
+    <!-- 名字弹窗 -->
+    <van-popup v-model="showNameDialog" :close-on-click-overlay="false">
+      <div class="name_wrap">
+        <div class="input_wrap">
+          <input type="text" v-model="user_name" placeholder="请输入您的姓名...">
+        </div>
+        <div class="submit_btn" @click="comfirmName">确认</div>
+      </div>
+    </van-popup>
+    <!-- 旗手弹窗 -->
+    <van-popup v-model="showFlagDialog">
+      <div class="flag_wrap">
+        <img class="reuslt_poster" :src="resultSrc" alt="" v-if="resultSrc">
+      </div>
+      <img class="close_btn" src="{:REGISTER_PUBLIC}img/activity_flagman/close.png" alt="" @click="showFlagDialog=false">
+    </van-popup>
+    <div class="share_wrap" v-if="showFlagDialog">
+      <p class="title">点击“●●●” 邀请更多亲友升国旗</p>
+      <img class="icon" src="{:REGISTER_PUBLIC}img/activity_flagman/share_arrow.png" alt="">
+    </div>
+    <!-- 二维码根节点 -->
+    <div style="display: none;">
+      <div id="canvasCode"></div>
+    </div>
+    <!-- 背景音乐 -->
+    <audio ref="bgSound" :src="myAudio" controls style="display: none;"></audio>
+    <!-- canvas Dom -->
+    <div class="canvandom" id="flagWrap" ref="flagWrap">
+      <div class="text_wrap">
+        恭喜 <span class="name">{{userInfo.name}}</span>，成为<span class="rank">第{{guest.rank}}位</span>升旗手，特颁发此荣誉证书！
+      </div>
+      <img class="qcode" :src="qrcodeImg" alt="">
+      <div class="seal_wrap">
+        <img class="seal_icon" src="{:REGISTER_PUBLIC}img/activity_flagman/seal_icon.png" alt="">
+        <div class="text">
+          <p class="add_time">{{nowDate}}</p>
+        </div>
+      </div>
+      <p class="user_code">编号：{{guest.verify}}</p>
+    </div>
+  </div>
+</body>
+
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js"></script>
+<script src="{:RES_FILES}/common/js/jquery-1.8.3.min.js"></script>
+<script src="{:RES_FILES}/common/js/jquery.qrcode.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/html2canvas.min.js?v=1.1"></script>
+<script src="{:REGISTER_PUBLIC}js/jweixin-1.1.0.js"></script>
+<script src="{:REGISTER_PUBLIC}js/wx.share.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vconsole.min.js"></script>
+
+<script>
+  // new VConsole();
+  const URL = "{:H5_DOMAIN}";
+
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        token: '',
+        userInfo: {},
+        guest: {}, //旗手信息
+        user_name: '', //输入姓名
+        qrcodeImg: '', //二维码
+        resultSrc: '', //生成海图片
+        nowDate: '', //当前年月日
+        is_sign: false, //是否报名
+        showNameDialog: false, // 名字弹窗
+        showFlagDialog: false, // 旗手弹窗
+        startRaise: false, //开始升旗
+        audioLength: 46, //音频长度(s)
+        flagBottom: 65, //国旗高度(px)
+        myAudio: '{:REGISTER_PUBLIC}img/activity_flagman/abs_lite.mp3',
+        noticeList: [{
+            name: '我是小神威牙'
+          },
+          {
+            name: '蔡徐'
+          },
+          {
+            name: '王秀荣'
+          },
+          {
+            name: '小月牙弯弯'
+          },
+          {
+            name: '拥抱明天'
+          },
+          {
+            name: '糸雨沁心'
+          },
+          {
+            name: '缺少你给的悲伤'
+          },
+        ],
+      }
+    },
+    computed: {
+      innerPage() {
+        return window.innerHeight + 'px';
+      }
+    },
+    created() {
+      this.getNowDate();
+    },
+    mounted() {
+      // console.log(this.$refs.flagpole.offsetHeight);
+      this.getUserInfo();
+      this.noticeList.forEach(item => {
+        item.name = this.resultName(item.name, 4)
+      });
+    },
+    methods: {
+      // 获取个人信息
+      getUserInfo() {
+        this.$http.get(URL + "/H5/Visitor/getLoginInfo").then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.userInfo = data.userInfo;
+              this.token = data.token;
+              this.getRaiseMsg();
+              this.getQRCanvasCode();
+            }
+          },
+          err => {
+            this.$toast({
+              type: 'fail',
+              message: '登录失败',
+              duration: 1500
+            })
+            console.log("getLoginInfo 请求失败");
+          }
+        );
+      },
+      // 获取升旗信息
+      getRaiseMsg() {
+        this.$http.get(URL + "/register/anthem/info", {
+          params: {
+            token: this.token,
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.guest = data;
+              this.initWxShare();
+            }
+          },
+          err => {
+            console.log("getRaiseMsg 请求失败");
+          }
+        );
+      },
+      // 提交姓名信息
+      postUserName(obj) {
+        this.$http.post(URL + "/register/anthem/register", obj, {
+          emulateJSON: true
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.postRaiseDone({
+                token: this.token
+              })
+            }
+          },
+          err => {
+            console.log('postUserName 请求失败');
+          }
+        );
+      },
+      // 升旗完毕请求
+      postRaiseDone(obj) {
+        this.$http.post(URL + "/register/anthem/complete", obj, {
+          emulateJSON: true
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.guest = data;
+              this.$nextTick(() => {
+                this.resultAvatar();
+              })
+            }
+          },
+          err => {
+            console.log('postUserName 请求失败');
+          }
+        );
+      },
+      // 升旗
+      goStartRaise() {
+        this.playSound();
+        const originBottom = this.$options.data().flagBottom;
+        const maxHeight = this.$refs.flagpole.offsetHeight;
+        // const maxHeight = 333;
+        // console.log('>>>>>>>>maxHeight', maxHeight);
+        this.flagBottom = originBottom;
+        let maxTime = this.audioLength * 1000;
+        let length = maxHeight - this.flagBottom;
+        let speed = length / maxTime;
+        // console.log('>>>>>>>>maxTime', maxTime);
+        // console.log('>>>>>>>>speed', speed);
+        this.startRaise = true;
+        let timer = setInterval(() => {
+          this.flagBottom += (speed * 300);
+          // if (this.flagBottom % 10 == 0) console.log(this.flagBottom);
+          if (this.flagBottom >= maxHeight) {
+            // console.log('clear!');
+            this.flagBottom = maxHeight;
+            this.goRaiseDone();
+            clearInterval(timer);
+          }
+        }, 300);
+      },
+      // 升旗结束
+      goRaiseDone() {
+        this.startRaise = false;
+        if (this.guest.status == 1) {
+          this.$nextTick(() => {
+            this.resultAvatar();
+          })
+          return false
+        }
+        if (this.guest.status == 0) {
+          this.$nextTick(() => {
+            this.showNameDialog = true;
+          })
+        }
+      },
+      // 提交名字
+      comfirmName() {
+        if (!this.user_name) {
+          this.$toast('请填写姓名！')
+          return false
+        }
+        this.postUserName({
+          token: this.token,
+          name: this.user_name
+        });
+        this.goEnter();
+      },
+      // 点击进入
+      goEnter() {
+        this.$toast.loading({
+          message: '认证中...',
+          forbidClick: true,
+          duration: 1000,
+          onClose: () => {
+            next()
+          }
+        });
+        next = () => {
+          this.showNameDialog = false;
+        }
+      },
+      // 播放铃声
+      playSound() {
+        let audio = this.$refs.bgSound;
+        audio.addEventListener('ended', () => {
+          console.log('stop');
+          this.goRaiseDone();
+        })
+        audio.play();
+      },
+      // 处理过长姓名
+      resultName(name, num) {
+        let str = '';
+        let arr = name.split('');
+        let newArr = arr.slice(0, num);
+        if (arr.length > num) newArr.push('...');
+        str = newArr.join('');
+        return str
+      },
+      //生成分享二维码
+      getQRCanvasCode() {
+        const vid = this.userInfo.mid;
+        const qr = `${location.origin + location.pathname}?mid=${vid}`;
+        const qrcode = $("#canvasCode")
+          .qrcode({
+            render: "canvas", //也可以替换为table
+            width: 120,
+            height: 120,
+            text: qr,
+            /*可以通过ajax请求动态设置*/
+          })
+          .hide();
+        let qrcode_canvas = qrcode.find("canvas").get(0);
+        this.qrcodeImg = qrcode_canvas.toDataURL("image/jpg");
+      },
+      // 载入微信分享
+      initWxShare() {
+        let mytitle = '';
+        if (this.guest.status == 1) {
+          mytitle = `我是第${this.guest.rank}名升旗手！为祖国升国旗，请接力！`
+        } else {
+          mytitle = `亲友邀请您为祖国升国旗，请接力！`
+        }
+        let title = mytitle;
+        let desc = "我是中国梦圆梦人，我为祖国升国旗";
+        let imgUrl = `${URL}{:REGISTER_PUBLIC}img/activity_flagman/share_icon.png`;
+        let url = location.href;
+        let share_url = `${location.origin + location.pathname}?mid=${this.userInfo.mid}`
+        Wxshare.call(this, title, desc, imgUrl, url, share_url);
+      },
+      // 点击查看荣誉证书
+      goShowFlagWrap() {
+        let flag = this.guest.status;
+        if (flag == 1) {
+          this.resultAvatar();
+        } else {
+          this.$toast('请先升国旗');
+        }
+      },
+      // 生成海报
+      resultAvatar() {
+        window.pageYoffset = 0;
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        new html2canvas(this.$refs.flagWrap, {
+          backgroundColor: 'transparent',
+          allowTaint: true,
+          useCORS: true
+        }).then(canvas => {
+          this.resultSrc = canvas.toDataURL();
+          this.showFlagDialog = true;
+        });
+      },
+      // 获取当前年月日
+      getNowDate() {
+        var date = new Date();
+        var year = date.getFullYear();
+        var month = date.getMonth() + 1;
+        var day = date.getDate();
+        if (month < 10) {
+          month = "0" + month;
+        }
+        if (day < 10) {
+          day = "0" + day;
+        }
+        this.nowDate = `${year}年${month}月${day}日`;
+      }
+    }
+  })
+</script>
+
+</html>
