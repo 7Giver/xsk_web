@@ -13,31 +13,33 @@
 
 <body>
   <div id="app" :style="{'min-height': innerPage}" v-cloak>
-    <van-tabs v-model="active" color="#ff8e16" animated swipeable @change="getRelationList">
-      <van-tab title="我的好友">
-        111
-      </van-tab>
-      <van-tab class="card_list" title="我的关注">
-        <div class="item" v-for="(item, index) in cardList" :key="index" @click="goCard(item)">
-          <div class="left_wrap">
-            <div class="avatar">
-              <img :src="item.avatar" alt="">
+    <van-tabs v-model="active" color="#ff8e16" animated swipeable @change="switchTabCard">
+      <van-tab :title="tab.title" v-for="(tab, idx) in tabList" :key="idx">
+        <template v-if="cardList.length">
+          <van-list class="card_list" v-model="loading" :finished="finished" :immediate-check="false"
+            finished-text="没有更多了" @load="onLoadList">
+            <div class="item" v-for="(item, index) in cardList" :key="index" @click="goCard(item)">
+              <div class="left_wrap">
+                <div class="avatar">
+                  <img :src="item.avatar" alt="">
+                </div>
+                <div class="content">
+                  <p class="name">{{item.name}}</p>
+                </div>
+              </div>
+              <div class="right_wrap">
+                <div class="left">
+                  <img src="{:REGISTER_PUBLIC}img/user_card_new/tel_list.png" alt="" @click="callTel(item)">
+                  <img src="{:REGISTER_PUBLIC}img/user_card_new/wx_list.png" alt="" @click="copyContentH5(item)">
+                </div>
+                <div class="right" @click="getFocus(item)">{{item.is_focus ? '已关注' : '+关注'}}</div>
+              </div>
             </div>
-            <div class="content">
-              <p class="name">{{item.name}}</p>
-            </div>
-          </div>
-          <div class="right_wrap">
-            <div class="left">
-              <img src="{:REGISTER_PUBLIC}img/user_card_new/tel_list.png" alt="" @click="callTel">
-              <img src="{:REGISTER_PUBLIC}img/user_card_new/wx_list.png" alt="">
-            </div>
-            <div class="right">+关注</div>
-          </div>
-        </div>
-      </van-tab>
-      <van-tab title="我的粉丝">
-        333
+          </van-list>
+        </template>
+        <template v-else>
+          <van-empty description="暂无内容"></van-empty>
+        </template>
       </van-tab>
     </van-tabs>
   </div>
@@ -57,23 +59,21 @@
         token: '',
         userInfo: {},
         active: 0,
-        cardList: [{
-            add_time: '2020-11-13 13:32',
-            avatar: 'http://cdn.yingku878.com/wmp_upload_photo_8292341594621289.jpeg',
-            favor_id: '829234',
-            name: "小黑跳大",
-            tel: "13916342993",
-            type: 1,
+        page: 1, // 页码
+        pageSize: 10, // 每页条数
+        loading: false, // 分页加载
+        finished: false, // 结束分页加载
+        tabList: [{
+            title: '我的好友'
           },
           {
-            add_time: '2020-11-13 13:32',
-            avatar: 'http://cdn.yingku878.com/wmp_upload_photo_8292341594621289.jpeg',
-            favor_id: '829234',
-            name: "小黑跳大",
-            tel: "13916342993",
-            type: 2,
+            title: '我的关注'
           },
-        ]
+          {
+            title: '我的粉丝'
+          },
+        ],
+        cardList: [],
       }
     },
     computed: {
@@ -82,9 +82,25 @@
       }
     },
     mounted() {
+      this.getQueryString();
       this.getUserInfo();
     },
     methods: {
+      // 获取url参数
+      getQueryString(name, url) {
+        let type = getQuery('list_type');
+        this.active = type * 1;
+
+        function getQuery(name, url) {
+          var url = url || window.location.href;
+          var reg = new RegExp("(^|&|/?)" + name + "=([^&|/#?]*)(&|/?|$)", "i");
+          var r = url.substr(1).match(reg);
+          if (r != null) {
+            return r[2];
+          }
+          return null;
+        }
+      },
       // 获取个人信息
       getUserInfo() {
         this.$http.get(URL + "/H5/Visitor/getLoginInfo").then(
@@ -109,13 +125,22 @@
           }
         );
       },
+      // 上拉加载请求方法
+      onLoadList() {
+        if (this.cardList.length >= this.pageSize) {
+          this.page++;
+          setTimeout(() => {
+            this.getRelationList();
+          }, 600)
+        }
+      },
       // 请求关系列表
       getRelationList() {
         this.$http.get(URL + "/register/card/relations", {
           params: {
             token: this.token,
-            page: 1,
-            type: this.active*1 + 1,
+            page: this.page,
+            type: this.active * 1 + 1,
           }
         }).then(
           res => {
@@ -125,7 +150,24 @@
               msg
             } = res.body;
             if (errCode === 0) {
-              console.log(data);
+              let result = data.list
+              if (data == null || result.length == 0) {
+                // 加载结束
+                this.finished = true;
+                return;
+              }
+              if (result.length < this.pageSize) {
+                // 一页不足的情况
+                this.finished = true;
+              } else {
+                this.finished = false;
+              }
+              // 处理数据
+              if (this.page === 1) {
+                this.cardList = result;
+              } else {
+                this.cardList = this.cardList.concat(result);
+              }
             }
           },
           err => {
@@ -133,23 +175,118 @@
           }
         );
       },
+      // 关注请求
+      getFocus(item) {
+        this.$http.get(URL + "/register/friend/focus", {
+          params: {
+            token: this.token,
+            focus_id: item.id,
+            status: item.is_focus ? 2 : 1
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.$toast({
+                type: 'success',
+                message: data,
+                duration: 1500,
+              });
+              this.getRelationList()
+            } else {
+              this.$toast({
+                type: 'fail',
+                message: msg,
+              });
+            }
+          },
+          err => {
+            console.log("getFocus 请求失败");
+          }
+        );
+      },
+      // 跳转名片
       goCard() {
 
       },
-      callTel() {
-        this.$dialog.alert({
+      // 拨打电话
+      callTel(item) {
+        if (item.roleid != 2) {
+          this.$dialog.alert({
             title: '提示',
-            message: '您尚未开通此功能，请开通会员',
-            confirmButtonText: '去开通',
+            message: '当前用户尚未开通此功能，您的联系请求已收集，稍后会通知该客户',
             confirmButtonColor: '#FF730C',
-            showCancelButton: true,
-          })
-          .then(() => {
-            console.log('111');
-          })
-          .catch(() => {
-            console.log(222);
           });
+          return false
+        }
+        if (!item.tel) {
+          this.$toast({
+            type: 'fail',
+            message: '暂无手机号',
+            duration: 1500,
+          });
+          return false
+        }
+        location.href = 'tel://' + item.tel;
+      },
+      //复制文本到剪切板
+      copyContentH5(item) {
+        if (item.roleid != 2) {
+          this.$dialog.alert({
+            title: '提示',
+            message: '当前用户尚未开通此功能，您的联系请求已收集，稍后会通知该客户',
+            confirmButtonColor: '#FF730C',
+          });
+          return false
+        }
+        if (!item.wechat) {
+          this.$toast({
+            type: 'fail',
+            message: '暂无微信号',
+            duration: 1500,
+          });
+          return false
+        }
+        var copyDom = document.createElement('div');
+        copyDom.innerText = item.wechat;
+        copyDom.style.position = 'absolute';
+        copyDom.style.top = '0px';
+        copyDom.style.right = '-9999px';
+        document.body.appendChild(copyDom);
+        //创建选中范围
+        var range = document.createRange();
+        range.selectNode(copyDom);
+        //移除剪切板中内容
+        window.getSelection().removeAllRanges();
+        //添加新的内容到剪切板
+        window.getSelection().addRange(range);
+        //复制
+        var successful = document.execCommand('copy');
+        copyDom.parentNode.removeChild(copyDom);
+        try {
+          var msg = successful ? "successful" : "failed";
+          this.$toast({
+            type: successful ? "success" : "fail",
+            message: successful ? "复制成功" : "复制失败",
+            duration: 1500,
+          })
+          console.log('Copy command was : ' + msg);
+        } catch (err) {
+          console.log('Oops , unable to copy!');
+        }
+      },
+      // 切换列表
+      switchTabCard() {
+        this.page = this.$options.data().page;
+        this.pageSize = this.$options.data().pageSize;
+        this.loading = this.$options.data().loading;
+        this.finished = this.$options.data().finished;
+        this.cardList = [];
+        this.getRelationList()
       }
     }
   })
