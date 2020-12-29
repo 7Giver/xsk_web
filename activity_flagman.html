@@ -35,7 +35,21 @@
         <p v-else>点击升旗</p>
       </div>
       <div class="my_toast_btn" @click="goShowFlagWrap">查看荣誉证书</div>
+      <div class="showmore_wrap" @click="goPageBottom">
+        <img src="{:REGISTER_PUBLIC}img/activity_flagman/show_more.gif" alt="">
+      </div>
+      <div class="show_group" @click="goShowGroup">
+        <img src="{:REGISTER_PUBLIC}img/activity_flagman/group_icon.png" alt="">
+      </div>
     </div>
+    <!-- 群码弹窗 -->
+    <van-popup v-model="showGroupDialog">
+      <div class="group_dialog">
+        <img class="qcode" src="{:REGISTER_PUBLIC}img/activity_flagman/group_icon.png" alt="">
+      </div>
+      <img class="close_btn" src="{:REGISTER_PUBLIC}img/activity_flagman/close.png" alt=""
+        @click="showGroupDialog=false">
+    </van-popup>
     <!-- 名字弹窗 -->
     <van-popup v-model="showNameDialog" :close-on-click-overlay="false">
       <div class="name_wrap">
@@ -50,7 +64,8 @@
       <div class="flag_wrap">
         <img class="reuslt_poster" :src="resultSrc" alt="" v-if="resultSrc">
       </div>
-      <img class="close_btn" src="{:REGISTER_PUBLIC}img/activity_flagman/close.png" alt="" @click="showFlagDialog=false">
+      <img class="close_btn" src="{:REGISTER_PUBLIC}img/activity_flagman/close.png" alt=""
+        @click="showFlagDialog=false">
     </van-popup>
     <div class="share_wrap" v-if="showFlagDialog">
       <p class="title">点击“●●●” 邀请更多亲友升国旗</p>
@@ -75,6 +90,33 @@
         </div>
       </div>
       <p class="user_code">编号：{{guest.verify}}</p>
+    </div>
+    <!-- 排行榜 -->
+    <div class="rank_wrap">
+      <div class="content">
+        <div class="title_wrap">
+          <div class="left">
+            <p>头像</p>
+            <p>姓名</p>
+          </div>
+          <div class="right">助力人数</div>
+        </div>
+        <template v-if="rankList.length">
+          <van-list class="rank_list" v-model="loading" :finished="finished" :immediate-check="false"
+            finished-text="没有更多了" @load="onLoadList">
+            <div class="item" v-for="(item, index) in rankList" :key="index">
+              <div class="left">
+                <img :src="item.avatar || default_avatar" alt="">
+                <p>{{item.name}}</p>
+              </div>
+              <div class="right">{{item.cnt || 0}}人助力</div>
+            </div>
+          </van-list>
+        </template>
+        <template v-else>
+          <van-empty description="暂无内容"></van-empty>
+        </template>
+      </div>
     </div>
   </div>
 </body>
@@ -108,9 +150,15 @@
         showNameDialog: false, // 名字弹窗
         showFlagDialog: false, // 旗手弹窗
         startRaise: false, //开始升旗
+        showGroupDialog: false, // 群码弹窗
+        page: 1, // 页码
+        pageSize: 10, // 每页条数
+        loading: false, // 分页加载
+        finished: false, // 结束分页加载
         audioLength: 46, //音频长度(s)
         flagBottom: 65, //国旗高度(px)
         myAudio: '{:REGISTER_PUBLIC}img/activity_flagman/abs_lite.mp3',
+        default_avatar: '{:REGISTER_PUBLIC}img/avatar/default_avatar.jpg', //默认头像
         noticeList: [{
             name: '我是小神威牙'
           },
@@ -133,6 +181,7 @@
             name: '缺少你给的悲伤'
           },
         ],
+        rankList: [],
       }
     },
     computed: {
@@ -165,6 +214,7 @@
               this.token = data.token;
               this.getRaiseMsg();
               this.getQRCanvasCode();
+              this.getRaiseRank();
             }
           },
           err => {
@@ -244,6 +294,56 @@
             console.log('postUserName 请求失败');
           }
         );
+      },
+      // 获取升旗信息
+      getRaiseRank() {
+        this.$http.get(URL + "/register/anthem/rank", {
+          params: {
+            token: this.token,
+            page: this.page,
+            limit: this.pageSize
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              const result = data.list;
+              if (data == null || result.length == 0) {
+                // 加载结束
+                this.loading = false;
+                this.finished = true;
+                return
+              }
+              this.rankList = this.rankList.concat(result);
+              if (result.length < this.pageSize) {
+                // 一页不足的情况
+                this.finished = true;
+              } else {
+                this.loading = false;
+              }
+            } else {
+              this.finished = true;
+              console.log("errCode is not 0");
+            }
+          },
+          err => {
+            console.log("getRaiseRank 请求失败");
+          }
+        );
+      },
+      // 上拉加载请求方法
+      onLoadList() {
+        console.log(111);
+        if (this.rankList.length >= this.pageSize) {
+          this.page++;
+          setTimeout(() => {
+            this.getRaiseRank();
+          }, 600)
+        }
       },
       // 升旗
       goStartRaise() {
@@ -396,6 +496,18 @@
           day = "0" + day;
         }
         this.nowDate = `${year}年${month}月${day}日`;
+      },
+      // 滚动到底部
+      goPageBottom() {
+        window.scrollTo(0, app.clientHeight)
+        // window.scrollTo({
+        //   top: app.clientHeight,
+        //   behavior: "smooth"
+        // });
+      },
+      // 展示群码弹窗
+      goShowGroup() {
+        this.showGroupDialog = true;
       }
     }
   })

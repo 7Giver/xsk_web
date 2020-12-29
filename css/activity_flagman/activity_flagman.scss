@@ -1,14 +1,22 @@
 #app {
-  background-image: url("../../img/activity_flagman/background.jpg");
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-  position: relative;
   .van-popup {
     width: 100%;
     top: 45%;
     background: transparent;
   }
+  .van-empty__description {
+    color: #ff972f;
+  }
+  .van-list__error-text,
+  .van-list__finished-text,
+  .van-loading__text,
+  .van-list__loading {
+    color: #ffffeb;
+  }
   .container {
+    background-image: url("../../img/activity_flagman/background.jpg");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
     position: relative;
     display: flex;
     align-items: center;
@@ -110,6 +118,47 @@
       font-size: 0.25rem;
       line-height: 2.4;
       text-decoration: underline;
+    }
+    .showmore_wrap {
+      position: absolute;
+      left: 50%;
+      bottom: 1%;
+      width: 40%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(0, 0, 0, 0.7);
+      border-radius: 5rem;
+      img {
+        display: block;
+        width: 100%;
+      }
+    }
+    .show_group {
+      position: absolute;
+      top: 50%;
+      right: 5%;
+      width: 1.3rem;
+      animation: shake 4s infinite;
+      > img {
+        display: block;
+        width: 100%;
+      }
+    }
+  }
+  .group_dialog {
+    position: relative;
+    width: 70%;
+    margin: 0 auto;
+    color: #fff;
+    height: 5.6rem;
+    background: url("../../img/activity_flagman/group_bg.png") no-repeat center /
+      100% 100%;
+    .qcode {
+      position: absolute;
+      left: 50%;
+      top: 52%;
+      transform: translate(-50%, -50%);
+      display: block;
+      width: 2rem;
     }
   }
   .name_wrap {
@@ -248,6 +297,82 @@
       }
     }
   }
+  .rank_wrap {
+    background-image: url("../../img/activity_flagman/background2.png");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    position: relative;
+    padding-top: 2rem;
+    padding: 2rem 0 0.8rem;
+    .content {
+      width: 90%;
+      margin: 0 auto;
+      padding: 0.24rem 0.2rem;
+      background: rgba(135, 32, 24, 0.6);
+      .title_wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: #ff972f;
+        font-size: 0.3rem;
+        line-height: 2;
+        background: #c6161b;
+        .left {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex: 0.96;
+          padding-left: 0.45rem;
+        }
+        .right {
+          flex: 2;
+          text-align: right;
+          padding-right: 0.6rem;
+        }
+      }
+      .rank_list {
+        height: 6.5rem;
+        overflow: scroll;
+        -webkit-overflow-scrolling: touch;
+        .item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          color: #ffffeb;
+          padding: 0.2rem 0;
+          border-bottom: 1px solid #c41218;
+          .left {
+            flex: 0.8;
+            display: flex;
+            align-items: center;
+            padding-left: 0.3rem;
+            > img {
+              display: block;
+              width: 0.9rem;
+              height: 0.9rem;
+              margin-right: 0.36rem;
+              border-radius: 50%;
+            }
+            > p {
+              flex: 1;
+              font-size: 0.3rem;
+              display: -webkit-box;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              -webkit-line-clamp: 1;
+              -webkit-box-orient: vertical;
+            }
+          }
+          .right {
+            flex: 1;
+            font-size: 0.32rem;
+            text-align: right;
+            padding-right: 0.5rem;
+          }
+        }
+      }
+    }
+  }
 }
 @keyframes mymove {
   0% {
@@ -261,5 +386,22 @@
   }
   75% {
     transform: scale(1.1);
+  }
+}
+@keyframes shake {
+  0% {
+    transform: translateY(0px);
+  }
+  40% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+  50% {
+    // transform: translateY(0px);
+  }
+  70% {
+    transform: translateY(10px) rotate(-5deg);
+  }
+  100% {
+    transform: translateY(0px);
   }
 }

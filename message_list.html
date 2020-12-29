@@ -255,24 +255,23 @@
                 msg
               } = res.body;
               if (errCode === 0) {
-                let result = data.list
+                const result = data.list;
                 if (data == null || result.length == 0) {
                   // 加载结束
+                  this.loading = false;
                   this.finished = true;
-                  return;
+                  return
                 }
+                this.dataList = this.dataList.concat(result);
                 if (result.length < this.pageSize) {
                   // 一页不足的情况
                   this.finished = true;
                 } else {
-                  this.finished = false;
+                  this.loading = false;
                 }
-                // 处理数据
-                if (this.page === 1) {
-                  this.dataList = result;
-                } else {
-                  this.dataList = this.dataList.concat(result);
-                }
+              } else {
+                this.finished = true;
+                console.log("errCode is not 0");
               }
             },
             err => {
