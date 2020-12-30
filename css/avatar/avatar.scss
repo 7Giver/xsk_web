@@ -129,32 +129,17 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid #ffdb6c;
-        border-radius: 4rem;
-        .left {
+        .right {
           display: flex;
           align-items: center;
           justify-content: center;
           flex-direction: column;
-          width: 3.3rem;
-          height: 3.3rem;
-          color: #d01f1f;
-          font-size: 0.8rem;
-          text-align: center;
-          margin-right: 0.4rem;
-          border-radius: 50%;
-          background: linear-gradient(0deg, #ffdb6c, #ffe1a0);
-          > img {
-            width: 1.6rem;
-          }
-          > p {
-            font-size: 0.7rem;
-          }
-        }
-        .right {
-          flex: 1;
+          height: 48px;
           color: #fbebe1;
-          padding: 0.5rem 1rem;
+          padding: 0 1rem;
+          margin-right: 0.8rem;
+          border: 1px solid #ffdb6c;
+          border-radius: 4rem;
           .top {
             display: flex;
             align-items: center;
@@ -173,6 +158,15 @@
             font-size: 0.72rem;
           }
         }
+      }
+      .rank_btn {
+        height: 48px;
+        color: #ffd742;
+        font-size: 0.8rem;
+        line-height: 48px;
+        padding: 0 1rem;
+        border: 1px solid #ffdb6c;
+        border-radius: 4rem;
       }
       .bubble_wrap {
         position: absolute;
@@ -448,7 +442,6 @@
           .like_icon {
             width: 5.5rem;
             margin: 1rem auto 0.5rem;
-            
           }
           .title {
             color: #333537;

@@ -152,37 +152,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #ffdb6c;
-  border-radius: 4rem;
 }
 
-#app .has_code .inner_wrap .content_wrap .left {
+#app .has_code .inner_wrap .content_wrap .right {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  width: 3.3rem;
-  height: 3.3rem;
-  color: #d01f1f;
-  font-size: 0.8rem;
-  text-align: center;
-  margin-right: 0.4rem;
-  border-radius: 50%;
-  background: linear-gradient(0deg, #ffdb6c, #ffe1a0);
-}
-
-#app .has_code .inner_wrap .content_wrap .left > img {
-  width: 1.6rem;
-}
-
-#app .has_code .inner_wrap .content_wrap .left > p {
-  font-size: 0.7rem;
-}
-
-#app .has_code .inner_wrap .content_wrap .right {
-  flex: 1;
+  height: 48px;
   color: #fbebe1;
-  padding: 0.5rem 1rem;
+  padding: 0 1rem;
+  margin-right: 0.8rem;
+  border: 1px solid #ffdb6c;
+  border-radius: 4rem;
 }
 
 #app .has_code .inner_wrap .content_wrap .right .top {
@@ -204,6 +186,16 @@
 
 #app .has_code .inner_wrap .content_wrap .right .bottom {
   font-size: 0.72rem;
+}
+
+#app .has_code .inner_wrap .rank_btn {
+  height: 48px;
+  color: #ffd742;
+  font-size: 0.8rem;
+  line-height: 48px;
+  padding: 0 1rem;
+  border: 1px solid #ffdb6c;
+  border-radius: 4rem;
 }
 
 #app .has_code .inner_wrap .bubble_wrap {

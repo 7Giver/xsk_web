@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>点赞排行</title>
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/main.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/avatar_rank/avatar_rank.css?v=<?php echo time(); php?>">
+</head>
+
+<body>
+  <div id="app" :style="{'height': innerPage}" v-cloak>
+    <a class="navbar" href="/register/page/avatar">
+      <van-icon name="arrow-left" color="#fff" size="18px"></van-icon>
+      <p>返回</p>
+    </a>
+    <div class="banner">
+      <img src="{:REGISTER_PUBLIC}img/avatar/banner_rank.png" alt="">
+    </div>
+    <div class="rank_wrap">
+      <div class="main_title">
+        <p>排名</p>
+        <p>头像</p>
+        <p>用户昵称</p>
+        <p>助力数</p>
+      </div>
+      <van-list class="rank_list" v-model="loading" :finished="finished" :immediate-check="false" finished-text="没有更多了"
+        @load="onLoadList" v-if="rankList.length">
+        <div class="item" v-for="(item, index) in rankList" :key="index">
+          <div class="rank">
+            <img class="rank_icon" src="{:REGISTER_PUBLIC}img/avatar/icon_1.png" alt="" v-if="index == 0">
+            <img class="rank_icon" src="{:REGISTER_PUBLIC}img/avatar/icon_2.png" alt="" v-else-if="index == 1">
+            <img class="rank_icon" src="{:REGISTER_PUBLIC}img/avatar/icon_3.png" alt="" v-else-if="index == 2">
+            <p v-else>{{index}}</p>
+          </div>
+          <div class="avatar">
+            <img :src="item.avatar || default_avatar" alt="">
+          </div>
+          <div class="name">{{item.name}}</div>
+          <div class="like">{{item.likes || 0}}</div>
+        </div>
+      </van-list>
+      <template v-else>
+        <van-empty description="暂无内容"></van-empty>
+      </template>
+    </div>
+  </div>
+</body>
+
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js"></script>
+
+<script>
+  const URL = "{:H5_DOMAIN}";
+
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        token: '',
+        page: 1, // 页码
+        pageSize: 10, // 每页条数
+        loading: false, // 分页加载
+        finished: false, // 结束分页加载
+        default_avatar: '{:REGISTER_PUBLIC}img/default_avatar.png', //默认头像
+        rankList: []
+      }
+    },
+    computed: {
+      innerPage() {
+        return window.innerHeight + 'px'
+      }
+    },
+    mounted() {
+      this.getUserInfo()
+    },
+    methods: {
+      // 获取个人信息
+      getUserInfo() {
+        this.$http.get(URL + "/H5/Visitor/getLoginInfo").then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              this.userInfo = data.userInfo;
+              this.token = data.token;
+              this.getAvatarRank();
+            }
+          },
+          err => {
+            this.$toast({
+              type: 'fail',
+              message: '登录失败',
+              duration: 1500
+            })
+            console.log("getLoginInfo 请求失败");
+          }
+        );
+      },
+      // 获取助力排行
+      getAvatarRank() {
+        this.$http.get(URL + "/register/avatar/rank", {
+          params: {
+            token: this.token,
+            page: this.page,
+            limit: this.pageSize
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              const result = data.list;
+              if (data == null || result.length == 0) {
+                // 加载结束
+                this.loading = false;
+                this.finished = true;
+                return
+              }
+              this.rankList = this.rankList.concat(result);
+              if (result.length < this.pageSize) {
+                // 一页不足的情况
+                this.finished = true;
+              } else {
+                this.loading = false;
+              }
+            } else {
+              this.finished = true;
+              console.log("errCode is not 0");
+            }
+          },
+          err => {
+            console.log("getAvatarRank 请求失败");
+          }
+        );
+      },
+      // 处理过长姓名
+      resultName(name, num) {
+        let arr = name.split('')
+        let newArr = arr.slice(0, num)
+        newArr.push('...')
+        let str = newArr.join('')
+        return str
+      },
+      // 上拉加载请求方法
+      onLoadList() {
+        if (this.rankList.length >= this.pageSize) {
+          this.page++;
+          setTimeout(() => {
+            this.getAvatarRank();
+          }, 600)
+        }
+      },
+    }
+  })
+</script>
+
+</html>

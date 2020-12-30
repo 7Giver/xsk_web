@@ -1,0 +1,137 @@
+#app {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#app .navbar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  color: #fff;
+  font-size: 1rem;
+  line-height: 18px;
+  padding: 1.1rem 0.8rem;
+}
+
+#app .navbar .van-icon-arrow-left {
+  margin-right: 0.3rem;
+}
+
+#app .banner {
+  position: relative;
+  z-index: -1;
+  width: 100%;
+}
+
+#app .banner img {
+  display: block;
+  width: 100%;
+}
+
+#app .rank_wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 1.3rem;
+  margin-top: -1rem;
+  border-radius: 1rem;
+  background-color: #fff;
+  overflow: scroll;
+  -webkit-overflow-scrolling: touch;
+}
+
+#app .rank_wrap .main_title {
+  display: flex;
+  align-items: center;
+  color: #999999;
+  font-size: 0.9rem;
+  line-height: 3;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+#app .rank_wrap .main_title > p {
+  text-align: center;
+}
+
+#app .rank_wrap .main_title > p:first-child {
+  flex: 1;
+}
+
+#app .rank_wrap .main_title > p:nth-child(2) {
+  flex: 1;
+}
+
+#app .rank_wrap .main_title > p:nth-child(3) {
+  flex: 2;
+}
+
+#app .rank_wrap .main_title > p:nth-child(4) {
+  flex: 1.5;
+}
+
+#app .rank_wrap .rank_list {
+  flex: 1;
+}
+
+#app .rank_wrap .rank_list .item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #333333;
+  padding: 0.6rem 0;
+}
+
+#app .rank_wrap .rank_list .item > div {
+  text-align: center;
+}
+
+#app .rank_wrap .rank_list .item .rank {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #929292;
+  font-size: 1;
+  width: 3rem;
+  height: 3rem;
+}
+
+#app .rank_wrap .rank_list .item .rank .rank_icon {
+  display: block;
+  width: 1.6rem;
+}
+
+#app .rank_wrap .rank_list .item .avatar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#app .rank_wrap .rank_list .item .avatar > img {
+  display: block;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+}
+
+#app .rank_wrap .rank_list .item .name {
+  flex: 2;
+  text-align: center;
+  font-size: 0.9rem;
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+#app .rank_wrap .rank_list .item .like {
+  flex: 1.5;
+  font-size: 0.9rem;
+}
