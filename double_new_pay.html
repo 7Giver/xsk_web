@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=0">
+  <title>开通会员</title>
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/base.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant.css">
+  <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/double_new_pay/double_new_pay.css?v=<?php echo time(); php?>">
+</head>
+
+<body>
+  <div id="app" :style="{'min-height': innerPage}" v-cloak>
+    <div class="header">
+      <template v-for="(item, index) in noticeList" :key="index">
+        <transition name="slide-right">
+          <div class="slide_right" v-show="item.visible">
+            <img class="avatar" :src="item.avatar" alt="">
+            <p class="text">{{item.name}} {{item.time}}分钟前开通了名片会员</p>
+          </div>
+        </transition>
+      </template>
+    </div>
+    <div class="container">
+      <!-- 尊享特权 -->
+      <div class="power_wrap">
+        <p class="main_title">尊享特权</p>
+        <div :class="[showPower ? 'icon_list show' : 'icon_list']">
+          <div class="item" v-for="(item, index) in iconList" :key="index" @click="goShowPowerDetail(index)">
+            <img :src="item.img" alt="">
+            <p>{{item.title}}</p>
+          </div>
+        </div>
+        <div class="is_open" @click="showPower=!showPower">
+          <p>{{showPower ? '收起' : '查看全部特权'}}</p>
+          <span :class="{'on': showPower}">❯</span>
+        </div>
+      </div>
+      <!-- 会员套餐 -->
+      <div class="member_wrap">
+        <p class="main_title">会员套餐</p>
+        <div class="mamber_type">
+          <div :class="[cashIndex==index ? 'item on' : 'item']" v-for="(item, index) in cashList" :key="index"
+            @click="switchMember(index)">
+            <p class="title">{{item.title}}</p>
+            <div class="right">
+              <span>￥{{item.cash}}</span>
+              <p>￥{{item.sale}}</p>
+            </div>
+            <div class="tip">
+              <img src="{:REGISTER_PUBLIC}img/double_new_pay/new_icon.png" alt="" v-if="index==0">
+              <img src="{:REGISTER_PUBLIC}img/double_new_pay/sale_icon.png" alt="" v-else>
+            </div>
+          </div>
+        </div>
+        <!-- <div class="check_wrap">
+          <van-checkbox v-model="checked" icon-size="15px" checked-color="#F20016">
+            <p class="inner">我已阅读并同意<span @click.stop="goAgreement">《用户服务协议》</span></p>
+          </van-checkbox>
+        </div> -->
+        <div class="tip_wrap">
+          <p>理性投资，谨防诈骗！</p>
+          <p>温馨提示：本平台系第三方名片平台，您支付的是本平台提供的名片服务费用，与各会员所从事或者投资的项目品牌无任何关联，请认真阅读用户服务协议后再决定付款。</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <div class="left">
+        <div class="top_wrap">
+          <p>微信支付：</p>
+          <span>￥{{cashList[cashIndex].sale}}</span>
+        </div>
+        <div class="bottom_wrap">
+          <van-checkbox v-model="checked" icon-size="14px" checked-color="#F20016">
+            <p class="inner">请阅读并同意<span @click.stop="goAgreement">《用户服务协议》</span></p>
+          </van-checkbox>
+        </div>
+      </div>
+      <div class="right" @click="goPayNow">立即开通</div>
+    </div>
+
+    <!-- 特权弹窗 -->
+    <van-popup v-model="showPowerDialog">
+      <div class="power_detail">
+        <van-swipe :loop="false" :width="powerWidth" :show-indicators="false" :initial-swipe="powerIndex">
+          <van-swipe-item v-for="(item, index) in iconList" :key="index">
+            <div class="content">
+              <img class="top_icon" :src="item.img" alt="">
+              <div class="title">{{item.title}}</div>
+              <div class="desc">{{item.desc}}</div>
+              <div class="btn_wrap">
+                <div class="btn cancel" @click="showPowerDialog=false">取消</div>
+                <div class="btn confirm" @click="goToPay">去开通</div>
+              </div>
+            </div>
+          </van-swipe-item>
+        </van-swipe>
+      </div>
+    </van-popup>
+  </div>
+</body>
+
+<script src="{:REGISTER_PUBLIC}js/vue.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vue-resource.min.js"></script>
+<script src="{:REGISTER_PUBLIC}js/vant.min.js"></script>
+
+<script>
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        token: '',
+        userInfo: {},
+        cashIndex: 0,
+        powerIndex: 0, //特权详情下标
+        visible: false,
+        checked: false,
+        showPower: false, //展示全部特权
+        showPowerDialog: false, //特权详情
+        timer: null, //动效定时器
+        noticeList: [{
+            avatar: '{:REGISTER_PUBLIC}img/default_avatar.png',
+            name: '李**',
+            time: 2,
+            visible: false
+          },
+          {
+            avatar: '{:REGISTER_PUBLIC}img/default_avatar.png',
+            name: '张**',
+            time: 5,
+            visible: false
+          },
+          {
+            avatar: '{:REGISTER_PUBLIC}img/default_avatar.png',
+            name: '王*',
+            time: 1,
+            visible: false
+          },
+          {
+            avatar: '{:REGISTER_PUBLIC}img/default_avatar.png',
+            name: '田**',
+            time: 12,
+            visible: false
+          },
+          {
+            avatar: '{:REGISTER_PUBLIC}img/default_avatar.png',
+            name: '沈*',
+            time: 9,
+            visible: false
+          },
+        ],
+        cashList: [{
+            title: '永久会员',
+            cash: 698,
+            sale: 298
+          },
+          {
+            title: '一年会员',
+            cash: 298,
+            sale: 198
+          },
+        ],
+        iconList: [{
+            img: '{:REGISTER_PUBLIC}img/double_new_pay/icon_hlwz.png',
+            title: '海量文章',
+            desc: '每日海量文章更新，各行各类专业文章都可找到。一键可变成自己带名片文章分享。'
+          },
+          {
+            img: '{:REGISTER_PUBLIC}img/double_new_pay/icon_rmzz.png',
+            title: '人脉追踪',
+            desc: '分享文章名片给伙伴，可实时掌握访客动态，挖掘潜在精准人脉资源。'
+          },
+          {
+            img: '{:REGISTER_PUBLIC}img/double_new_pay/icon_smtg.png',
+            title: '双码推广',
+            desc: '事业交流群码和个人二维码名片双码整合，更强更有力的为自己新增客户。'
+          },
+          {
+            img: '{:REGISTER_PUBLIC}img/double_new_pay/icon_fbwz.png',
+            title: '发布文章',
+            desc: '自己编写文章，可从微信软文或者自己自创进行编写，写出自己专属文章带上自己名片，助力事业扩展。'
+          },
+          {
+            img: '{:REGISTER_PUBLIC}img/double_new_pay/icon_mgg.png',
+            title: '免广告',
+            desc: '可自己设置群码，关闭默认群码广告，自由支配名片。'
+          },
+          {
+            img: '{:REGISTER_PUBLIC}img/double_new_pay/icon_zg.png',
+            title: '尊享身份标识',
+            desc: '展现名片VIP标识，分享名片带身份标识，尊享与众不同身份，名片中的贵宾。'
+          },
+          {
+            img: '{:REGISTER_PUBLIC}img/double_new_pay/icon_qz.png',
+            title: '圈子',
+            desc: '加入专业圈子，跟专业伙伴交流经验，发布自己的生活动态，交友更加精确。'
+          },
+          {
+            img: '{:REGISTER_PUBLIC}img/double_new_pay/icon_rmsj.png',
+            title: '人脉市集',
+            desc: '百万人脉，实时更新合适的人脉归类，寻找自己想要的人脉更便捷。'
+          },
+          {
+            img: '{:REGISTER_PUBLIC}img/double_new_pay/icon_jzrm.png',
+            title: '精准人脉',
+            desc: '一键查找身边的人，推荐好友，在自己的生活圈子找到兴趣伙伴。'
+          },
+          {
+            img: '{:REGISTER_PUBLIC}img/double_new_pay/icon_jstx.png',
+            title: '即时通讯',
+            desc: '一键拨打电话，快速联系到伙伴，实时发送消息给自己的好友，交流更畅通。'
+          },
+          {
+            img: '{:REGISTER_PUBLIC}img/double_new_pay/icon_rmts.png',
+            title: '人脉探索',
+            desc: 'AI人工智能探索，AI计算自动匹配最合适的客户推荐，探索人脉不再是烦恼。'
+          },
+        ],
+        cardList: []
+      }
+    },
+    computed: {
+      innerPage() {
+        return window.innerHeight + 'px'
+      },
+      powerWidth() {
+        let width = 0;
+        let pageWidth = window.innerWidth;
+        if (pageWidth <= 320) {
+          width = 250;
+        } else if (pageWidth <= 375) {
+          width = 275;
+        } else if (pageWidth <= 414) {
+          width = 306;
+        }
+        return width
+      }
+    },
+    mounted() {
+      // console.log(this.powerWidth1);
+      this.startAnimate();
+    },
+    beforeDestory() {
+      this.clearTimer();
+    },
+    methods: {
+      // 切换会员类型
+      switchMember(index) {
+        this.cashIndex = index;
+      },
+      // 跳转用户协议
+      goAgreement() {
+        console.log('go agreement!');
+      },
+      // 立即支付
+      goPayNow() {
+        if (!this.checked) {
+          this.$toast({
+            type: 'fail',
+            message: '请阅读服务协议'
+          })
+          return false
+        }
+        let payCash = this.cashList[this.cashIndex].sale;
+        console.log('pay!', payCash);
+      },
+      // 显示特权详情
+      goShowPowerDetail(index) {
+        this.powerIndex = index;
+        this.showPowerDialog = true;
+      },
+      // 点击开通
+      goToPay() {
+        this.showPowerDialog = false;
+      },
+      // 开始动画
+      startAnimate() {
+        let count = -1;
+        let noticeList = this.noticeList;
+        this.timer = setInterval(() => {
+          ++count;
+          if (count > (noticeList.length - 1)) {
+            count = 0;
+          }
+          noticeList[count].visible = true;
+          setTimeout(() => {
+            noticeList[count].visible = false;
+          }, 900);
+        }, 1000);
+      },
+      // 清除定时器
+      clearTimer() {
+        clearInterval(this.timer);
+        this.timer = null;
+      }
+    }
+  })
+</script>
+
+</html>
