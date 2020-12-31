@@ -2,6 +2,11 @@
   background: #fff;
 }
 
+#app .van-nav-bar {
+  width: 100%;
+  line-height: 2.6rem;
+}
+
 #app .van-nav-bar .van-icon {
   color: #333;
 }
