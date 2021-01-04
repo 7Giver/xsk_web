@@ -29,60 +29,106 @@
     </div>
     <!-- 有口令 -->
     <div class="has_code" v-show="showWrap">
-      <div class="top_wrap">
-        <div class="avatar_wrap">
-          <img class="result" :src="avatarSrc" alt="" v-if="avatarSrc">
-          <div id="avatar" ref="avatar">
-            <img class="inner" :src="avatar.bgUrl" alt="">
-            <img class="mask" :src="avatar.maskUrl" alt="">
-          </div>
-        </div>
+      <div class="explain_btn" @click="showExplain=true">
+        <img src="{:REGISTER_PUBLIC}img/avatar/explain_icon.png" alt="">
+        <p>使用说明</p>
       </div>
-      <div class="inner_wrap">
-        <div class="content_wrap">
-          <div class="right">
-            <div class="top">
-              <p>当前积分:</p>
-              <span @click="goShowPoint">{{80}}</span>
-            </div>
-            <p class="bottom">邀请好友点赞领积分</p>
-          </div>
-        </div>
-        <a class="rank_btn" href="/register/page/avatar_rank">助力排行榜</a>
-      </div>
-      <div class="mask_wrap">
+      <div class="avatar_container">
         <div class="top_wrap">
-          <img class="title" src="{:REGISTER_PUBLIC}img/avatar/title.png" alt="">
-          <div class="right">
-            <van-icon name="warning" color="#FF3A30"></van-icon>
-            <p>10积分解锁一个头像素材</p>
+          <div class="avatar_wrap">
+            <img class="result" :src="avatarSrc" alt="" v-if="avatarSrc">
+            <div id="avatar" ref="avatar">
+              <img class="inner" :src="avatar.bgUrl" alt="">
+              <img class="mask" :src="avatar.maskUrl" alt="">
+            </div>
           </div>
         </div>
-        <div class="scroll_wrap">
-          <div :class="[maskIndex == index ? 'item on' : 'item']" v-for="(item, index) in maskList" :key="index"
-            @click="checkMask(index, item.id)">
-            <img class="mask_item" :src="item.img" alt="">
-            <img class="lock_icon" src="{:REGISTER_PUBLIC}img/avatar/lock_icon.png" alt="" v-if="!item.is_open">
+        <div class="inner_wrap">
+          <div class="content_wrap">
+            <div class="right">
+              <div class="top">
+                <p>当前积分:</p>
+                <span @click="goShowPoint">{{80}}</span>
+              </div>
+              <p class="bottom">邀请好友点赞领积分</p>
+            </div>
+          </div>
+          <!-- <a class="rank_btn" href="/register/page/avatar_rank">助力排行榜</a> -->
+        </div>
+        <div class="mask_wrap">
+          <div class="top_wrap">
+            <img class="title" src="{:REGISTER_PUBLIC}img/avatar/title.png" alt="">
+            <div class="right">
+              <van-icon name="warning" color="#FF3A30"></van-icon>
+              <p>10积分解锁一个头像素材</p>
+            </div>
+          </div>
+          <div class="scroll_wrap">
+            <div :class="[maskIndex == index ? 'item on' : 'item']" v-for="(item, index) in maskList" :key="index"
+              @click="checkMask(index, item.id)">
+              <img class="mask_item" :src="item.img" alt="">
+              <img class="lock_icon" src="{:REGISTER_PUBLIC}img/avatar/lock_icon.png" alt="" v-if="!item.is_open">
+            </div>
+          </div>
+        </div>
+        <div class="btn_wrap">
+          <div class="reset_btn" @click="avatarReset">
+            <img src="{:REGISTER_PUBLIC}img/avatar/reset_defalut.png" alt="">
+            <p>重置</p>
+          </div>
+          <div class="upLoad_btn">
+            <van-uploader class="upload_wrap" accept="image/*" :after-read="afterRead">
+              {{isUpLoad ? '修改头像' : '上传头像'}}
+            </van-uploader>
+          </div>
+        </div>
+        <!-- <div class="instructions">
+          <img src="{:REGISTER_PUBLIC}img/avatar/instructions.png" alt="">
+        </div> -->
+      </div>
+      <!-- 排行 -->
+      <div class="rank_wrap">
+        <div class="banner">
+          <img src="{:REGISTER_PUBLIC}img/avatar/banner_rank.jpg" alt="">
+        </div>
+        <div class="bottom_wrap">
+          <div class="rank_list_wrap">
+            <div class="main_title">
+              <p>排名</p>
+              <p>头像</p>
+              <p>用户昵称</p>
+              <p>助力数</p>
+            </div>
+            <van-list class="rank_list" v-model="loading" :finished="finished" :immediate-check="false"
+              finished-text="没有更多了" @load="onLoadList" v-if="rankList.length">
+              <div class="item" v-for="(item, index) in rankList" :key="index">
+                <div class="rank">
+                  <img class="rank_icon" src="{:REGISTER_PUBLIC}img/avatar/icon_1.png" alt="" v-if="index == 0">
+                  <img class="rank_icon" src="{:REGISTER_PUBLIC}img/avatar/icon_2.png" alt="" v-else-if="index == 1">
+                  <img class="rank_icon" src="{:REGISTER_PUBLIC}img/avatar/icon_3.png" alt="" v-else-if="index == 2">
+                  <p v-else>{{index+1}}</p>
+                </div>
+                <div class="avatar">
+                  <img :src="item.avatar || default_avatar" alt="">
+                </div>
+                <div class="name">{{item.name}}</div>
+                <div class="like">{{item.likes || 0}}</div>
+              </div>
+            </van-list>
+            <template v-else>
+              <van-empty description="暂无内容"></van-empty>
+            </template>
           </div>
         </div>
       </div>
-      <div class="btn_wrap">
-        <div class="reset_btn" @click="avatarReset">
-          <img src="{:REGISTER_PUBLIC}img/avatar/reset_defalut.png" alt="">
-          <p>重置</p>
+      <!-- 群二维码 -->
+      <div class="group_wrap">
+        <div class="code">
+          <img src="{:REGISTER_PUBLIC}img/code.png" alt="">
         </div>
-        <div class="upLoad_btn">
-          <van-uploader class="upload_wrap" accept="image/*" :after-read="afterRead">
-            {{isUpLoad ? '修改头像' : '上传头像'}}
-          </van-uploader>
-        </div>
+        <div class="title">每天仅有<span>100</span>个名额</div>
       </div>
-      <div class="instructions">
-        <img src="{:REGISTER_PUBLIC}img/avatar/instructions.png" alt="">
-      </div>
-
     </div>
-
     <!-- 裁剪弹窗 -->
     <div class="cropper_wrap" v-show="showCropper">
       <div class="poster">
@@ -139,6 +185,14 @@
       </div>
       <img class="close_btn" src="{:REGISTER_PUBLIC}img/avatar/close.png" alt="" @click="showShareFloat=false">
     </van-popup>
+
+    <!-- 详情弹窗 -->
+    <van-popup v-model="showExplain">
+      <div class="explain_dialog">
+        <img src="{:REGISTER_PUBLIC}img/avatar/instructions.png" alt="">
+      </div>
+      <img class="close_btn" src="{:REGISTER_PUBLIC}img/avatar/close.png" alt="" @click="showExplain=false">
+    </van-popup>
   </div>
 </body>
 
@@ -176,6 +230,13 @@
         showPointList: false, //展示积分列表
         showShareFloat: false, //展示分享点赞弹窗
         showAddlike: false, //展示点赞动画
+        showExplain: false, //展示说明弹窗
+        page: 1, // 页码
+        pageSize: 10, // 每页条数
+        loading: false, // 分页加载
+        finished: false, // 结束分页加载
+        default_avatar: '{:REGISTER_PUBLIC}img/default_avatar.png', //默认头像
+        rankList: [],
         maskList: [], //素材罩数组
         pointList: [], //积分明细数组
         guest: {
@@ -214,6 +275,7 @@
               this.getUrlQuery()
               this.getCode()
               this.getPointLog()
+              this.getAvatarRank();
               this.initWxShare()
             }
           },
@@ -381,6 +443,46 @@
           },
           err => {
             console.log('getAvatarBind 请求失败');
+          }
+        );
+      },
+      // 获取助力排行
+      getAvatarRank() {
+        this.$http.get(URL + "/register/avatar/rank", {
+          params: {
+            token: this.token,
+            page: this.page,
+            limit: this.pageSize
+          }
+        }).then(
+          res => {
+            const {
+              errCode,
+              data,
+              msg
+            } = res.body;
+            if (errCode === 0) {
+              const result = data.list;
+              if (data == null || result.length == 0) {
+                // 加载结束
+                this.loading = false;
+                this.finished = true;
+                return
+              }
+              this.rankList = this.rankList.concat(result);
+              if (result.length < this.pageSize) {
+                // 一页不足的情况
+                this.finished = true;
+              } else {
+                this.loading = false;
+              }
+            } else {
+              this.finished = true;
+              console.log("errCode is not 0");
+            }
+          },
+          err => {
+            console.log("getAvatarRank 请求失败");
           }
         );
       },
@@ -570,7 +672,16 @@
           token: this.token,
           fromid: this.queryMid
         })
-      }
+      },
+      // 上拉加载请求方法
+      onLoadList() {
+        if (this.rankList.length >= this.pageSize) {
+          this.page++;
+          setTimeout(() => {
+            this.getAvatarRank();
+          }, 600)
+        }
+      },
     }
   })
 </script>

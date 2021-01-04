@@ -35,10 +35,10 @@
         <p v-else>点击升旗</p>
       </div>
       <div class="my_toast_btn" @click="goShowFlagWrap">查看荣誉证书</div>
-      <div class="showmore_wrap" @click="goPageBottom">
+      <div class="showmore_wrap">
         <img src="{:REGISTER_PUBLIC}img/activity_flagman/show_more.gif" alt="">
       </div>
-      <div class="show_group" @click="goShowGroup">
+      <div class="show_group" @click="goPageBottom">
         <img src="{:REGISTER_PUBLIC}img/activity_flagman/group_icon.png" alt="">
       </div>
     </div>
@@ -117,6 +117,13 @@
           <van-empty description="暂无内容"></van-empty>
         </template>
       </div>
+    </div>
+    <!-- 群二维码 -->
+    <div class="group_wrap">
+      <div class="code">
+        <img src="{:REGISTER_PUBLIC}img/code.png" alt="">
+      </div>
+      <div class="title">今日仅有<span>100</span>个名额</div>
     </div>
   </div>
 </body>
@@ -499,11 +506,14 @@
       },
       // 滚动到底部
       goPageBottom() {
-        window.scrollTo(0, app.clientHeight)
+        // window.scrollTo(0, app.clientHeight)
         // window.scrollTo({
         //   top: app.clientHeight,
         //   behavior: "smooth"
         // });
+        $('html,body').animate({
+          scrollTop: `${app.clientHeight}px`
+        }, 400);
       },
       // 展示群码弹窗
       goShowGroup() {
