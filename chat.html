@@ -654,14 +654,12 @@
             if (errCode === 0) {
               this.groupInfo = data;
               data.is_manager == 1 ? this.isAdmin = true : this.isAdmin = false;
-              // if (data.members > 0) {
-              //   this.navTitle = `${this.groupInfo.name}(${this.groupInfo.members})`;
-              //   this.$set(this.groupInfo, 'online', 0)
-              // } else {
-              //   this.navTitle = `${this.groupInfo.name}`;
-              // }
-              this.navTitle = `${this.groupInfo.name}(${this.groupInfo.members})`;
-              this.$set(this.groupInfo, 'online', 0)
+              if (data.members > 0) {
+                this.navTitle = `${this.groupInfo.name}(${this.groupInfo.members})`;
+                this.$set(this.groupInfo, 'online', 0)
+              } else {
+                this.navTitle = `${this.groupInfo.name}`;
+              }
               this.isGroup && this.getChatOnlines();
               if (localStorage.getItem('showNotice')) {
                 this.showNotice = false

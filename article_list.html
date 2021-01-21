@@ -1,0 +1,1867 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title></title>
+    <link
+      rel="stylesheet"
+      href="{:REGISTER_PUBLIC}css/common/css/animate.min.css"
+    />
+    <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/mint-ui/style.css" />
+    <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/news/base.css" />
+    <!-- <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/articleList.css" /> -->
+    <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/common/vant-ui/vant@2.5.3.css" />
+    <!-- <link
+      rel="stylesheet"
+      href="{:REGISTER_PUBLIC}css/news/pay_cm_modal.css?v=1.1"
+    /> -->
+    <!-- <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/articleLEasy@0.3.css" /> -->
+    <!-- <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/news/common_ewm.css?ver={:STATIC_VER}" /> -->
+    <!-- <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/news/common_tab.css?v=1.0" /> -->
+    <link
+      rel="stylesheet"
+      href="http:////at.alicdn.com/t/font_1211869_1fanp20t9od.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{:REGISTER_PUBLIC}css/news/animate.min.css"
+    />
+    <link rel="stylesheet" href="{:REGISTER_PUBLIC}css/news/brandEleDefSty.css" />
+    <link
+      rel="stylesheet"
+      href="{:REGISTER_PUBLIC}css/news/tab-com-icon.css?v={:STATIC_VAR}"
+    />
+    <link
+      rel="stylesheet"
+      href="{:REGISTER_PUBLIC}css/news/articleList_v_.css?v={:STATIC_VAR}"
+    />
+
+    <style>
+      .new_ewm_container {
+        background-image: url("{:CDN_DOMAIN}/img/default/easyVersion/easy_ewm_bg1.png");
+      }
+
+      .swiper-scroll {
+        margin-bottom: 45px;
+      }
+
+      .followimg {
+        width: 1.52rem !important;
+      }
+      /* 2020-04-24  列表(row-reverse)*/
+      .news_line .news_line_inner {
+        flex-direction: row-reverse;
+        justify-content: space-between;
+      }
+      .news_line .news_line_pic {
+        margin: 0;
+      }
+      .news_line .news_line_right .zx {
+        display: flex;
+        justify-content: space-between;
+      }
+      .news_line .news_line_right .zx .news_see {
+        display: none;
+      }
+      .isFixed{
+        position: fixed;
+        top:0;
+        left:0;
+      }
+      .draw_modal1 {
+        z-index: 7;
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+      }
+    </style>
+    <script src="{:RES_FILES}/common/js/flexible/flexible.js"></script>
+    <script src="{:RES_FILES}/common/js/flexible/flexible_css.js"></script>
+  </head>
+
+  <body style="background: #f5f5f5;overflow-x: hidden;">
+    <div>
+      <input type="hidden" id="uid" value="{$uid}" />
+    </div>
+    <div id="app" v-cloak>
+      <!-- head -->
+      <van-pull-refresh v-model="isDownLoading" @refresh="onDownRefresh">
+      <div class="head-section">
+        <div class="avatar-wrap">
+          <img class="user-avatar" :src="s_userInfo.upic" alt="" />
+        </div>
+        <div style="display: flex;">
+          <span class="user-name">{{ s_userInfo.name}}</span>
+          <span class="user-uid">UID:{{ s_userInfo.vid }}</span>
+        </div>
+        
+        <div class="jifen">
+          <span>积分：</span><span>{{jifen.integral}} ></span> 
+        </div>
+        <div class="qiandao">
+          <img src="{:REGISTER_PUBLIC}img/newVer/qiandao.png" alt="" 
+            style="width:0.7rem;height:0.7rem;margin-top: 0.1rem;margin-left: 0.1rem;">
+          <span style="font-size: 0.3rem;color:#DB9C63;margin-right: 0.2rem;">打卡签到</span>
+        </div>
+        <div class="xunzhang">
+          <div class="xu_by" >
+            <img src="{:REGISTER_PUBLIC}img/newVer/baiyinn.png" alt="" style="width:0.7466rem" v-if="jifen.is_silver == 0">
+            <img src="{:REGISTER_PUBLIC}img/newVer/baiyin1.png" alt="" style="width:0.7466rem" v-else>
+            <p style="font-size: 0.2133rem;color:#FFD4B4;">白银</p>
+          </div>
+          <div class="xu_hj">
+            <img src="{:REGISTER_PUBLIC}img/newVer/huangjinn.png" alt="" style="width:0.7466rem" v-if="jifen.is_gold == 0">
+            <img src="{:REGISTER_PUBLIC}img/newVer/huangjin1.png" alt="" style="width:0.7466rem" v-else>
+            <p style="font-size: 0.2133rem;color:#FFD4B4;">黄金</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIP -->
+      <div class="vip-section">
+        <div class="vip-wrap" v-if="s_userInfo.roleId === '1'" @click="pay">
+          <div class="vip-item-l">
+            <img
+              class="vip_icon"
+              src="{:REGISTER_PUBLIC}img/newVer/VIP_icon.png"
+              alt=""
+            />
+            <span class="vip_text">开通会员使用全部功能</span>
+          </div>
+          <div class="vip-item-r">
+            <span class="vip_open">开通</span>
+            <img
+              class="vip_arrow"
+              src="{:REGISTER_PUBLIC}img/newVer/VIP_right_arrow.png"
+              alt=""
+            />
+          </div>
+        </div>
+        <div
+          class="vip-wrap"
+          v-else-if="s_userInfo.roleId === '2' && s_userInfo.eternal==='0'"
+          @click="pay"
+        >
+          <div class="vip-item-l">
+            <img
+              class="vip_icon"
+              src="{:REGISTER_PUBLIC}img/newVer/VIP_icon.png"
+              alt=""
+            />
+            <span class="vip_text" style="font-size: 0.35rem">正式会员 有效期至{{ s_userInfo.lock_time }}</span>
+          </div>
+          <div class="vip-item-r">
+            <span class="vip_open">续费</span>
+            <img
+              class="vip_arrow"
+              src="{:REGISTER_PUBLIC}img/newVer/VIP_right_arrow.png"
+              alt=""
+            />
+          </div>
+        </div>
+        <div class="vip-wrap" v-else @click="pay">
+          <div class="vip-item-l">
+            <img
+              class="vip_icon"
+              src="{:REGISTER_PUBLIC}img/newVer/VIP_icon.png"
+              alt=""
+            />
+            <span class="vip_text">恭喜您成为永久会员</span>
+          </div>
+          <div class="vip-item-r"></div>
+        </div>
+      </div>
+
+      <!-- NAV -->
+      <div class="news-section">
+        <van-tabs
+          v-model="newsActive"
+          sticky
+          :ellipsis="false"
+          @change="switchTab"
+          color='#FFE2C9'
+        >
+          <van-tab
+            v-for="(item, index) in categories"
+            :key="index"
+            :name="item.mid"
+          >
+            <div slot="title" class="tab-title">
+              <img class="nav-icon" :src="'{:REGISTER_PUBLIC}img/newVer'+item.icon" alt="" />
+              <span class="nav-title">{{ item.name }}</span>
+            </div>
+
+            
+              <van-list
+                :class="{nothingTip: nothing}"
+                v-model="isUpLoading"
+                :finished="upFinished"
+                :immediate-check="false"
+                :offset="offset"
+                finished-text="我是有底线的~"
+                @load="onLoadList"
+              >
+                <div class="news-list" style="background: #f5f5f5;">
+                  <div
+                    class="news-item" style="background: #fff;border-radius: 0.3rem;margin-top:5px"
+                    v-for="(item, index) in newsList"
+                    :key="index"
+                    @click="goto_detail(item)"
+                  >
+                    <!-- 文章 -->
+                    <div class="news_wrap" v-if="item.is_vido === '0'">
+                      
+                      <div class="news-item-r">
+                        <div class="title txt-cut">
+                          {{ item.title }}
+<!--                          <template v-if="item.is110 > 0">-->
+<!--                            <div style="color: red; font-size: 10px">检测到该文章包含敏感词，禁止分享！</div>-->
+<!--                          </template>-->
+                        </div>
+                        <div class="item-r-btm">
+                          <span class="user" style="position: relative; display: inline-block; height: 25px; line-height: 25px; padding-left: 30px">
+                            <img style="position: absolute; left: 0; top: 0; border-radius: 50%; width: 25px; height: 25px" :src="item.editor_avatar" />
+                            {{item.user_name}}
+                          </span>
+<!--                          <span class="cate_name">{{ item.catename }}</span>-->
+                          <span class="date">{{ item.add_date }}</span>
+                        </div>
+                      </div>
+                      <div class="news-item-l">
+                        <img class="cover" :src="item.cover" alt="" />
+                      </div>
+                    </div>
+
+                    <!-- 音频 -->
+                    <div class="audioInner" v-else-if="item.vido_type === '3'">
+                      <img class="cover" v-lazy="item.cover" alt="" />
+                      <div class="audio_right">
+                        <p class="title">{{ item.title }}</p>
+                        <!-- <img
+                          class="audio_move"
+                          src="{:CDN_DOMAIN}/img/default/audio_move.gif"
+                          alt=""
+                        /> -->
+                        <ul>
+                          <li>
+                            <i class="iconfont iconhome_btn_my"></i>
+                            <span>爆客电台</span>
+                          </li>
+                          <li>
+                            <i class="iconfont iconbofangliang"></i>
+                            <span>{{ item.view }}</span>
+                          </li>
+                          <li>
+                            {{ item.add_time }}
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <!-- 视频 -->
+                    <div
+                      class="videoInner"
+                      v-else-if="item.vido_type === '1' || item.vido_type === '2' || item.vido_type === '4'"
+                    >
+                      <div class="video_top">
+                        <img v-lazy="item.cover" alt="" />
+                      </div>
+                      <p class="title">{{ item.title }}</p>
+                      <div class="video_bot">
+                        <div class="video_bot_l">
+                          <button>爆客视频</button>
+                          <span>{{ item.add_time }}</span>
+                        </div>
+                        <p class="video_bot_r">
+                          <i class="iconfont iconbofangliang"></i>
+                          <span>{{ item.view }}</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 没有数据 -->
+                <div class="nothing" v-show="nothing">
+                  <!-- <img
+                  
+                    class="nothingIcon"
+                    src="{:REGISTER_PUBLIC}img/newVer/circle_nothing.png"
+                    alt=""
+                  /> -->
+                  <span>暂无数据</span>
+                </div>
+              </van-list>
+           
+          </van-tab>
+        </van-tabs>
+        <van-sticky class="navMoreSticy">
+          <div class="nav-more" @click.stop="classifyCancle" :class="isfixed? 'isFixed': ''">
+            <img
+              class="nav-more-icon"
+              src="{:REGISTER_PUBLIC}img/newVer/mine_nav_more.png"
+              alt=""
+            />
+            <span class="nav-more-text">更多...</span>
+          </div>
+        </van-sticky>
+      </div>
+      <div class="type_none" v-if="false">
+        <div class="type_none-user">
+          <a href="#news_line"><img :src="s_userInfo.upic" alt="" /></a>
+          <div class="type_none-nicheng">
+            <span class="nicheng">{{ s_userInfo.name }}</span><br />
+            <span class="zhiwu">{{ s_userInfo.brand }}</span>
+          </div>
+        </div>
+        <div class="type_none-phone">
+          <span
+            @click="pay"
+            v-if="s_userInfo.roleId === '1' && s_userInfo.tel !== undefined && s_userInfo.tel.length > 0"
+            >{{ s_userInfo.show_tel }}</span
+          >
+          <span
+            v-else-if="s_userInfo.roleId === '2' && s_userInfo.eternal==='0' "
+            @click="_showCallModal"
+            >{{ s_userInfo.tel }}</span
+          >
+          <span @click="gEditor" v-else>手机号未设置</span>
+          <span></span>
+        </div>
+        <div class="type_none-seting">
+          <i class="iconfont iconshezhi" @click="gEditor"></i>
+          <em v-if="!s_userInfo.wechat || !s_userInfo.tel"></em>
+        </div>
+      </div>
+      <div class="type" v-if="false">
+        <div class="type-img" :style="headerBg">
+          <div class="type_img_r">
+            <div class="user-img">
+              <img :src="s_userInfo.upic" alt="" />
+            </div>
+            <span class="type_userID">UID:{{ s_userInfo.mid }}</span>
+          </div>
+          <div class="huiyuan">
+            <span class="wen">{{ s_userInfo.name }}</span>
+            <span class="vip_text" :class="isCommonCls">{{ isCommon }}</span>
+          </div>
+          <!-- <div class="frr">
+           <i class="iconfont iconkefu" @click="gChat"></i>
+          <i class="iconfont iconshezhi" @click="gEditor"></i>
+           <i class="iconfont iconxiaoxi" @click="_gJstx"></i> 
+        </div> -->
+          <div class="set_inner">
+            <i class="iconfont iconshezhi" @click="gEditor"></i>
+            <em v-if="!s_userInfo.wechat || !s_userInfo.tel"></em>
+          </div>
+          <div
+            class="gf_brand_text"
+            v-if="!brandEleImgs.articleListHBg && elementStatus"
+          >
+            <!-- <div class="gf_brand_text" v-if="!brandEleImgs.articleDetailHBg"> -->
+            <!-- <div class="gf_brand_text"> -->
+            <p class="gf_brand">{{ s_userInfo.brand }}</p>
+            <p class="gf_zx">品牌资讯平台</p>
+          </div>
+          <div class="type-bottom">
+            <div
+              class="m-header-bottom"
+              v-if="s_userInfo.roleId === '1'"
+              @click="pay"
+            >
+              <img
+                class="m-header-bottom-article"
+                src="{:RES_FILES}/images/memIndex_icon_isCommon.png"
+                alt=""
+              />
+              <span class="m-header-bottom-text">开通使用全部功能</span>
+              <!-- <img
+                class="m-header-bottom-arrow"
+                src="{:CDN_DOMAIN}/wmp/images/arrow.png"
+                alt=""
+              /> -->
+              <span class="m-header-bottom-tip">开通</span>
+            </div>
+            <div
+              class="m-header-bottom"
+              v-else-if="s_userInfo.roleId === '2' && s_userInfo.eternal==='0'"
+              @click="pay"
+            >
+              <img
+                class="m-header-bottom-article"
+                src="{:RES_FILES}/images/memIndex_icon_isYear.png"
+                alt=""
+              />
+              <span class="m-header-bottom-text"
+                >有效期至{{ s_userInfo.lock_time }}</span
+              >
+              <img
+                class="m-header-bottom-arrow"
+                src="{:CDN_DOMAIN}/wmp/images/arrow.png"
+                alt=""
+              />
+              <span class="m-header-bottom-tip">续费</span>
+            </div>
+            <div class="m-header-bottom" v-else>
+              <img
+                class="m-header-bottom-article"
+                src="{:RES_FILES}/images/memIndex_icon_isYear.png"
+                alt=""
+              />
+              <span class="m-header-bottom-text">恭喜您成为永久会员</span>
+              <img
+                class="m-header-bottom-arrow"
+                src="{:CDN_DOMAIN}/wmp/images/arrow.png"
+                alt=""
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="type-container_test" ref="container_test" v-if="false">
+        <div class="type-navbar">
+          <div class="type-box" v-for="item in categories">
+            <div
+              :id="item.mid"
+              :class="[activeCategoryId == item.mid ? 'type-item-on' : '', 'type-navbar-item']"
+              @click.stop="toggleTab"
+            >
+              {{ item.name }}
+            </div>
+          </div>
+          <div
+            class="type-box"
+            style="width: 1.06664rem; min-width: auto;"
+          ></div>
+        </div>
+        <div
+          class="classifybtn"
+          ref="selectBtn"
+          @click.self.prevent="classifyCancle"
+        >
+          <!-- :class="classifycan?'cancle':''" -->
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+      <div v-if="false">
+        <mt-loadmore
+          :top-method="loadTop"
+          @top-status-change="handleTopChange"
+          ref="loadmore"
+        >
+          <div slot="top" id="news_line" class="mint-loadmore-top">
+            <span
+              v-show="topStatus !== 'loading'"
+              :class="{ 'rotate': topStatus === 'drop' }"
+              >↓</span
+            >
+            <span v-show="topStatus === 'loading'">正在加载中......</span>
+          </div>
+          <ul
+            class="swiper-scroll"
+            ref="swiperScroll"
+            v-infinite-scroll="loadMore"
+            infinite-scroll-disabled="moreLoading"
+            infinite-scroll-distance="100"
+            infinite-scroll-immediate-check="false"
+          >
+            <li
+              class="news_line"
+              v-for="item in list_count"
+              @click="goto_detail(item)"
+            >
+              <div
+                class="news_line_inner"
+                :class="isNumber(item.id)?'':'wdh'"
+                v-if="item.is_vido === '0'"
+              >
+                <img class="news_line_pic" :src="item.cover" />
+                <div class="news_line_right">
+                  <p class="title">{{ item.title }}</p>
+                  <div class="zx">
+                    <div class="view_text" v-if="isNumber(item.id)">
+                      {{ item.catename }}
+                    </div>
+                    <div class="view_text" v-else>爆客动画</div>
+                    <p class="news_time">{{ item.add_time }}</p>
+                    <div class="news_see">
+                      <div class="new_check">
+                        <!-- <img
+                          src="{:CDN_DOMAIN}/wmp/images/new_check.png"
+                        /> -->
+                      </div>
+                      <p class="news_name">{{ item.view }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- 音频 -->
+              <div class="audioInner" v-else-if="item.vido_type === '3'">
+                <img class="cover" v-lazy="item.cover" alt="" />
+                <div class="audio_right">
+                  <p class="title">{{ item.title }}</p>
+                  <img
+                    class="audio_move"
+                    src="{:CDN_DOMAIN}/img/default/audio_move.gif"
+                    alt=""
+                  />
+                  <ul>
+                    <li>
+                      <i class="iconfont iconhome_btn_my"></i>
+                      <span>爆客电台</span>
+                    </li>
+                    <li>
+                      <i class="iconfont iconbofangliang"></i>
+                      <span>{{ item.view }}</span>
+                    </li>
+                    <li>
+                      {{ item.add_time }}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <!-- 视频 -->
+              <div
+                class="videoInner"
+                v-else-if="item.vido_type === '1' || item.vido_type === '2' || item.vido_type === '4'"
+              >
+                <div class="video_top">
+                  <img v-lazy="item.cover" alt="" />
+                </div>
+                <p class="title">{{ item.title }}</p>
+                <div class="video_bot">
+                  <div class="video_bot_l">
+                    <button>爆客视频</button>
+                    <span>{{ item.add_time }}</span>
+                  </div>
+                  <p class="video_bot_r">
+                    <i class="iconfont iconbofangliang"></i>
+                    <span>{{ item.view }}</span>
+                  </p>
+                </div>
+              </div>
+            </li>
+            <li class="more_loading" v-show="!queryLoading">
+              <mt-spinner
+                type="fading-circle"
+                color="#ffb125"
+                :size="20"
+                v-show="moreLoading&&!allLoaded"
+              ></mt-spinner>
+              <p class="allLoaded" v-show="allLoaded">已全部加载</p>
+            </li>
+          </ul>
+        </mt-loadmore>
+      </div>
+      <!-- POP -->
+      <!-- 分类选择 -->
+      <div class="draw_modal change_brandPop" v-show="classifycan"></div>
+      <div
+        class="classifyselect"
+        v-show="classifycan"
+        @click.self.prevent="classifyCancle"
+      >
+        <div class="classifybrandwrap" @click.self.prevent="classifyCancle">
+          <p class="change" @click="changeBrand">修改 &gt;</p>
+          <span class="classifytit">公司/品牌</span>
+          <div class="classifybrand">
+            <p><i>!</i>品牌一年只能修改<em>3</em>次哦</p>
+            <span>{{ s_userInfo.brand }}</span>
+          </div>
+        </div>
+        <div class="classifybrandxq" @click.self.prevent="classifyCancle">
+          <span class="classifytit">关注的类别</span>
+          <div v-for="(classi,index) in classify">
+            <ul class="classifytit">
+              <li
+                v-for="(item,index2) in classi"
+                @click="classifyBtnSelect(item,index)"
+                :class="selectClassify(item)"
+              >
+                {{ item.name }}{{ getindex(item) }}
+              </li>
+            </ul>
+            <ul class="classifycont" :class="subShow==index?'show':''">
+              <li
+                v-for="(item2,index3) in classifySub"
+                @click="classifySubBtnSelect(item2)"
+                :class="selectClassify(item2)"
+              >
+                <i></i>{{ item2.name }}
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="classifytrue"><span @click="sureClassify">确定</span></div>
+      </div>
+      <!-- <div class="followimg" @click="goFollow"> -->
+        <!-- <img
+          src="{:CDN_DOMAIN}/img/default/easyVersion/icon_follow.png"
+        /> -->
+        <!-- <img src="{:RES_FILES}/images/focus_btn2.png" />
+        <i v-if="followNum!=0">{{ followNum }}</i>
+      </div> -->
+      <!-- <div class="vote" @click="toVote">
+        <img src="{:CDN_DOMAIN}/img/common/vote.gif" alt="" />
+      </div> -->
+      <div class="draw_modal" v-show="attention_rm"></div>
+      <div class="attention_" v-show="attention_rm">
+        <div v-if="!s_userInfo.is_cu">
+          <div
+            class="new_ele_container"
+            v-if="brandEleImgs && brandEleImgs.gzh_ele_bg"
+          >
+            <img :src="brandEleImgs.gzh_ele_bg" class="ele_bg" alt="" />
+            <img class="close" @click="attention_rm_close" src="{:RES_FILES}/common/images/icon_com_close.png" alt="" />
+            <img class="new_ewm" :src="isEwmUrl" alt="" />
+          </div>
+          <!-- 未关注 -->
+          <!-- <div class="new_def_container" v-else>
+            <div class="new_def_container_y">
+              <img class="logo" alt="品牌Logo" v-if="s_userInfo.logo" :src="s_userInfo.logo" alt=""/>
+            </div>
+            <img
+              class="def_bg"
+              src="{:REGISTER_PUBLIC}img/easyVersion/gzh_def_bg2.png"
+              alt=""
+            />
+            <div class="def_brand_text">
+              <p>{{s_userInfo.brand}}</p>
+              <p>-&nbsp;品牌公众号&nbsp;-</p>
+            </div>
+            <img class="new_ewm" :src="isEwmUrl" alt="" />
+            <div class="new_th">
+              <p><span>温馨提示：</span>长按识别二维码</p>
+              <p>关注公众号，每日获取品牌资讯</p>
+            </div>
+            <img
+              class="close"
+              @click="attention_rm_close"
+              src="{:RES_FILES}/common/images/icon_com_close.png"
+              alt=""
+            />
+          </div> -->
+          <!-- <div class="draw_modal1" @click="attention_rm_close"></div> -->
+          <!-- <div class="new_ewm_container" v-else>
+            <div class="line_bg">
+              <img class="logo" alt="品牌Logo" v-if="s_userInfo.logo" :src="s_userInfo.logo" alt="" />
+            </div>
+            <img
+                class="close"
+                @click="attention_rm_close"
+                src="{:RES_FILES}/common/images/icon_com_close.png"
+                alt=""
+              />
+            <img class="new_ewm" src="{:CDN_DOMAIN}/img/default/easyVersion/scjf_ewm.png" alt="" />
+            <p class="tip">长按识别二维码关注公众号</p>
+          </div> -->
+        </div>
+
+        <!-- 自创建品牌 -->
+        <div class="new_ewm_container1" v-show="s_userInfo.is_cu">
+          <div class="brand_text two_txt_cut" ref="brand_text">
+            {{ s_userInfo.brand }}
+          </div>
+          <img
+            class="close"
+            @click="attention_rm_close"
+            src="{:RES_FILES}/common/images/icon_com_close.png"
+            alt=""
+          />
+          <img class="new_ewm" :src="isEwmUrl" alt="" />
+          <p class="tip">长按识别二维码关注公众号</p>
+          <div class="rm_tip">百万人脉&nbsp;天天领</div>
+        </div>
+      </div>
+      <!-- 新增促开通 -->
+      <!-- <div
+        class="draw_modal"
+        v-if="isPayModalEL && !isBrandId && elementStatus"
+      ></div>
+      <transition enter-active-class="animated zoomIn">
+        <div
+          class="pay_cm_modal"
+          :style="jh_popup"
+          v-if="isPayModalEL && !isBrandId && elementStatus"
+        >
+          <img
+            :src="s_userInfo.logo"
+            class="logo"
+            v-if="!brandEleImgs.jh_popup && brandEleImgs.pay_status !='#ee0a24'"
+            alt=""
+            srcset=""
+          />
+          <div
+            class="brand"
+            v-if="!brandEleImgs.jh_popup && brandEleImgs.pay_status =='#ee0a24'"
+          >
+            {{s_userInfo.brand}}
+          </div>
+          <div
+            class="brand_blue"
+            v-if="!brandEleImgs.jh_popup && brandEleImgs.pay_status !='#ee0a24'"
+          >
+            {{s_userInfo.brand}}
+          </div>
+          <div class="pay_close" @click="_hidePayModalEL"></div>
+          <div class="pay_btn" @click="gotoPay"></div>
+        </div>
+      </transition>
+      <div
+        class="draw_modal"
+        v-if="isPayModalEL && isBrandId && elementStatus"
+      ></div>
+      <transition enter-active-class="animated zoomIn">
+        <div
+          class="pay_cm_modal1"
+          v-if="isPayModalEL && isBrandId && elementStatus"
+        >
+          <img
+            class="pop_up"
+            :src="brandEleImgs.jh_popup"
+            @click="gotoPay"
+            alt=""
+          />
+          <img
+            class="close"
+            @click="_hidePayModalEL"
+            src="{:RES_FILES}/common/images/icon_com_close.png"
+            alt=""
+          />
+        </div>
+      </transition>
+
+      新增促开通弹窗
+      <div class="draw_modal" v-if="isPayModalEL && !elementStatus" @click="_hidePayModalEL"></div>
+      <transition enter-active-class="animated zoomIn">
+        <div class="pay_el" v-if="isPayModalEL && !elementStatus">
+          <img
+            class="close"
+            @click="_hidePayModalEL"
+            src="{:RES_FILES}/common/images/icon_com_close.png"
+            alt=""
+          />
+          <img
+            class="el_img"
+            src="{:CDN_DOMAIN}/06_BG.png"
+            alt=""
+          style="height:90% !important;"/>
+          <div class="pay_btn" @click="gotoPay">立即特惠价激活</div>
+        </div>
+      </transition> -->
+
+      <!-- <ul class="common_tab" ref="dk_foot">
+        <li
+          v-for="(item, index) in tabList"
+          @click="gWm(item)"
+          :class="{is_active : item.isActive}"
+          :key="index"
+        >
+          <img :src="item.pic" class="pic" alt="" />
+          <p class="name">{{item.name}}</p>
+          <img
+            class="hot animated pulse infinite"
+            v-if="item.name=='人脉圈'"
+            src="{:CDN_DOMAIN}/Public/default/images/hot_pic.png"
+            alt=""
+          />
+        </li>
+      </ul> -->
+
+      <div class="tab-nav-list" ref="dk_foot">
+        <div
+          class="nav-item"
+          v-for="(item, index) in tabNavList"
+          :key="item.id"
+          :class="{isActive: item.isActive}"
+          @click="switchChangeNav(item, index)"
+        >
+          <img
+            class="icon"
+            :class="{menuIcon: item.isCenter}"
+            :src="item.icon"
+            alt=""
+          />
+          <span class="text">{{ item.text }}</span>
+        </div>
+      </div>
+    </van-pull-refresh>
+    </div>
+    <!--  -->
+  </body>
+  <script src="{:RES_FILES}/common/js/vue.js"></script>
+  <script src="{:RES_FILES}/common/js/vue-resource.js"></script>
+  <script src="{:RES_FILES}/common/mint-ui/index.js"></script>
+  <script src="{:RES_FILES}/common/vant-ui/vant@2.5.3.min.js"></script>
+  <script
+    type="text/javascript"
+    src="http://res2.wx.qq.com/open/js/jweixin-1.4.0.js"
+  ></script>
+  <script src="{:RES_FILES}/common/js/_wxClose.js"></script>
+  <script src="{:RES_FILES}/common/js/getBrandLogo.js?v={:STATIC_VAR}"></script>
+  <script src="{:RES_FILES}/common/js/getEwmModal.js?v={:STATIC_VAR}"></script>
+  <!-- <script src="{:RES_FILES}/common/js/attention.js"></script> -->
+  <script>
+    "use strict";
+    var URL = "http://{:API_SUB_DOMAIN}.{:DOMAIN}"; //正式服
+    var API_URL = "{:API_DOMAIN}";
+    var H5_URL = "{:H5_DOMAIN}";
+    var ARTICLE_DETAIL_ACTION = "{:ARTICLE_DETAIL_ACTION}";
+    // 多域名
+    var ROUTE_URL = "{:ROUTE_DOMAIN}";
+    var ROUTE_ARTICLE_DOMAIN = "{:ROUTE_ARTICLE_DOMAIN}"; //文章列表授权
+    var ROUTE_DETAIL_DOMAIN = "{:ROUTE_DETAIL_DOMAIN}"; //文章详情授权
+    var APP_SUB = "{:APP_SUB}";
+    var VOTE_URL = "{:VOTE_URL}";
+    const NEW_IMG_URL = "{:REGISTER_PUBLIC}img/easyVersion/newColorVersion";
+    let timeoutId; // 定义搜索time标志位 (节流)
+    let timeoutTouch; //定义touch标志位
+    let startPos; // 取第一个touch的坐标值
+    let startX; //x的起点坐标
+    let startY; //y的起点坐标
+    let moveEndX; //滑动中的x坐标
+    let moveEndY; //滑动中的y的坐标
+    let X; //x的差值
+    let Y; //y的差值
+    new Vue({
+      el: "#app",
+      data: function data() {
+        return {
+          NEW_IMG_URL: "{:REGISTER_PUBLIC}img/easyVersion/newColorVersion",
+          userInfo: {},
+          s_userInfo: {},
+          isEwmUrl: "", //未关注二维码
+          activeCategoryId: -1, //默认选中
+          categories: [], //tab栏
+          list_count: [], //列表数据
+          queryLoading: false,
+          moreLoading: false, //加载中
+          allLoaded: false, //全部加载完成
+          topStatus: "",
+          tabList: [
+            {
+              pic: "" + NEW_IMG_URL + "/icon_hot_sel.png",
+              name: "品牌资讯",
+              isActive: "1",
+            },
+            {
+              pic: "" + NEW_IMG_URL + "/icon_donghua.png",
+              name: "获客动画",
+            },
+            {
+              pic: "" + NEW_IMG_URL + "/icon_renmai.png",
+              name: "人脉圈",
+            },
+            {
+              pic: "" + NEW_IMG_URL + "/icon_my.png",
+              name: "个人中心",
+            },
+          ],
+          tabNavList: [
+            {
+              id: 1,
+              icon: "{:REGISTER_PUBLIC}img/newVer/tabIcon_news_sel.png",
+              text: "品牌资讯",
+              isActive: true,
+            },
+            {
+              id: 2,
+              icon: "{:REGISTER_PUBLIC}img/newVer/tabIcon_anima.png",
+              text: "获客动画",
+            },
+            {
+              id: 3,
+              isCenter: true,
+              icon: "{:REGISTER_PUBLIC}img/newVer/tabIcon_menu.png",
+              text: "",
+            },
+            {
+              id: 4,
+              icon: "{:REGISTER_PUBLIC}img/newVer/tabIcon_rm.png",
+              text: "人脉圈",
+            },
+            {
+              id: 5,
+              icon: "{:REGISTER_PUBLIC}img/newVer/tabIcon_mine.png",
+              text: "个人中心",
+            },
+          ],
+          page: 1,
+          limit: 20,
+          attention_rm: false,
+          classifycan: false,
+          ewmNewPic: "", //新二维码
+          classify: [],
+          selectClassifylist: [],
+          subShow: -1,
+          classifySub: [],
+          ccids: "",
+          followNum: 0,
+          isShowTelTip: false,
+          brandEleImgs: {
+            articleListHBg: "",
+          }, //品牌元素列表
+          isPayModalEL: false,
+          otherBid: "",
+          pageSize: 20, // 每页条数
+          pageIndex: 1, // 页码
+          isDownLoading: false, // 下拉刷新
+          isUpLoading: false, // 上拉加载
+          upFinished: false, // 上拉加载完毕
+          offset: 100, // 滚动条与底部距离小于 offset 时触发load事件
+          newsActive: "-1",
+          nothing: false,
+          navList: [],
+          newsList: [],
+          jifen:{},
+          isfixed:false
+        };
+      },
+      computed: {
+        isRoleId() {
+          return this.s_userInfo.roleId === "2";
+        },
+        isBrandId() {
+          if (this.brandEleImgs.jh_popup_new) {
+            return this.brandEleImgs.jh_popup_new == 1;
+          }
+        },
+        elementStatus() {
+          if (this.brandEleImgs.element_status) {
+            return this.brandEleImgs.element_status == 1;
+          }
+        },
+        jh_popup() {
+          if (this.brandEleImgs.jh_popup) {
+            return `background-image:url(${this.brandEleImgs.jh_popup})`;
+          } else {
+            if (this.brandEleImgs.pay_status === "#ee0a24") {
+              return `background-image:url('/Public/default/images/newIndex/pay_common_modal.png')`;
+            } else {
+              return `background-image:url('/Public/default/images/newIndex/pay_common_modal_blue.png')`;
+            }
+          }
+        },
+        headerBg() {
+          let url =
+            "{:CDN_DOMAIN}/_wmp_upload_photo_20191025114528_5db26fd8c6713.png";
+          if (this.brandEleImgs && this.brandEleImgs.articleListHBg) {
+            return `background-image:url(${
+              this.brandEleImgs && this.brandEleImgs["articleListHBg"]
+            })`;
+          } else {
+            return "background-image:url(" + url + ")";
+          }
+        },
+        isCommon() {
+          return this.s_userInfo.roleId === "1"
+            ? "非会员"
+            : this.s_userInfo.eternal === "0"
+            ? "正式会员"
+            : "永久会员";
+        },
+        isCommonCls() {
+          return this.s_userInfo.roleId === "1"
+            ? "common"
+            : this.s_userInfo.eternal === "0"
+            ? "year"
+            : "extreme";
+        },
+      },
+      created: function created() {
+        this._getLoginInfo(); //获取用户信息
+        WxClose.call(this, location.href);
+      },
+      mounted() {},
+      methods: {
+        switchTab(name) {
+          this.activeCategoryId = name;
+          this.classifycan = false;
+          this.pageIndex = 1;
+          this.newsList = [];
+          this.$toast.loading({
+            duration: 0,
+            forbidClick: true,
+            message: "加载中...",
+          });
+          this._getNewsList();
+        },
+        // 下拉刷新
+        onDownRefresh() {
+          this.pageIndex = 1;
+          this.newsList.length = 0;
+          this.upFinished = false;
+          this._getNewsList(); // 加载数据
+        },
+        // 上拉加载请求方法
+        onLoadList() {
+          this.pageIndex++;
+          this._getNewsList();
+        },
+        _getNewsList() {
+          const _this = this;
+          this.$toast.loading("加载中...");
+          this.$http
+            .get(API_URL + "/news/getNewsList", {
+              params: {
+                token: this.userInfo.token,
+                vid: this.s_userInfo.vid,
+                bid: this.otherBid,
+                ccid: this.activeCategoryId,
+                page: this.pageIndex,
+                pageSize: this.pageSize,
+                ccids: this.ccids,
+                cate_id: this.s_userInfo.cate_id,
+              },
+            })
+            .then(
+              (res) => {
+                this.$toast.clear();
+                if (res.body.errCode === 0) {
+                  const data = res.body.data;
+                  if (data == null || data.length == 0) {
+                    // 加载结束
+                    this.isDownLoading = false;
+                    this.upFinished = true;
+                    this.nothing = this.pageIndex == 1;
+                    return;
+                  }
+                  this.nothing = false;
+                  if (data !== null) {
+                    let bpage = 0;
+                    if (typeof data[data.length - 1].bpage != "undefined") {
+                      bpage = data[data.length - 1].bpage;
+                      delete data[data.length - 1];
+                      data.length = data.length - 1;
+                    }
+                    // 处理数据
+                    if (_this.pageIndex === 1) {
+                      _this.newsList = data;
+                    } else {
+                      _this.newsList = _this.newsList.concat(data);
+                    }
+                    _this.pageIndex = _this.pageIndex + 1 + bpage;
+                    _this.isUpLoading = false;
+                  }
+                } else {
+                  this.upFinished = true;
+                  console.log("code is not 200");
+                }
+              },
+              (err) => {
+                console.log("请求失败");
+              }
+            )
+            .catch((err) => {
+              this.$toast.clear();
+              console.log("获取资源列表异常");
+            })
+            .finally(() => {
+              this.isDownLoading = false;
+              this.isUpLoading = false;
+            });
+        },
+        gWm(item) {
+          switch (item.name) {
+            case "品牌资讯":
+              location.href =
+                URL + `/${APP_SUB}/news/all?otherBid=${this.otherBid}`;
+              break;
+            case "人脉追踪":
+              location.href =
+                URL + `/${APP_SUB}/poster/index?otherBid=${this.otherBid}`;
+              break;
+            case "人脉圈":
+              location.href =
+                URL + `/${APP_SUB}/Connection/index?otherBid=${this.otherBid}`;
+              break;
+            case "个人中心":
+              location.href = URL + `/${APP_SUB}/member/modify`;
+              break;
+          }
+        },
+        switchChangeNav(item) {
+          switch (item.id) {
+            case 1:
+              location.href = `/${APP_SUB}/news/all?otherBid=${this.otherBid}`;
+              break;
+            case 2:
+              // location.href = `/${APP_SUB}/poster/index?otherBid=${this.otherBid}`;
+              location.href = URL + `/${APP_SUB}/follow/index`;
+              break;
+            case 3:
+              // location.href = `/${APP_SUB}/ArticleUpload/upload_prev`;
+              location.href = `/Art/ArticleUpload/upload_prev`;
+              break;
+            case 4:
+              location.href = `/${APP_SUB}/Connection/index?otherBid=${this.otherBid}`;
+              break;
+            case 5:
+              location.href = `/${APP_SUB}/member/modify`;
+              break;
+          }
+        },
+        _handleTouch() {
+          let dk_foot = this.$refs.dk_foot;
+          let swiperScroll = this.$refs.swiperScroll;
+          console.warn(swiperScroll);
+          // 开始滑动
+          swiperScroll.addEventListener(
+            "touchstart",
+            function (event) {
+              var touch = event.targetTouches[0]; //touches数组对象获得屏幕上所有的touch，取第一个touch
+              startPos = {
+                x: touch.pageX,
+                y: touch.pageY,
+                time: +new Date(),
+              }; //取第一个touch的坐标值
+              startX = event.changedTouches[0].pageX;
+              startY = event.changedTouches[0].pageY;
+            },
+            {
+              passive: true,
+            }
+          );
+          // 滑动中
+          swiperScroll.addEventListener(
+            "touchmove",
+            function (event) {
+              moveEndX = event.changedTouches[0].pageX;
+              moveEndY = event.changedTouches[0].pageY;
+              X = moveEndX - startX;
+              Y = moveEndY - startY;
+              if (Math.abs(X) > Math.abs(Y) && X > 0) {
+              } else if (Math.abs(X) > Math.abs(Y) && X < 0) {
+                // alert("right 2 left")
+              } else if (Math.abs(Y) > Math.abs(X) && Y > 0) {
+                // alert("top 2 bottom")
+                if (timeoutTouch) clearTimeout(timeoutTouch);
+
+                timeoutTouch = setTimeout(() => {
+                  dk_foot.style.transform = `translate3d(0,0, 0)`;
+                  dk_foot.style.zIndex = 2;
+                  swiperScroll.style.marginBottom = 45 + "px";
+                }, 0);
+              } else if (Math.abs(Y) > Math.abs(X) && Y < 0) {
+                dk_foot.style.transform = `translate3d(0,100%, 0)`;
+                dk_foot.style.zIndex = -1;
+                swiperScroll.style.marginBottom = 0 + "px";
+              } else {
+              }
+              if (
+                event.targetTouches.length > 1 ||
+                (event.scale && event.scale !== 1)
+              ) {
+                // alert("多个手指")
+              }
+            },
+            {
+              passive: true,
+            }
+          );
+          // 滑动结束
+          swiperScroll.addEventListener("touchend", function (event) {});
+        },
+        //获取个人信息
+        _getLoginInfo() {
+          var _this2 = this;
+          var _this = this;
+          this.$http.get(URL + "/" + APP_SUB + "/Visitor/getLoginInfo").then(
+            function (res) {
+              if (res.body.errCode === 0) {
+                console.log(res.body.data)
+                _this2.userInfo = res.body.data;
+                _this2.s_userInfo = res.body.data.userInfo;
+                let otherBid = "";
+                let hasBid =
+                  _this.getUrlKey("otherBid") != "undefined" &&
+                  _this.getUrlKey("otherBid");
+                if (hasBid) {
+                  otherBid = _this.getUrlKey("otherBid");
+                  this._getBrand(otherBid);
+                } else {
+                  otherBid = _this.s_userInfo.bid;
+                  document.title = "品牌资讯";
+                  getBrandLogo.call(
+                    _this2,
+                    _this2.s_userInfo.bid,
+                    _this2.userInfo.token
+                  );
+                  if (_this2.s_userInfo.brand.length <= 6) {
+                    _this2.$nextTick(() => {
+                      _this2.$refs.brand_text &&
+                        _this2.$refs.brand_text.classList.add("brand_line");
+                    });
+                  }
+                }
+                this.otherBid = otherBid;
+
+                // getBrandLogo.call(
+                //   _this2,
+                //   _this2.s_userInfo.bid,
+                //   _this2.userInfo.token
+                // )
+                getEwmModal.call(_this2, _this2.userInfo.token);
+                _this2._getShowTelTip();
+                _this2._getCatesClassify();
+                _this2.isSubscribe();
+                _this2.getAllClassify();
+                _this2.follow();
+                _this2.getfen()
+                // _this2.scrollFunc();
+                // _this2._handleTouch()
+              } else {
+                console.log("code is not 200");
+              }
+            },
+            function (err) {
+              console.log("请求失败");
+            }
+          );
+        },
+
+        // 获取积分
+        getfen() {
+          this.$http.get("/register/user/index",{
+            params:{
+              token:this.userInfo.token
+            }
+          }).then((res)=>{
+            this.jifen = res.body.data
+          })
+        },
+        _getBrand(otherBid) {
+          var _this = this;
+          _this.$http
+            .get("/brand/getBrandByBid", {
+              params: {
+                token: this.userInfo.token,
+                bid: otherBid,
+              },
+            })
+            .then(
+              function (res) {
+                var data = res.body;
+                _this.s_userInfo.brand = data.name;
+                _this.s_userInfo.logo = data.logo;
+                document.title = "品牌资讯";
+                getBrandLogo.call(_this, _this.otherBid, _this.userInfo.token);
+                if (_this.s_userInfo.brand.length <= 6) {
+                  _this.$nextTick(() => {
+                    _this.$refs.brand_text &&
+                      _this.$refs.brand_text.classList.add("brand_line");
+                  });
+                }
+              },
+              function (err) {
+                console.log("请求失败");
+              }
+            );
+        },
+        toVote() {
+          location.href = VOTE_URL + this.otherBid;
+        },
+        getUrlKey(name) {
+          return (
+            decodeURIComponent(
+              (new RegExp("[?|&]" + name + "=" + "([^&;]+?)(&|#|;|$)").exec(
+                location.href
+              ) || [, ""])[1].replace(/\+/g, "%20")
+            ) || null
+          );
+        },
+        gotoPay() {
+          location.href = `${H5_URL}/${APP_SUB}/Pay/pay?otherBid=${this.otherBid}`;
+        },
+        _hidePayModalEL() {
+          this.isPayModalEL = false;
+        },
+        //判断非会员展示弹出手机号
+        _getShowTelTip() {
+          if (!this.s_userInfo.tel || this.s_userInfo.tel.length != 11) {
+            setTimeout(() => {
+              this.isShowTelTip = true;
+            }, 2000);
+          }
+        },
+        // 确认拨打电话
+        _showCallModal() {
+          let tel = this.s_userInfo.tel;
+          if (tel.length == 11) {
+            location.href = "tel:" + tel;
+          }
+        },
+        /*头部的js效果*/
+        scrollFunc() {
+          var _this = this;
+          let type = document.querySelector(".type"); //默认最外容器
+          let type_none = document.querySelector(".type_none"); //切换容器
+          let scrollConatainer = document.querySelector(".type-container_test"); //选择品牌分类弹窗
+          let classifyselect = document.querySelector(".classifyselect"); //选择品牌分类弹窗
+          let typeHeight = type.offsetHeight;
+          window.onscroll = function () {
+            let offsetTop =
+              document.body.scrollTop || document.documentElement.scrollTop;
+            if (offsetTop >= typeHeight) {
+              type.style.opacity = 0;
+              type_none.style.zIndex = 3;
+              type_none.style.opacity = 1;
+              scrollConatainer.classList.add("isFixed");
+              _this.$refs.selectBtn.style.display = "block";
+              _this.$refs.selectBtn.classList.add("def");
+            } else {
+              type.style.opacity = 1;
+              type_none.style.opacity = 0;
+              type_none.style.zIndex = 0;
+              scrollConatainer.classList.remove("isFixed");
+              if (offsetTop <= 0) {
+                _this.$refs.selectBtn.classList.remove("def");
+                _this.$refs.selectBtn.style.display = "block";
+              } else {
+                _this.$refs.selectBtn.style.display = "none";
+              }
+            }
+          };
+        },
+        attention_rm_close() {
+          this.attention_rm = false;
+          if (!this.isRoleId) this.isPayModalEL = true;
+        },
+        //切换tab
+        toggleTab: function toggleTab(event) {
+          this.classifycan = false;
+          this.activeCategoryId = event.target.id;
+          this.page = 1;
+          this.list_count = [];
+          this.allLoaded = false;
+          this.loadMore();
+          // this.$refs.selectBtn.classList.add("def")
+          this.$refs.selectBtn.style.display = "block";
+          var winwidth = event.target.offsetParent.clientWidth;
+          var liwidth = event.target.clientWidth;
+          var ulwidth = event.target.offsetParent.scrollWidth;
+          event.target.offsetParent.scrollLeft =
+            event.target.offsetLeft - winwidth / 2 + liwidth / 2;
+        },
+        // 以后不弹弹窗
+        cancelFirstVip() {
+          this.$http
+            .get(API_URL + "/user/saveFirstvip", {
+              params: {
+                token: this.token,
+                vid: this.userInfo.vid,
+                mid: this.userInfo.mid,
+              },
+            })
+            .then(
+              function (res) {
+                if (res.body.errCode == 0) {
+                } else {
+                  console.log("code is not 200");
+                }
+              },
+              function (err) {
+                console.log("请求失败");
+              }
+            );
+        },
+        //类别展示按钮
+        classifyCancle: function classifyCancle() {
+         
+          // selectBtn
+          // if (this.$refs.container_test.classList.contains("isFixed")) {
+          //   this.$refs.selectBtn.classList.add("def");
+          //   // this.$refs.selectBtn.style.top = 2.2 + "rem"
+          // } else {
+          //   this.$refs.selectBtn.classList.remove("def");
+          // }
+            // this.isfixed = !this.isfixed 
+          this.classifycan = !this.classifycan;
+          // if (this.classifycan) {
+          //   this.$refs.selectBtn.classList.add("cancle");
+          // } else {
+          //   this.$refs.selectBtn.classList.remove("cancle");
+          // }
+        },
+        //跳转
+        goto_detail: function goto_detail(item) {
+          console.log(item);
+          // if (item.is110 == 1) {
+          //   alert("系统检测到该文章包含敏感词，禁止分享！");
+          //   return false;
+          // }
+          if (item.mid > 0 && !this.isRoleId) {
+            this.isPayModalEL = true;
+            return false;
+          }
+          var uid = this.userInfo.vid;
+          location.href =
+            // URL +
+            ROUTE_DETAIL_DOMAIN +
+            "?nid=" +
+            item.id +
+            "&cid=" +
+            item.cid +
+            "&uid=" +
+            uid +
+            "&otherBid=" +
+            this.otherBid;
+        },
+        _gJstx() {
+          location.href =
+            URL + `/${APP_SUB}/Connection/index?otherBid=${this.otherBid}`;
+        },
+        gEditor: function gEditor() {
+          //编辑资料
+          location.href = URL + `/${APP_SUB}/Member/modify`;
+        },
+        gChat: function gChat() {
+          this.cancelFirstVip();
+          location.href =
+            URL + `/${APP_SUB}/Service/index?otherBid=${this.otherBid}`;
+        },
+        pay() {
+          //支付页面
+          location.href = URL + `/${APP_SUB}/Pay/pay?otherBid=${this.otherBid}`;
+        },
+        goFollow: function goFollow() {
+          //客户追踪
+          location.href = URL + `/${APP_SUB}/follow/index`;
+        },
+        changeBrand: function changeBrand() {
+          location.href = H5_URL + "/" + APP_SUB + "/Brand/choose";
+        },
+        follow() {
+          var _this = this;
+          this.$http
+            .get(API_URL + "/follow/getViewTotal", {
+              params: {
+                token: this.userInfo.token,
+              },
+            })
+            .then(
+              function (res) {
+                console.log(res);
+                if (res.data.status == 1) {
+                  if (res.data.data > 99) {
+                    _this.followNum = "99+";
+                  } else {
+                    _this.followNum = res.data.data;
+                  }
+                } else {
+                  console.log("code is not 200");
+                }
+              },
+              function (err) {
+                console.log("请求失败");
+              }
+            );
+        },
+        //判断是否需选中类别
+        selectClassify: function selectClassify(e) {
+          var selectClassifylist = this.selectClassifylist;
+          if (typeof e.is_lock != "undefined") {
+            if (e.is_lock == 1) {
+              var selectindex = selectClassifylist.indexOf(e.mid);
+              if (selectindex == -1) {
+                selectClassifylist.push(e.mid);
+                this.selectClassifylist = selectClassifylist;
+              }
+              return "lock";
+            } else {
+              // return false;
+            }
+          } else {
+            if (typeof e.sub == "undefined") {
+              if (selectClassifylist.indexOf(e.mid) > -1) {
+                return "active";
+              }
+            } else {
+              var catesub = e.sub;
+              for (var i = 0; i < catesub.length; i++) {
+                if (typeof catesub[i].is_lock != "undefined") {
+                  if (catesub[i].is_lock == 1) {
+                    if (selectClassifylist.indexOf(catesub[i].mid) == -1) {
+                      selectClassifylist.push(catesub[i].mid);
+                      this.selectClassifylist = selectClassifylist;
+                    }
+                    return "lock";
+                  }
+                } else {
+                  if (selectClassifylist.indexOf(catesub[i].mid) > -1) {
+                    return "active";
+                  }
+                }
+              }
+            }
+          }
+        },
+        //是否必选
+        selectClassifylock: function selectClassifylock(e) {
+          var selectClassifylist = this.selectClassifylist;
+        },
+        getindex: function getindex(e) {
+          var selectClassifylist = this.selectClassifylist;
+          if (typeof e.sub != "undefined") {
+            var catesub = e.sub;
+            var a = 0;
+            for (var i = 0; i < catesub.length; i++) {
+              var itemid = catesub[i].mid;
+              if (selectClassifylist.indexOf(itemid) > -1) {
+                a++;
+              }
+            }
+            if (a > 0) {
+              return a;
+            }
+          }
+        },
+        // 选择类别
+        classifyBtnSelect: function classifyBtnSelect(e, index) {
+          var _this = this;
+          var thisselect = this.selectClassifylist;
+
+          if (typeof e.sub != "undefined") {
+            this.classifySub = e.sub;
+            if (this.subShow == index) {
+              this.subShow = -1;
+            } else {
+              this.subShow = index;
+            }
+          } else {
+            this.subShow = -1;
+            if (thisselect == "") {
+              this.selectClassifylist = e.mid;
+            } else {
+              var selectindex = thisselect.indexOf(e.mid);
+              if (e.is_lock) {
+                if (e.is_lock == 1) {
+                  if (selectindex == -1) {
+                    thisselect.push(e.mid);
+                    this.selectClassifylist = thisselect;
+                  }
+                }
+              } else {
+                if (selectindex > -1) {
+                  thisselect.splice(selectindex, 1);
+                  this.selectClassifylist = thisselect;
+                } else {
+                  thisselect.push(e.mid);
+                  this.selectClassifylist = thisselect;
+                }
+              }
+            }
+          }
+        },
+        // 选择子类别
+        classifySubBtnSelect: function classifySubBtnSelect(e) {
+          var _this = this;
+          var thisselect = this.selectClassifylist;
+          if (thisselect == "") {
+            this.selectClassifylist = e.mid;
+          } else {
+            var selectindex = thisselect.indexOf(e.mid);
+            if (selectindex > -1) {
+              thisselect.splice(selectindex, 1);
+              this.selectClassifylist = thisselect;
+            } else {
+              thisselect.push(e.mid);
+              this.selectClassifylist = thisselect;
+            }
+          }
+        },
+        //判断是否选择过类别
+        _getCatesClassify: function _getCatesClassify(e) {
+          var _this = this;
+          var catestring = "";
+          this.$http
+            .get(URL + "/member/getCids", {
+              params: {
+                token: this.userInfo.token,
+                vid: this.userInfo.userInfo.vid,
+              },
+            })
+            .then(
+              function (res) {
+                if (res.body.errCode == 0) {
+                  if (!res.body.data) {
+                    //默认选中的类别
+                    this.$http
+                      .get(
+                        "{:NEWS_API_DOMAIN}/newsV3/getDefaultCids?appid=3&industryid=1",
+                        {
+                          params: {
+                            token: this.userInfo.token,
+                            vid: this.userInfo.userInfo.vid,
+                            cate_id: this.s_userInfo.cate_id,
+                          },
+                        }
+                      )
+                      .then(
+                        function (res) {
+                          if (res.body.errCode == 0) {
+                            _this.ccids = res.body.data;
+                            _this.getCates(res.body.data);
+                          } else {
+                            console.log("code is not 200");
+                          }
+                        },
+                        function (err) {
+                          console.log("请求失败");
+                        }
+                      );
+                  } else {
+                    _this.ccids = res.body.data;
+                    _this.getCates(res.body.data);
+                  }
+                } else {
+                  console.log("code is not 200");
+                }
+              },
+              function (err) {
+                console.log("请求失败");
+              }
+            );
+        },
+        // 获取类别
+        getCates: function getCates(catestring) {
+          var _this = this;
+          this.$http
+            .get(API_URL + "/news/getTyCids?mode=1&appid=3&industryid=1", {
+              params: {
+                token: this.userInfo.token,
+                vid: this.userInfo.userInfo.vid,
+                cids: catestring,
+                cate_id: this.s_userInfo.cate_id,
+              },
+            })
+            .then(
+              function (res) {
+                if (res.body.errCode == 0) {
+                  // _this.categories=res.body.data;
+                  var categories = res.body.data;
+                  var selectClassifylist = [],
+                    catego = [];
+                  for (var i = 0; i < categories.length; i++) {
+                    if (categories[i].enable != 0) {
+                      catego.push(categories[i]);
+                    }
+                  }
+                  for (var i = 0; i < categories.length; i++) {
+                    if (categories[i].enable != 0) {
+                      selectClassifylist.push(categories[i].mid);
+                    }
+                  }
+                  // categories.forEach(item=>{
+                  //     selectClassifylist.push(item.mid);
+
+                  // })
+                  _this.categories = catego;
+                  _this.categories[1].name = _this.s_userInfo.brand;
+                  //
+                  if (_this.s_userInfo.is_cu) {
+                    _this.categories = _this.categories.filter(
+                      (v) => v.name !== "公司资讯"
+                    );
+                  }
+                  //
+                  _this.selectClassifylist = selectClassifylist;
+                  _this.activeCategoryId = res.body.data[0].mid;
+                  _this._getNewsList();
+                } else {
+                  console.log("code is not 200");
+                }
+              },
+              function (err) {
+                console.log("请求失败");
+              }
+            );
+        },
+        // 数组转为字符串
+        arrToString: function arrToString(string) {
+          var a, b;
+          a = new Array(string);
+          b = a.join("_");
+          return b;
+        },
+        //所有类别
+        getAllClassify: function getAllClassify() {
+          var _this = this;
+          this.$http
+            .get(
+              "{:NEWS_API_DOMAIN}/newsV3/getAllCids?mode=1&appid=3&industryid=1",
+              {
+                params: {
+                  token: this.userInfo.token,
+                  vid: this.userInfo.userInfo.vid,
+                  cate_id: this.s_userInfo.cate_id,
+                },
+              }
+            )
+            .then(
+              function (res) {
+                if (res.body.errCode == 0) {
+                  var calssdata = res.body.data;
+                  var classifylist = [],
+                    i = 0,
+                    j = 0;
+                  for (var i = 0; i < calssdata.length; i++) {
+                    var zhi = i % 4;
+                    if (zhi == 0) {
+                      classifylist[j] = calssdata.slice(i, i + 4);
+                      j++;
+                    }
+                  }
+                  _this.classify = classifylist;
+                } else {
+                  console.log("code is not 200");
+                }
+              },
+              function (err) {
+                console.log("请求失败");
+              }
+            );
+        },
+        sureClassify: function sureClassify() {
+          var _this = this;
+          var slist = this.selectClassifylist;
+          var setstring = slist.join("_");
+          this.$http
+            .get(URL + "/member/setCids", {
+              params: {
+                token: this.userInfo.token,
+                vid: this.userInfo.userInfo.vid,
+                cids: setstring,
+              },
+            })
+            .then(
+              function (res) {
+                if (res.body.errCode == 0) {
+                  _this.classifycan = false;
+                  // _this.$refs.selectBtn.classList.remove("cancle");
+                  _this.subShow = -1;
+                  _this.ccids = setstring;
+                  _this.page = 1;
+                  _this.list_count = [];
+                  _this.getCates(setstring);
+                } else {
+                  // alert("设置失败");
+                  _this.classifycan = false;
+                  // _this.$refs.selectBtn.classList.remove("cancle");
+                  console.log("code is not 200");
+                }
+              },
+              function (err) {
+                console.log("请求失败");
+              }
+            );
+        },
+
+        isSubscribe() {
+          var _this = this;
+          this.$http
+            .get(URL + "/" + APP_SUB + "/visitor/isSubscribe", {
+              params: {
+                token: this.token,
+                vid: this.userInfo.vid,
+              },
+            })
+            .then(
+              function (res) {
+                if (res.body.errCode == 0) {
+                  if (res.data.data == 0) {
+                    _this.attention_rm = true;
+                  } else {
+                    if (!_this.isRoleId) _this.isPayModalEL = true;
+                  }
+                } else {
+                  console.log("code is not 200");
+                }
+              },
+              function (err) {
+                console.log("请求失败");
+              }
+            );
+        },
+        //字符串是否全是数字
+        isNumber: function isNumber(str) {
+          if (/^[0-9]+$/.test(str)) {
+            return true;
+          } else {
+            return false;
+          }
+        },
+        //下拉触发
+        loadTop: function loadTop() {
+          this.page = 1;
+          this.list_count = [];
+          this.loadMore();
+        },
+        handleTopChange: function handleTopChange(status) {
+          this.topStatus = status;
+        },
+        //获取列表数据
+        loadMore() {
+          var _this4 = this;
+          this.moreLoading = !this.queryLoading;
+          this.$http
+            .get(API_URL + "/news/getNewsList", {
+              params: {
+                token: this.userInfo.token,
+                vid: this.s_userInfo.vid,
+                bid: this.otherBid,
+                ccid: this.activeCategoryId,
+                page: this.page,
+                pageSize: this.limit,
+                ccids: this.ccids,
+                cate_id: this.s_userInfo.cate_id,
+              },
+            })
+            .then(
+              function (res) {
+                _this4.$refs.loadmore.onTopLoaded();
+                if (res.body.errCode === 0) {
+                  var data = res.body.data;
+                  // console.log(data);
+                  if (data !== null) {
+                    _this4.moreLoading = true;
+                    _this4.allLoaded = false;
+                    let bpage = 0;
+                    if (typeof data[data.length - 1].bpage != "undefined") {
+                      bpage = data[data.length - 1].bpage;
+                      delete data[data.length - 1];
+                      data.length = data.length - 1;
+                    }
+                    if (_this4.page == 1) {
+                      _this4.list_count = [];
+                    }
+                    _this4.page = _this4.page + 1 + bpage;
+                    _this4.list_count = _this4.list_count.concat(data);
+                  } else {
+                    _this4.moreLoading = false;
+                    _this4.allLoaded = true;
+                  }
+                } else {
+                  _this4.moreLoading = false;
+                  _this4.allLoaded = true;
+                }
+                _this4.moreLoading = _this4.allLoaded;
+              },
+              function (err) {
+                _this4.$refs.loadmore.onTopLoaded();
+                console.log("请求失败");
+              }
+            );
+        },
+      },
+    });
+  </script>
+</html>

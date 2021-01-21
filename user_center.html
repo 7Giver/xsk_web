@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>个人主页</title>
+	<link rel="stylesheet" href="{:REGISTER_PUBLIC}css/news/base.css">
+	<link rel="stylesheet" href="{:REGISTER_PUBLIC}css/news/grcenter.css">
+	<link rel="stylesheet" href="{:REGISTER_PUBLIC}css/news/base.css" />
+	<link rel="stylesheet" href="{:REGISTER_PUBLIC}css/news/animate.min.css" />
+	<link
+		rel="stylesheet"
+		href="https://cdn.jsdelivr.net/npm/vant@2.10/lib/index.css"
+	/>
+	<link rel="stylesheet" href="https://unpkg.com/mint-ui/lib/style.css">
+</head>
+
+<body style="background: #f5f5f5;">
+	<div id="app"  v-cloak style="background: #f5f5f5;">
+	<van-pull-refresh v-model="isLoading" @refresh="onRefresh">
+		<div class="gr">
+			<div class="gr_title">
+				<div class="gr_title_l">
+					<img :src="visitor.upic" alt="" class="gr_tx">
+					<div class="gr_title_name">
+						<div class="gr_name_t">
+							<span>{{visitor.name}}</span>
+							<span>{{visitor.title}}</span>
+						</div>
+						<div class="gr_name_b" @click="call">
+							<img src="{:REGISTER_PUBLIC}img/newVer/ph1.png" alt="">
+							<span v-if="visitor.roleId == 2">&nbsp{{visitor.tel}}</span>
+							<span v-if="visitor.roleId == 1">&nbsp{{visitor.show_tel}}</span>
+							<span v-if="visitor.tel == ''">&nbsp暂无电话</span>
+							
+						</div>
+					</div>
+				</div>
+				<div class="gr_title_r">
+					<div class="gr_title_ca" @click="guanzhu">
+						<img src="{:REGISTER_PUBLIC}img/newVer/jia.png" alt="">
+						<span v-if="!care">&nbsp关注</span>
+						<span v-else>&nbsp已关注</span>
+					</div>
+					<img src="{:REGISTER_PUBLIC}img/newVer/news.png" alt="" class="news">
+				</div>
+			</div>
+			<div class="gr_fr">
+				<div class="gr_fr_list">
+					<p>{{fans.friends}}</p>
+					<p>好友</p>
+				</div>
+				<div class="gr_fr_list">
+					<p>{{fans.focus}}</p>
+					<p>关注</p>
+				</div>
+				<div class="gr_fr_list fmyfans">
+					<p class="myfans">{{fans.fans}}</p>
+					<p>粉丝</p>
+				</div>
+			</div>
+			<div class="znews">
+				<img src="{:REGISTER_PUBLIC}img/newVer/znews.png" alt="">
+			</div>
+			<van-list
+				v-model="loading"
+				:finished="finished"
+				finished-text="没有更多了"
+				@load="onLoad"
+			>
+				<div class="fr_li">
+
+					<div class="fr_lil" v-for="(item,index) in newslist">
+						<div class="fr_lil_l">
+							<p>{{item.title}}</p>
+							<div class="fr_lil_l_b">
+								<div class="fb_l">
+									<img :src="item.editor_avatar" alt="">
+									<span>{{item.editor_name}}</span>
+								</div>
+								<div class="fb_r">{{item.add_date}}</div>
+							</div>
+						</div>
+						<div class="fr_lil_r">
+							<img :src="item.cover" alt="">
+						</div>
+					</div>
+					
+				</div>
+			</van-list>
+		</div>
+		<div class="tomine animated pulse infinite" 
+			v-if="s_userInfo.vid !== visitor.vid" 
+			@click="tomine"
+		>
+			查看我的个人主页
+		</div>
+	</van-pull-refresh>
+	</div>
+</body>
+
+<script src="{:RES_FILES}/common/js/vue.js"></script>
+<script src="{:RES_FILES}/common/js/vue-resource.js"></script>
+<script src="{:RES_FILES}/common/mint-ui/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vant@2.10/lib/vant.min.js"></script>
+<script
+    type="text/javascript"
+    src="http://res2.wx.qq.com/open/js/jweixin-1.4.0.js"
+  ></script>
+  <script src="https://unpkg.com/mint-ui/lib/index.js"></script>
+<script>
+	"use strict";
+    var URL = "http://{:API_SUB_DOMAIN}.{:DOMAIN}"; //正式服
+    var API_URL = "{:API_DOMAIN}";
+    var H5_URL = "{:H5_DOMAIN}";
+    var ARTICLE_DETAIL_ACTION = "{:ARTICLE_DETAIL_ACTION}";
+    // 多域名
+    var ROUTE_URL = "{:ROUTE_DOMAIN}";
+    var ROUTE_ARTICLE_DOMAIN = "{:ROUTE_ARTICLE_DOMAIN}"; //文章列表授权
+    var ROUTE_DETAIL_DOMAIN = "{:ROUTE_DETAIL_DOMAIN}"; //文章详情授权
+    var APP_SUB = "{:APP_SUB}";
+    var VOTE_URL = "{:VOTE_URL}";
+	var app = new Vue({
+		el: '#app',
+		data() {
+			return {
+				userInfo: {},
+				s_userInfo: {},
+				pageIndex: 1,
+				pageSize:20,
+				ccids:'',
+				newslist:[],
+				loading: false,
+      			finished: false,
+				isLoading: false,
+				fans:{},
+				uid:'',
+				visitor:{},
+				care:false
+			}
+		},
+		computed: {
+            
+		},
+		created() {
+			this._getLoginInfo()
+		},
+		mounted() {
+
+		},
+		methods: {
+			tomine() {
+				var uid = this.s_userInfo.vid 
+				console.log(uid)
+				location.href = URL + `/register/page/user_center?uid=${uid}`;
+			},
+			onLoad() {
+				if(this.newslist.length>=this.pageSize) {
+					this._getNewsList()
+				}
+			},
+			onRefresh() {
+				this.pageIndex =1
+				this._getNewsList()
+			},
+			// 弹出拨打电话框_call
+			call() {
+				var _this5 = this;
+				if(_this5.visitor.roleId == 1) {
+					var tel = _this5.visitor.show_tel || "未设置";
+				}else{
+					var tel = _this5.visitor.tel || "未设置";
+				}
+				
+				if (tel == "未设置" || (tel.indexOf("*") >= 0 && tel.length == 4)) {
+					// this.isCallModal = true
+					if (_this5.visitor.vid == _this5.s_userInfo.vid) {
+					_this5.$messagebox
+						.confirm(
+						'<span class="tip">客户联系不到你哦,设置手机号让客户联系你更方便</span>',
+						{
+							title: "温馨提示",
+							confirmButtonText: "去开通",
+							cancelButtonText: "取消",
+						}
+						)
+						.then(function (action) {
+						if (action == "confirm") {
+							location.href = `${URL}/h5/`;
+						}
+						})
+						.catch(function (err) {
+						if (err == "cancel") {
+						}
+						});
+					} else {
+					_this5.$messagebox
+						.confirm(
+						'<span class="tip">当前用户尚未填写手机号，您的联系请求已收集，稍后会通知到该用户</span>',
+						{
+							title: "温馨提示",
+							confirmButtonText: "确认",
+							cancelButtonText: "取消",
+						}
+						)
+						.then(function (action) {
+						if (action == "confirm") {
+						}
+						})
+						.catch(function (err) {
+						if (err == "cancel") {
+						}
+						});
+					}
+				} else {
+					if (_this5.visitor.vid == _this5.s_userInfo.vid) {
+					if (tel.indexOf("*") >= 0 || _this5.visitor.roleId == 1) {
+						_this5.$messagebox
+						.confirm(
+							'<span class="tip">设置此功能需要开通会员服务</span>',
+							{
+							title: "温馨提示",
+							confirmButtonText: "去开通",
+							cancelButtonText: "取消",
+							}
+						)
+						.then(function (action) {
+							if (action == "confirm") {
+								location.href = `${URL}/h5/`;
+							}
+						})
+						.catch(function (err) {
+							if (err == "cancel") {
+							}
+						});
+					} else {
+						window.location.href = "tel:" + tel;
+					}
+					} else {
+					if (tel.indexOf("*") >= 0 || _this5.visitor.roleId == 1) {
+						_this5.$messagebox
+						.confirm(
+							'<span class="tip">当前用户尚未开通此功能，您的联系请求已收集，稍后会通知到该用户</span>',
+							{
+							title: "温馨提示",
+							confirmButtonText: "确认",
+							cancelButtonText: "取消",
+							}
+						)
+						.then(function (action) {
+							if (action == "confirm") {
+							}
+						})
+						.catch(function (err) {
+							if (err == "cancel") {
+							}
+						});
+					} else {
+						window.location.href = "tel:" + tel;
+					}
+					}
+				}
+			},
+			//获取个人信息
+			_getLoginInfo() {
+				var _this2 = this;
+				var _this = this;
+				this.$http.get(URL + "/" + APP_SUB + "/Visitor/getLoginInfo").then((res)=>{
+					if(res.body.errCode == 0){
+						this.userInfo = res.body.data
+						this.s_userInfo = res.body.data.userInfo
+						var uid = this.getQueryVariable('uid')
+						this.uid = uid
+						this.getDefaultCids()
+						
+						this.userinfo()
+						this._getHome()
+					}else{
+						console.log('code is not 200')
+					}
+				})
+			},
+			// 关注
+			guanzhu() {
+				this.$http.get(API_URL+'/register/friend/focus',{
+						params: {
+						token: this.userInfo.token,
+						focus_id: this.visitor.vid,
+						}
+					}).then((res)=>{
+						if(res.body.errCode == 0) {
+							this.care = true
+							this.$toast({
+								message:'关注成功',
+								duration:1500
+							})
+						}else{
+							this.care = false
+							this.$toast({
+								message:res.body.msg,
+								duration:1500
+							})
+						}
+					})
+				
+			},
+			_getHome() {
+				this.$http.get(API_URL+'/home/getHome',{
+					params: {
+					token: this.userInfo.token,
+					vid: this.s_userInfo.vid,
+					uid: this.uid
+					}
+				}).then((res)=>{
+					if(res.body.errCode == 0) {
+						this.visitor = res.body.data.userInfo
+						console.log(this.visitor)
+						this._getSign()
+					}else{
+						console.log('code is not 200')
+					}
+				})
+			},
+			getQueryVariable(variable)
+				{
+					var query = window.location.search.substring(1);
+					var vars = query.split("&");
+					for (var i=0;i<vars.length;i++) {
+							var pair = vars[i].split("=");
+							if(pair[0] == variable){return pair[1];}
+					}
+					return(false);
+				},
+			_getNewsList() {
+				const _this = this;
+				// this.$toast.loading("加载中...");
+				this.$http
+					.get(API_URL + "/news/getNewsList", {
+						params: {
+							token: this.userInfo.token,
+							vid: this.s_userInfo.vid,
+							bid: this.s_userInfo.bid,
+							ccid: -1,
+							page: this.pageIndex,
+							pageSize: this.pageSize,
+							ccids: this.ccids,
+							cate_id: this.s_userInfo.cate_id,
+						},
+					})
+					.then((res)=>{
+						if(res.body.errCode == 0) {
+							var data = res.body.data
+							if(data.length == 0 || data == null) {
+								this.loading = false
+								this.finished = true
+								this.isLoading = false
+								return
+							}
+							if(this.pageIndex == 1) {
+								if(data.length<this.pageSize) {
+									data.splice(data.length-1,1)
+									this.newslist = data
+									this.loading = false
+									this.finished = true
+									this.isLoading = false
+								}else{
+									data.splice(data.length-1,1)
+									this.newslist = data
+									this.pageIndex+1
+									this.loading = false
+									this.isLoading = false
+								}
+								
+							}else{
+								data.splice(data.length-1,1)
+								this.newslist = data.concat(this.newslist)
+								this.pageIndex+1
+								this.loading = false
+								this.isLoading = false
+							}
+							
+						}
+						
+					})
+			},
+			getDefaultCids() {
+				this.$http.get("{:NEWS_API_DOMAIN}/newsV3/getDefaultCids?appid=3&industryid=1",{
+					params: {
+						token: this.userInfo.token,
+						vid: this.userInfo.userInfo.vid,
+						cate_id: this.s_userInfo.cate_id,
+					}
+				}).then((res)=>{
+					this.ccids = res.body.data
+					this._getNewsList()
+				})
+			},
+			userinfo() {
+				this.$http.get(API_URL + "/register/friend/userinfo",{
+					params: {
+						token:this.userInfo.token,
+						uid: this.visitor.vid
+					}
+				}).then((res)=>{
+					if(res.body.errCode == 0){
+						this.fans = res.body.data
+					}else{
+						console.log('code is not 200')
+					}
+				})
+			},
+			//分享的接口
+			_getSign() {
+				var url = location.href
+			this.$http.get(API_URL+'/h5/Share/getSign',{
+				params: {'url': url}
+			}).then((res)=>{ 
+				var sign = res.body.data 
+				var name = this.visitor.name
+				var title = this.visitor.title
+				var url = location.href + '?uid=' + this.visitor.vid
+				var upic = this.s_userInfo.upic
+				wx.config({
+				debug: false,
+				appId: sign.appId,
+				timestamp: sign.timestamp,
+				nonceStr: sign.nonceStr,
+				signature: sign.signature,
+				jsApiList: ["onMenuShareTimeline", "onMenuShareAppMessage"]
+				})
+				wx.ready(function () {
+				wx.onMenuShareAppMessage({
+					title: `${name}的个人主页`, // 分享标题
+					desc: `姓名：${name}  公司/品牌:${title}`, // 分享描述
+					link: url, // 分享链接
+					imgUrl: upic, // 分享图标
+					success: function () {
+					console.log('分享成功')
+					
+					}, 
+					cancel: function (res) { 
+					console.log(res)
+					}
+				})
+				wx.onMenuShareTimeline({
+					title: `${name}的主页`, // 分享标题
+					desc: '1234565', // 分享描述
+					link: url, // 分享链接
+					imgUrl: upic, // 分享图标
+					success: function () {
+					
+					},
+					cancel: function (res) {
+						console.log(res)
+					}
+				})
+				//微信分享菜单测试
+				
+				})
+
+			})
+			},
+		}
+	})
+</script>
+
+</html>

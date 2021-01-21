@@ -83,7 +83,7 @@
     <!-- 特权弹窗 -->
     <van-popup v-model="showPowerDialog">
       <div class="power_detail">
-        <van-swipe :loop="false" :width="powerWidth" :show-indicators="false" :initial-swipe="powerIndex">
+        <van-swipe :loop="false" :show-indicators="false" :initial-swipe="powerIndex">
           <van-swipe-item v-for="(item, index) in iconList" :key="index">
             <div class="content">
               <img class="top_icon" :src="item.img" alt="">
